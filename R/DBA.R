@@ -69,19 +69,24 @@ dba = function(DBA,mask, minOverlap=2,
       res$config$RangedData=T
    }
 
-   if(is.null(res$parallelPackage)){
+   if(is.null(res$config$parallelPackage)){
       res$config$parallelPackage=DBA_PARALLEL_MULTICORE
    }
-   if(is.null(res$RunParallel)){
+   if(is.null(res$config$RunParallel)){
       res$config$RunParallel=T
    }
-   if(is.null(res$reportInit)){
-      res$config$reportInit="DBA"
-   }
-   if(is.null(res$AnalysisMethod)){
+   if(is.null(res$config$AnalysisMethod)){
       res$config$AnalysisMethod=DBA_EDGER
    }
-   
+
+   if(missing(DBA)){
+      DBA=NULL
+   } 
+   if(is.null(DBA$config$reportInit)){
+      res$config$reportInit="DBA"
+   } else {
+      res$config$reportInit=DBA$config$reportInit
+   }
    if(class(res)!="DBA") {
       class(res) = "DBA"
    }
@@ -149,16 +154,18 @@ dba.peakset = function(DBA=NULL, peaks, sampID, tissue, factor, condition,replic
       if(is.null(res$config$RangedData)) {
          res$config$RangedData=T
       }
-      if(is.null(res$parallelPackage)){
+      if(is.null(res$config$parallelPackage)){
          res$config$parallelPackage=DBA_PARALLEL_MULTICORE
       }
-      if(is.null(res$RunParallel)){
+      if(is.null(res$config$RunParallel)){
          res$config$RunParallel=T
       }
-      if(is.null(res$reportInit)){
+      if(is.null(DBA$config$reportInit)){
          res$config$reportInit="DBA"
+      } else {
+         res$config$reportInit=DBA$config$reportInit
       }
-      if(is.null(res$AnalysisMethod)){
+      if(is.null(res$config$AnalysisMethod)){
          res$config$AnalysisMethod=DBA_EDGER
       }
             
@@ -367,10 +374,10 @@ dba.plotHeatmap = function(DBA, attributes=DBA$attributes, maxSites=1000, minval
    if(length(correlations)==1 & ((correlations[1] == DBA_OLAP_ALL) | (correlations[1] == TRUE)))  {
       if(missing(contrast)) {
    	     correlations = pv.occupancy(DBA, mask=mask, sites=sites, 
-                                     Sort='cor', bCorOnly=T) 
+                                         Sort='cor', bCorOnly=T,CorMethod=distMethod) 
    	   } else {
    	      correlations = dba.overlap(DBA,mask=mask,mode=DBA_OLAP_ALL,bCorOnly=T, report=report,
-   	                               contrast=contrast,method=method,th=th,bUsePval=bUsePval)
+   	                                 contrast=contrast,method=method,th=th,bUsePval=bUsePval,CorMethod=distMethod)
    	   }
    }
    	  

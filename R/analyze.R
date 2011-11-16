@@ -910,11 +910,12 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
          return(NULL)
       }
       data = topTags(con$edgeR$db,nrow(con$edgeR$db$counts))$table
+      counts = con$edgeR$counts
       if(bNormalized){
-         counts = con$edgeR$pseudo.alt
-      } else {
-         counts = con$edgeR$counts
-      }
+      	 sizes = con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors
+      	 counts = t(t(counts)/sizes)
+      	 counts = counts * con$edgeR$common.lib.size
+      } 
    } else if (method=='DESeq') {
    	if (length(find.package(package='DESeq',quiet=T))>0) {
        require(DESeq)
