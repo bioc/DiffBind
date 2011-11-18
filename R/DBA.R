@@ -370,15 +370,19 @@ dba.plotHeatmap = function(DBA, attributes=DBA$attributes, maxSites=1000, minval
                            ...)
 {
    DBA = pv.check(DBA)
-   	  
-   if(length(correlations)==1 & ((correlations[1] == DBA_OLAP_ALL) | (correlations[1] == TRUE)))  {
-      if(missing(contrast)) {
-   	     correlations = pv.occupancy(DBA, mask=mask, sites=sites, 
-                                         Sort='cor', bCorOnly=T,CorMethod=distMethod) 
-   	   } else {
-   	      correlations = dba.overlap(DBA,mask=mask,mode=DBA_OLAP_ALL,bCorOnly=T, report=report,
-   	                                 contrast=contrast,method=method,th=th,bUsePval=bUsePval,CorMethod=distMethod)
-   	   }
+   
+   
+   if(!missing(contrast)) {
+   	 if(!missing(report)) {
+         report = pv.RangedData2Peaks(report)
+      }   	
+      DBA = pv.getPlotData(DBA,attributes=attributes,contrast=contrast,report=report,
+   	                       method=method,th=th,bUsePval=bUsePval,bNormalized=T,
+   	                       bPCA=F,bLog=T,minval=minval,maxval=maxval)
+   }
+   	                          	  
+   if(length(correlations)==1 & ((correlations[1] == DBA_OLAP_ALL) | (correlations[1] == TRUE)))  { 	
+   	  correlations = pv.occupancy(DBA, mask=mask, sites=sites, Sort='cor', bCorOnly=T,CorMethod=distMethod) 
    }
    	  
    if(correlations[1]!=FALSE) {
@@ -390,14 +394,6 @@ dba.plotHeatmap = function(DBA, attributes=DBA$attributes, maxSites=1000, minval
    }
       
    if(!missing(contrast)) {
-   	
-      if(!missing(report)) {
-         report = pv.RangedData2Peaks(report)
-      }
-       	
-      DBA = pv.getPlotData(DBA,attributes=attributes,contrast=contrast,report=report,
-   	                       method=method,th=th,bUsePval=bUsePval,bNormalized=T,
-   	                       bPCA=F,bLog=T,minval=minval,maxval=maxval)
       res = pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes, 
                            ColScheme=colScheme, distMeth=distMethod, 
                            margins=c(margin,margin),...)
@@ -410,11 +406,9 @@ dba.plotHeatmap = function(DBA, attributes=DBA$attributes, maxSites=1000, minval
 		 DBA = pv.sort(DBA, sortFun, mask=mask)
       }
       
-	 
       res = pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes, mask=mask, sites=sites,
                            minval=minval, maxval=maxval, ColScheme=colScheme, distMeth=distMethod, 
                            margins=c(margin,margin),...)
-      
       res = NULL
          
 	  if(!missing(sortFun)) {

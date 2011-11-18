@@ -1,13 +1,20 @@
-14-November-2011: 1.0.1 Bug fixes:
+version 1.0.2: (2011-09-17)
 
-   -- improved method for obtaining nomalized read counts for edgeR-based analysis
+- dba.plotHeatmap now used noramlized data if a contrast is specified
 
-   -- fix use of distMethod in dba.plotHeatmap
+version 1.0.1: (2011-09-14) 
 
-   -- ensure $config parameters are inherited by new DBA object created by dba and dba.count
+- improved method for obtaining nomalized read counts for edgeR-based analysis
 
-   -- fix bug in use of minMaxval parameter to dba.count
+- fix use of distMethod in dba.plotHeatmap
 
-   -- In vignette, fixed figure 7
+- ensure $config parameters are inherited by new DBA object created by dba and dba.count
 
-9-Sep-2011: 1.0.0 Initial submission...
+- fix bug in use of minMaxval parameter to dba.count
+
+- In vignette, fixed figure 7
+
+version 1.0.0: 2011-09-09)
+
+- Initial submission...
+

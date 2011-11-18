@@ -35,7 +35,7 @@ Gordon Brown \\ \texttt{gordon.brown@cancer.org.uk}
 
 % Please increment date when working on this document, so that
 % date shows genuine change date, not merely date of compile.
-\date{16 November 2011}
+\date{17 November 2011}
 \maketitle
 
 \section{Introduction}
@@ -252,7 +252,7 @@ tamoxifen
 
 
 By default, \texttt{dba.analyze} plots a correlation heatmap if it finds any significantly differentially bound sites, shown in \refsf{tamox-sdb-corhm}. 
-Using only the differentially bound sites, we now see two major clusters: one containing the four tamoxifen resistant samples (representing two cell lines), and one containing the seven responsive samples (representing three cell lines), with the responsive cluster further divided between the MCF7 replicates and the other two cell lines. Comparing \refsf{tamox-aff-corhm}, which uses all 1,654 consensus binding sites, with \refsf{tamox-sdb-corhm}, which uses only the 176 differentially bound sites, demonstrates how the differential binding analysis isolates those sites that distinguish between the Resistant and Responsive sample groups.
+Using only the differentially bound sites, we now see that the four tamoxifen resistant samples (representing two cell lines) cluster together, although the MCF7 replicates cluster closer to them than to the other tamoxifen responsive samples. Comparing \refsf{tamox-aff-corhm}, which uses all 1,654 consensus binding sites, with \refsf{tamox-sdb-corhm}, which uses only the 176 differentially bound sites, demonstrates how the differential binding analysis isolates  sites that help distinguish between the Resistant and Responsive sample groups.
 \subsection{Retrieving the differentially bound sites}
 The final step is to retrieve the differentially bound sites as follows:
 
