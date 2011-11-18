@@ -19,7 +19,7 @@ pv.DBA = function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T,
       }
    }
    if(noreps) {
-      warning('>> Some groups have no replicates. Results may be unreliable!!')	
+      warning("Some groups have no replicates. Results may be unreliable.")	
    }
      
   if(bParallel) {
@@ -46,24 +46,24 @@ pv.DBA = function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T,
                                                     bParallel=F,bTagwise=bTagwise))
      }
   }
-  if('DESeq' %in% method) {
-  	if (length(find.package(package='DESeq',quiet=T))>0) {
-       require(DESeq)
-    } else {
-       stop("Package DESeq not installed")
-    }
-  	if(bParallel && (pv$config$parallelPackage > 0)) {
-  	   numjobs = numjobs + 1
-  	   params = dba.parallel.params(pv$config,c('pv.DESeq'))
-       jobs = pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq,pv,
-                                                  bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                  bTagwise=bTagwise,
-                                                  bParallel=T))
-       } else {
-       results = pv.listadd(results,pv.allDESeq(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                            bTagwise=bTagwise,bParallel=F))
-    }
-  }
+   if('DESeq' %in% method) {
+      if (length(find.package(package='DESeq',quiet=T))>0) {
+        require(DESeq)
+      } else {
+        stop("Package DESeq not installed")
+      }
+      if(bParallel && (pv$config$parallelPackage > 0)) {
+         numjobs = numjobs + 1
+         params = dba.parallel.params(pv$config,c('pv.DESeq'))
+         jobs = pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq,pv,
+                                                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                    bTagwise=bTagwise,
+                                                    bParallel=T))
+      } else {
+         results = pv.listadd(results,pv.allDESeq(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                              bTagwise=bTagwise,bParallel=F))
+      }
+   }     
   if('t-test' %in% method) {
      if(bParallel && (pv$config$parallelPackage > 0)) {
        numjobs = numjobs + 1
