@@ -981,4 +981,31 @@ pv.reorderM = function(ocm,dgram) {
    return(newocm)
 }
    
+pv.setScore = function(pv,score,bLog=F) {
+   for(i in 1:length(pv$peaks)) {
+      colnum = 3+i
+      if(score == PV_SCORE_RPKM) {
+         pv$allvectors[,colnum] = pv$peaks[[i]]$RPKM	
+      }   		
+      if(score == PV_SCORE_RPKM) {
+         pv$allvectors[,colnum] = pv$peaks[[i]]$RPKM	
+      } else if(score == PV_SCORE_RPKM_FOLD) {
+         pv$allvectors[,colnum] = pv$peaks[[i]]$RPKM/pv$peaks[[i]]$cRPKM
+         if(bLog) {
+           pv$allvectors[,colnum] = log2(pv$allvectors[,colnum])	
+         }
+      } else if(score == PV_SCORE_READS) {
+         pv$allvectors[,colnum] = pv$peaks[[i]]$Reads	
+      } else if(score == PV_SCORE_READS_FOLD) {
+         pv$allvectors[,colnum] = pv$peaks[[i]]$Reads/pv$peaks[[i]]$cReads	
+         if(bLog) {
+           pv$allvectors[,colnum] = log2(pv$allvectors[,colnum])	
+         }
+      } else if(score == PV_SCORE_READS_MINUS) {
+         pv$allvectors[,colnum] = pv$peaks[[i]]$Reads-pv$peaks[[i]]$cReads	
+      }  
+   }   
+   pv$vectors = pv$allvectors
+   return(pv)
+}
 

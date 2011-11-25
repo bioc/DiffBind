@@ -8,7 +8,7 @@ Count reads in binding site intervals
 Counts reads in binding site intervals
 }
 \usage{
-dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS, bLog=TRUE,
+dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS, bLog=FALSE,
           insertLength, minMaxval=0, bCalledMasks=TRUE, 
           bCorPlot=TRUE, bParallel=DBA$config$RunParallel) 
 }
@@ -39,7 +39,7 @@ DBA_SCORE_READS_MINUS \tab raw read count for interval from ChIP minus read coun
 }
 }
 \item{bLog}{
-logical indicating whether log2 of score should be used
+logical indicating whether log2 of score should be used (only applies to DBA_SCORE_RPKM_FOLD and DBA_SCORE_READS_FOLD).
 }
 \item{insertLength}{
 if present, this value will be used as the length of the reads. 
@@ -92,6 +92,13 @@ data(tamoxifen_peaks)
 mcf7Common = dba.overlap(tamoxifen,tamoxifen$masks$MCF7)
 \dontrun{tamoxifen = dba.count(tamoxifen,peaks=mcf7Common$inAll)}
 tamoxifen
+
+# Change binding affinity scores
+data(tamoxifen_counts)
+tamoxifen = dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_READS)
+head(tamoxifen$vectors)
+tamoxifen = dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_RPKM_FOLD)
+head(tamoxifen$vectors)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

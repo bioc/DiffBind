@@ -195,21 +195,29 @@ dba.overlap = function(DBA, mask, mode=DBA_OLAP_PEAKS, minVal=0,
                        byAttribute, bCorOnly=TRUE, CorMethod="pearson", 
                        bRangedData=DBA$config$RangedData)
 {                      
-   if( (mode == DBA_OLAP_ALL) | (!missing(contrast)) ) {
+   if( (mode == DBA_OLAP_ALL) | (!missing(contrast)) | (!missing(report)) ) {
    	
-      if(!missing(contrast)) {
+      if( (!missing(contrast)) | (!missing(report)) ) {
          
          if(missing(report)) {
             report   = dba.report(DBA,method=method, contrast=contrast,th=th,bUsePval=bUsePval,bRangedData=F)
          } else {
          	if(class(report)=="RangedData") {
-         	   stop('RandgedData class not supported for report parameter. Call dba.report with RangedData=FALSE.')	
+         	   stop('RangedData class not supported for report parameter. Call dba.report with RangedData=FALSE.')	
+         	}
+         	if(!missing(contrast)) {
+         	   DBA = pv.getOverlapData(DBA,contrast,report)
          	}
          }
+         
          sites = as.numeric(rownames(report))
          
          if(missing(mask)) {
-         	mask  = DBA$contrasts[[contrast]]$group1 | DBA$contrasts[[contrast]]$group2   
+         	if(missing(contrast)) {
+         	   mask = 1:length(DBA$peaks)
+         	} else {
+         	   mask  = DBA$contrasts[[contrast]]$group1 | DBA$contrasts[[contrast]]$group2
+            }   
          }  else if (length(mask)==1) {
             mask = 1:length(DBA$peaks)         
          }
@@ -224,6 +232,7 @@ dba.overlap = function(DBA, mask, mode=DBA_OLAP_PEAKS, minVal=0,
                             Sort='cor', CorMethod=CorMethod,
                             minVal=minVal, bCorOnly=bCorOnly)
       } 
+      
    }  else if(mode == DBA_OLAP_RATE) {
    
       res = pv.consensus(DBA,sampvec=mask,minOverlap=NULL)
@@ -252,7 +261,7 @@ DBA_SCORE_READS       = PV_SCORE_READS
 DBA_SCORE_READS_FOLD  = PV_SCORE_READS_FOLD
 DBA_SCORE_READS_MINUS = PV_SCORE_READS_MINUS
 
-dba.count = function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS, bLog=TRUE,
+dba.count = function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS, bLog=FALSE,
                      insertLength, minMaxval=0,
                      bCalledMasks=TRUE, bCorPlot=TRUE, bParallel=DBA$config$RunParallel) 
 {
@@ -260,7 +269,16 @@ dba.count = function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS, bLog
    bUseLast = F
   
    if(!missing(peaks)) {
-      peaks = pv.RangedData2Peaks(peaks)
+      if(is.null(peaks)) {
+         callers = unique(DBA$class[DBA_CALLER,])
+         if((length(callers)==1) & (callers=='counts')) {
+            DBA = pv.check(DBA)
+            res = pv.setScore(DBA,score=score,bLog=bLog)
+            return(res)	
+         }	
+      } else {
+         peaks = pv.RangedData2Peaks(peaks)
+      }
    }
    
    if(missing(insertLength)) {
@@ -610,6 +628,15 @@ dba.save = function(DBA, file='DBA', dir='.', pre='dba_', ext='RData', bMinimize
    DBA$values  = NULL
    DBA$hc      = NULL
    DBA$pc      = NULL
+
+   DBA$config$lsfInit      = NULL
+   DBA$config$initFun      = NULL
+   DBA$config$paramFun     = NULL
+   DBA$config$addjobFun    = NULL
+   DBA$config$lapplyFun    = NULL
+   DBA$config$wait4jobsFun = NULL
+   DBA$config$parallelInit = NULL
+
    res = pv.save(DBA,file=file ,
                  dir=dir, pre=pre, ext=ext,
                  compress=TRUE)
