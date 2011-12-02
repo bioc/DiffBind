@@ -491,6 +491,10 @@ dba.plotBox = function(DBA, contrast=1, method=DBA$config$AnalysisMethod, th=0.1
 {
    DBA = pv.check(DBA)
    
+   if(contrast > length(DBA$contrasts)) {
+      stop('Supplied contrast greater than number of contrasts')	
+   }
+   
    res = pv.plotBoxplot(DBA, contrast=contrast, method=method, th=th, bUsePval=bUsePval, bNormalized=bNormalized,
                         attribute=attribute,bAll=bAll, bAllIncreased=bAllIncreased, bAllDecreased=bAllDecreased, 
                         bDB=bDB, bDBIncreased=bDBIncreased, bDBDecreased=bDBDecreased,

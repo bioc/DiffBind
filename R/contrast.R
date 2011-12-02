@@ -166,6 +166,10 @@ pv.contrastPairs = function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_
 
 pv.addContrast = function(pv,group1,group2=!group1,name1="group1",name2="group2") {
   
+  if(is.null(group1) | is.null(group2)) {
+     stop('Null group, can;t add contrast')	
+  }
+  
   if(!is.logical(group1)) {
      temp = rep(F,length(pv$peaks))
      temp[group1] = T

@@ -1,3 +1,9 @@
+version 1.0.4: (2011-12-02)
+
+- change Conc1 and Conc2 columns in dba.report to include group names
+
+- add some more informative warnings
+
 version 1.0.3: (2011-11-21)
 
 - added warning to dba.plotHeatmap if labels are non-unique -- matrix is returned unordered

@@ -59,7 +59,7 @@ if contrast is specified and mode=DBA_OLAP_ALL, significance threshold; all site
 if contrast is specified and mode=DBA_OLAP_ALL, logical indicating whether to use FDR (FALSE) or p-value (TRUE) for thresholding.
 }
 \item{report}{
-if contrast is specified and mode=DBA_OLAP_ALL, a report (obtained from dba.report) specifying the data to be used. If counts are included in the report (and a contrast is specified), the count data form the report will be used to compute correlations, rather than the scores in the global binding affinity matrix.  If report is present, the method, th, and bUsePval parameters are ignored.
+if contrast is specified and mode=DBA_OLAP_ALL, a report (obtained from dba.report) specifying the data to be used. If counts are included in the report (and a contrast is specified), the count data from the report will be used to compute correlations, rather than the scores in the global binding affinity matrix.  If report is present, the method, th, and bUsePval parameters are ignored.
 }
 \item{byAttribute}{
 when computing co-occupancy statistics (DBA_OLAP_ALL), limit comparisons to peaksets with the same value for a specific attribute, one of:

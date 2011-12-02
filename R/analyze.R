@@ -151,21 +151,21 @@ pv.DBAplotMA = function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.1,bUsePval=F
               abline(h=0,col='dodgerblue')
            }
            if(bXY){
-              xmin  = floor(min(res$Conc1))
-              xmax  = ceiling(max(res$Conc1))
-              ymin  = floor(min(res$Conc2))
-              ymax  = ceiling(max(res$Conc2))
+              xmin  = floor(min(res[,5]))
+              xmax  = ceiling(max(res[,5]))
+              ymin  = floor(min(res[,6]))
+              ymax  = ceiling(max(res[,6]))
               xymin = min(xmin,ymin)
               xymin = max(xymin,0)
               xymax = max(xmax,ymax)
-              plotfun(res$Conc2[!idx],res$Conc1[!idx],pch=20,cex=cex,col=1,
+              plotfun(res[!idx,6],res[!idx,5],pch=20,cex=cex,col=1,
                       xaxp=c(xymin,xymax,xymax-xymin),xlim=c(xymin,xymax),
                       xlab=sprintf('log concentration :%s',conrec$name2),
                       yaxp=c(xymin,xymax,(xymax-xymin)),ylim=c(xymin,xymax),
                       ylab=sprintf('log concentration :%s',conrec$name1),
                       main=sprintf('%s Binding Affinity: %s vs. %s (%s %s < %1.3f)',
                                    facname, conrec$name1,conrec$name2,sum(idx),tstr,th),...)
-              points(res$Conc2[idx],res$Conc1[idx],pch=20,cex=cex,col=2)
+              points(res[idx,6],res[idx,5],pch=20,cex=cex,col=2)
               abline(0,1,col='dodgerblue')
             }
          }
@@ -948,11 +948,12 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
       fdrCol  = 5
       #data = con$edgeR$block$fdr$table
       data = topTags(con$edgeR$block,nrow(con$edgeR$block$counts))$table
+      counts = con$edgeR$counts
       if(bNormalized){
-         counts = con$edgeR$pseudo.alt
-      } else {
-         counts = con$edgeR$counts
-      }
+      	 sizes = con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors
+      	 counts = t(t(counts)/sizes)
+      	 counts = counts * con$edgeR$common.lib.size
+      } 
    } else {
       warning('Unknown DE method: ',method)
       return(NULL)
@@ -998,7 +999,10 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
    
    data = cbind(pv.getsites(pv,sites),conc,con1,con2,fold,data[keep,c(pvCol,fdrCol)])
    
-   colnames(data) = c('Chr','Start','End','Conc','Conc1','Conc2','Fold','p-value','FDR')
+   conc1 = sprintf('Conc_%s',con$name1)
+   conc2 = sprintf('Conc_%s',con$name2)
+   
+   colnames(data) = c('Chr','Start','End','Conc',conc1,conc2,'Fold','p-value','FDR')
    
    if(bCalled & !is.null(pv$sites)) {
    	  called1 = rep(F,length(pv$sites[[1]]))

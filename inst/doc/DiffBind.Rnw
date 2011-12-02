@@ -35,7 +35,7 @@ Gordon Brown \\ \texttt{gordon.brown@cancer.org.uk}
 
 % Please increment date when working on this document, so that
 % date shows genuine change date, not merely date of compile.
-\date{17 November 2011}
+\date{02 December 2011}
 \maketitle
 
 \section{Introduction}
@@ -289,7 +289,7 @@ tamoxifen.DB
 %181    chr18 [10569384, 10570571]   |  6.461755  7.379404  5.438426  1.940978   0.01046787  0.09565665
 %182    chr18 [52191999, 52193072]   |  4.708795  5.602390  3.736879  1.865511   0.01057757  0.09612806
 
-The value columns show the mean read concentration over all the samples (the default calculation uses log2 normalized ChIP read counts with control read counts subtracted) and the mean concentration over the first (Resistant) group and second (Responsive) group. The Fold column shows the difference in mean concentrations between the two groups (Conc1 - Conc2), with a positive value indicating increased binding affinity in the Resistant group and a negative value indicating increased binding affinity in the Responsive group. The final two columns give confidence measures for identifying these sites as differentially bound, with a raw p-value and a multiple testing corrected FDR in the final column.
+The value columns show the mean read concentration over all the samples (the default calculation uses log2 normalized ChIP read counts with control read counts subtracted) and the mean concentration over the first (Resistant) group and second (Responsive) group. The Fold column shows the difference in mean concentrations between the two groups (Conc\_Resistant - Conc\_Responsive), with a positive value indicating increased binding affinity in the Resistant group and a negative value indicating increased binding affinity in the Responsive group. The final two columns give confidence measures for identifying these sites as differentially bound, with a raw p-value and a multiple testing corrected FDR in the final column.
 
 \section{Example: plotting}
 
