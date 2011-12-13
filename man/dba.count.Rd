@@ -9,7 +9,7 @@ Counts reads in binding site intervals
 }
 \usage{
 dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS, bLog=FALSE,
-          insertLength, minMaxval=0, bCalledMasks=TRUE, 
+          insertLength, minMaxval, bCalledMasks=TRUE, 
           bCorPlot=TRUE, bParallel=DBA$config$RunParallel) 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -47,7 +47,10 @@ Each read will be extended from its endpoint along the appropriate strand by thi
 If missing, the read size indicated in the BAM/SAM/BED file will be used.
 }
 \item{minMaxval}{
-value to use for filtering intervals with low read counts. Only intervals where at least one sample has at least minMaxval reads will be included. Default value of zero includes all intervals.
+value to use for filtering intervals with low read counts. 
+Only intervals where at least one sample has at least minMaxval reads will be included. 
+If missing, includes all intervals.
+If peaks is NULL, will remove sites from existing DBA object without recounting.
 }
 \item{bCalledMasks}{
 logical indicating whether to compute site masks for each peakset indicating which sites were originally identified as peaks(used by dba.report). 

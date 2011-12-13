@@ -1,3 +1,7 @@
+version 1.0.5: (2011-12-13)
+
+- more descriptive warnings and minor bug fixes
+
 version 1.0.4: (2011-12-02)
 
 - change Conc1 and Conc2 columns in dba.report to include group names

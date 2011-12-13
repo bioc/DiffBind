@@ -981,7 +981,7 @@ pv.reorderM = function(ocm,dgram) {
    return(newocm)
 }
    
-pv.setScore = function(pv,score,bLog=F) {
+pv.setScore = function(pv,score,bLog=F,minMaxval) {
    for(i in 1:length(pv$peaks)) {
       colnum = 3+i
       if(score == PV_SCORE_RPKM) {
@@ -1006,6 +1006,24 @@ pv.setScore = function(pv,score,bLog=F) {
       }  
    }   
    pv$vectors = pv$allvectors
+       
+   if(!missing(minMaxval)) {
+      data = pv$allvectors[,4:ncol(pv$allvectors)]
+      maxs = apply(pv$allvectors[,4:ncol(pv$allvectors)],1,max)
+      tokeep = maxs>=minMaxval
+      if(sum(tokeep)>1) {
+         pv$allvectors = pv$allvectors[tokeep,]
+         rownames(pv$allvectors) = 1:sum(tokeep)
+         pv$vectors = pv$allvectors
+         for(i in 1:length(pv$peaks)) {
+               pv$peaks[[i]] = pv$peaks[[i]][tokeep,]
+               rownames(pv$peaks[[i]]) = 1:sum(tokeep)
+         }
+         pv = pv.vectors(pv,minOverlap=1,bAnalysis=F,bAllSame=T)
+      } else {
+         stop('No sites have activity greater than minMaxval')
+      }
+   }   
    return(pv)
 }
 

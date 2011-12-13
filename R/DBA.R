@@ -262,7 +262,7 @@ DBA_SCORE_READS_FOLD  = PV_SCORE_READS_FOLD
 DBA_SCORE_READS_MINUS = PV_SCORE_READS_MINUS
 
 dba.count = function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS, bLog=FALSE,
-                     insertLength, minMaxval=0,
+                     insertLength, minMaxval,
                      bCalledMasks=TRUE, bCorPlot=TRUE, bParallel=DBA$config$RunParallel) 
 {
                    
@@ -273,7 +273,7 @@ dba.count = function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS, bLog
          callers = unique(DBA$class[DBA_CALLER,])
          if((length(callers)==1) & (callers=='counts')) {
             DBA = pv.check(DBA)
-            res = pv.setScore(DBA,score=score,bLog=bLog)
+            res = pv.setScore(DBA,score=score,bLog=bLog,minMaxval=minMaxval)
             return(res)	
          }	
       } else {

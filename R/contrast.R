@@ -31,10 +31,22 @@ pv.contrast = function(pv,group1,group2=!group1,name1="group1",name2="group2",
       if(!is.null(res)) {
          res = pv.contrastDups(res)
       }
+      if(!missing(block)){
+         for(i in 1:length(res)){
+            if(!pv.checkBlock(res[[i]])){
+               stop("Unable to add blocking factor: unmatched samples.")
+               res[[i]]$blocklist = NULL   		
+            }
+         }      	
+      } 
    } else {
       res = pv.addContrast(pv,group1,group2,name1,name2)
       if(!missing(block)) {
          res$contrasts[[length(res$contrasts)]]$blocklist = pv.BlockList(pv,block)
+         if(!pv.checkBlock(res$contrasts[[length(res$contrasts)]])) {
+            stop("Unable to add blocking factor: unmatched samples.")
+            res$contrasts[[length(res$contrasts)]]$blocklist = NULL   	
+         }
       }
       return(res)
    }
@@ -160,6 +172,14 @@ pv.contrastPairs = function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_
          }
       }	
    }
+   #if(!is.null(block)){
+   #   for(i in 1:length(clist)){
+   #      if(!pv.checkBlock(clist[[i]])){
+   #         warning("Unable to add blocking factor: unmatched samples.")
+   #         clist[[i]]$blocklist = NULL   		
+   #      }
+   #   }      	
+   #} 
    return(clist)
 }
 
@@ -233,6 +253,21 @@ pv.BlockList = function(pv,attribute=PV_REPLICATE) {
       res = pv.listadd(res,list(attribute=attname,label=val,samples=newmask))   
    }
    return(res)	
+}
+
+pv.checkBlock = function(contrast) {
+   
+   if(sum(contrast$group1)!=sum(contrast$group2)) {
+      return(FALSE)	
+   }
+   
+   for(att in contrast$blocklist) {
+      if(sum(contrast$group1 & att$samples) != sum(contrast$group2 & att$samples)) {
+         return(FALSE)
+      }
+   }
+
+   return(TRUE)
 }
 
 EDGER_COL_PVAL = 4

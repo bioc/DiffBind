@@ -966,7 +966,15 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
 
    keep =  data[,thCol]<=th
    sites = as.numeric(data[keep,siteCol])
-   counts = counts[sites,]
+   if(sum(keep)==0) {
+      stop('No sites above threshold')
+   } else if(sum(keep)==1) {
+      cnames = colnames(counts)
+      counts = matrix(counts[sites,],nrow=1,ncol=ncol(counts))
+      colnames(counts) = cnames
+   } else {
+      counts = counts[sites,]
+   }
    
    if(length(sites)==1) {
       conc = log2(mean(counts))
@@ -1022,11 +1030,14 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
    
    
    if(bCounts) {
-   	  colnames(counts) = c(pv$class[PV_ID,con$group1],pv$class[PV_ID,con$group2])
+      colnames(counts) = c(pv$class[PV_ID,con$group1],pv$class[PV_ID,con$group2])
       if(length(sites)>1){
          data = cbind(data,counts)
       } else {
+         dnames = colnames(data)
+         cnames = colnames(counts)
          data = cbind(data,matrix(counts,1,ncol(counts)))
+         colnames(data) = c(dnames,cnames)
       }
    }
 
