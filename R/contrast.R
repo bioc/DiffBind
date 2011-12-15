@@ -34,8 +34,8 @@ pv.contrast = function(pv,group1,group2=!group1,name1="group1",name2="group2",
       if(!missing(block)){
          for(i in 1:length(res)){
             if(!pv.checkBlock(res[[i]])){
-               stop("Unable to add blocking factor: unmatched samples.")
-               res[[i]]$blocklist = NULL   		
+               warning("Blocking factor has unmatched sample(s).")
+               #res[[i]]$blocklist = NULL   		
             }
          }      	
       } 
@@ -44,8 +44,8 @@ pv.contrast = function(pv,group1,group2=!group1,name1="group1",name2="group2",
       if(!missing(block)) {
          res$contrasts[[length(res$contrasts)]]$blocklist = pv.BlockList(pv,block)
          if(!pv.checkBlock(res$contrasts[[length(res$contrasts)]])) {
-            stop("Unable to add blocking factor: unmatched samples.")
-            res$contrasts[[length(res$contrasts)]]$blocklist = NULL   	
+            warning("Blocking factor has unmatched sample(s).")
+            #res$contrasts[[length(res$contrasts)]]$blocklist = NULL   	
          }
       }
       return(res)
@@ -187,7 +187,7 @@ pv.contrastPairs = function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_
 pv.addContrast = function(pv,group1,group2=!group1,name1="group1",name2="group2") {
   
   if(is.null(group1) | is.null(group2)) {
-     stop('Null group, can;t add contrast')	
+     stop('Null group, can not add contrast')	
   }
   
   if(!is.logical(group1)) {
@@ -340,12 +340,12 @@ pv.listContrasts = function(pv,th=0.1,bUsePval=F) {
          if(!is.null(names(crec$edgeR$block))){
             if(bUsePval) {
                #eres = c(eres,sum(crec$edgeR$block$fdr$table[,EDGER_COL_PVAL]<=th,na.rm=T))
-               eres = c(eres,sum(topTags(crec$edgeR$block,
-                                 nrow(crec$edgeR$block$counts))$table[,EDGER_COL_PVAL]<=th,na.rm=T))
+               eres = c(eres,sum(topTags(crec$edgeR$block$LRT,
+                                 nrow(crec$edgeR$block$counts))$table[,EDGER_COL_PVAL+1]<=th,na.rm=T))
             } else {
                #eres = c(eres,sum(crec$edgeR$block$fdr$table[,EDGER_COL_FDR]<=th,na.rm=T))
-               eres = c(eres,sum(topTags(crec$edgeR$block,
-                                 nrow(crec$edgeR$block$counts))$table[,EDGER_COL_FDR]<=th,na.rm=T))
+               eres = c(eres,sum(topTags(crec$edgeR$block$LRT,
+                                 nrow(crec$edgeR$block$counts))$table[,EDGER_COL_FDR+1]<=th,na.rm=T))
             }
          } else {
             eres = c(eres,"?")   

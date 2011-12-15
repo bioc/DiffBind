@@ -35,7 +35,7 @@ pv.DBA = function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T,
      if(bParallel && (pv$config$parallelPackage > 0)) {
      	numjobs = numjobs + 1
         params = dba.parallel.params(pv$config,c('pv.allDEedgeR','pv.DEedgeR','pv.contrast','pv.listadd'))
-        fdebug('submit job: pv.allDEedgeR')
+        fdebug('submit job: pv.all')
      	jobs = pv.listadd(jobs,dba.parallel.addjob(pv$config,params,
      	                                          pv.allDEedgeR,pv,
      	                                          bFullLibrarySize=bFullLibrarySize,bParallel=T,
@@ -330,6 +330,26 @@ pv.DEedgeR = function(pv,group1,group2,label1="Group 1",label2="Group 2",blockLi
   	    rownames(block) = IDs
   	    targets = rbind(targets,block)
   	 }
+  	 
+  	 snames = rownames(res$samples)
+  	 if(length(unique(snames))!=nrow(res$samples)){
+  	    warning('Error: all samples must have unique IDs for blocking analysis')
+  	    return(res)	
+  	 }
+  	 tnames = rownames(targets)
+  	 if(length(snames)!=length(tnames)){
+  	    warning('Error: all samples must be matched for blocking analysis')
+  	    return(res)	
+  	 }  	 
+  	 
+  	 newt = targets
+  	 for(i in 1:nrow(targets)) {
+  	    idx = match(tnames[i],snames)
+  	    newt[idx,] = targets[i,]	
+  	 }
+  	 targets = newt
+  	 rownames(targets) = snames
+  	 
   	 colnames(targets) = c("group",blockList[[1]]$attribute)
      res$samples = data.frame(cbind(targets,res$samples[,2:3]))
      targets = data.frame(targets)
@@ -337,16 +357,21 @@ pv.DEedgeR = function(pv,group1,group2,label1="Group 1",label2="Group 2",blockLi
      targets[[2]] = factor(targets[[2]])
      attr =  blockList[[1]]$attribute
      if(attr=='Replicate') {
-        res$design = model.matrix(~ Replicate + group,data = targets)
+        res$designmatrix = model.matrix(~ Replicate + group,data = targets)
      } else {
        warning('Unsupported blocking attribute: ',attr)
        return(NULL)	
      }
-     message('edgeR multi-factor analysis.')	 
-     res     = estimateTagwiseDisp(res,res$design)
-     res$GLM = glmFit(res,res$design,dispersion=res$CR.common.dispersion)
-     res$LRT = glmLRT(res,res$GLM)
-     res$fdr = topTags(res$LRT,nrow(res$counts))
+     message('edgeR multi-factor analysis.')
+     res = calcNormFactors(res)
+     res = estimateGLMCommonDisp(res,res$designmatrix)
+     if(bTagwise) {
+      res = estimateGLMTagwiseDisp(res,res$designmatrix)
+     }
+     res$GLM = glmFit(res,res$designmatrix)
+     res$LRT = glmLRT(res,res$GLM,ncol(res$designmatrix))
+     res$counts=NULL	 
+     #res$fdr = topTags(res$LRT,nrow(res$counts))
   }
   
   return(res)	
@@ -422,7 +447,9 @@ fdebug('ENTER pv.allDEedgeR')
   
    if(bParallel && (pv$config$parallelPackage > 0)) {
       params = dba.parallel.params(pv$config,c('pv.DEedgeR_parallel','pv.DEedgeR','pv.DEinit','calcNormFactors',
-                                              'estimateCommonDisp','estimateTagwiseDisp','exactTest','topTags',
+                                              'estimateCommonDisp','estimateTagwiseDisp',
+                                              'estimateGLMCommonDisp','estimateGLMTagwiseDisp',
+                                              'exactTest','topTags',
    	                                          'glmFit','glmLRT'))
       reslist = dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),pv.DEedgeR_parallel,pv,
                                     NULL,bSubControl,bFullLibrarySize,bTagwise)
@@ -944,10 +971,10 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
       }   
    } else if(method=='edgeRlm'){
       siteCol = 1
-      pvCol   = 4  
-      fdrCol  = 5
+      pvCol   = 5  
+      fdrCol  = 6
       #data = con$edgeR$block$fdr$table
-      data = topTags(con$edgeR$block,nrow(con$edgeR$block$counts))$table
+      data = topTags(con$edgeR$block$LRT,nrow(con$edgeR$counts))$table
       counts = con$edgeR$counts
       if(bNormalized){
       	 sizes = con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors

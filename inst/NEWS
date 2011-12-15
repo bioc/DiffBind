@@ -1,3 +1,7 @@
+version 1.0.6: (2011-12-14)
+
+- fixed bugs related to blocking factor (method=DBA_EDGER_BLOCK)
+
 version 1.0.5: (2011-12-13)
 
 - more descriptive warnings and minor bug fixes

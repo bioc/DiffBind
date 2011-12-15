@@ -35,7 +35,7 @@ Gordon Brown \\ \texttt{gordon.brown@cancer.org.uk}
 
 % Please increment date when working on this document, so that
 % date shows genuine change date, not merely date of compile.
-\date{02 December 2011}
+\date{14 December 2011}
 \maketitle
 
 \section{Introduction}
@@ -702,6 +702,23 @@ The final steps are to perform testing to determine the significance measure of 
 
 When data are retrieved for plotting or reporting, \texttt{topTags} is called on the \texttt{DGEExact} object, using the default FDR method \texttt{BH}.
 
+\subsection{\edgeR analysis with blocking factor}
+When \texttt{dba.analyze} is invoked using \texttt{method=DBA\_EDGER}, and a blocking factor has been added to the contrast, and additional \edgeR analysis is carried out using a generalized linear model. The analysis mostly follows the matched tumor-normal example in the \edgeR User's Guide. If samples are not perfectly matched (every sample in the first group has exactly one matching sample in the second group) a warning is generated (from \texttt{dba.contrast}) but the analysis should still complete successfully. A design matrix is constructed via a call to \texttt{model.matrix}; the first columns is the Intercept column, the last column represents the second group, and there will be one fewer middle columns than the number of unique replicates.
+
+For each contrast, a separate analysis is performed. First, a matrix of counts is constructed for the contrast, with columns for all the samples in the first group, followed by columns for all the samples in the second group. The raw read count is used for this matrix; if the \texttt{bSubControl} parameter is set to \texttt{TRUE} (as it is by default), the raw number of reads in the control sample (if available) will be subtracted (with a minimum final read count of 1). Next the library size is computed for each sample for use in subsequent normalization. By default, this is the total number of reads in peaks (the sum of each column). Alternatively, if the \texttt{bFullLibrarySize} parameter is set to TRUE, the total number of reads in the library (calculated from the source BAM/SAM/BED file) is used. The default setting is appropriate for situations when the overall signal is expected to be directly comparable between the samples; using the full library size may be preferable if samples are expected to have dramatically different signals (e.g., if some are expected to have very low binding rates compared to others). The first step concludes with a call to \edgeR's \texttt{DGEList} function.
+
+The \texttt{DGEList} object that results is next passed to \texttt{calcNormFactors} with all other parameters retained as defaults, returning an updated \texttt{DGEList} object. This is passed to \texttt{estimateGLMCommonDisp} along with the design matrix. If bTagwise is TRUE (most useful when there are at least three members in each group of a contrast), the resulting \texttt{DGEList} object is then passed to \texttt{estimateGLMTagwiseDisp}, along with the design matrix. This final \texttt{DGEList} for contrast n is stored in the \texttt{DBA object} as 
+
+\texttt{DBA\$contrasts[[n]]\$edgeR\$block} 
+
+and may be examined and manipulated directly for further customization.
+
+Next \texttt{glmFit} is called with the design matrix, and the result stored. Finally, \texttt{glmLRT} is called based on the highest number coefficient (number of replicates plus one), returning a \texttt{DGEGLM} object, stored in 
+
+\texttt{DBA\$contrasts[[n]]\$edgeR\$block\$LRT} 
+
+When data are retrieved for plotting or reporting, \texttt{topTags} is called on the \texttt{DGEGLM} object, using the default FDR method \texttt{BH}.
+
 \subsection{\DESeq analysis}
 When \texttt{dba.analyze} is invoked using \texttt{method=DBA\_DESEQ}\footnote{Note that \DESeq can be made the default analysis method for a DBA object by setting \texttt{DBA\$config\$AnalysisMethod=DBA\_DESEQ}.}, a standardized differential analysis is performed using the \DESeq package (\cite{Anders:2010p792}). This section details the precise steps in that analysis.
 
@@ -713,7 +730,7 @@ Next, \texttt{estimateDispersions} is called with the \texttt{CountDataSet} obje
 
 \section{Acknowledgements}
 
-This package was developed at Cancer Research UK's Cambridge Research Institute with the help and support of many people there. We wish to acknowledge everyone the Bioinformatics Core under the leadership of Matthew Eldridge, as well as the Nuclear Receptor Transcription Laboratory under the leadership of Jason Carroll. Researchers who contributed ideas and/or pushed us in the right direction include Vasiliki Theodorou, Caryn-Ross Innes, and Tamir Chandra among many others. We also thank  members of the Gordon Smyth laboratory at the WEHI, Melbourne, particularly Mark Robinson and Davis McCarthy, for helpful discussions.
+This package was developed at Cancer Research UK's Cambridge Research Institute with the help and support of many people there. We wish to acknowledge everyone the Bioinformatics Core under the leadership of Matthew Eldridge, as well as the Nuclear Receptor Transcription Laboratory under the leadership of Jason Carroll. Researchers who contributed ideas and/or pushed us in the right direction include Caryn-Ross Innes, Vasiliki Theodorou, and Tamir Chandra among many others. We also thank  members of the Gordon Smyth laboratory at the WEHI, Melbourne, particularly Mark Robinson and Davis McCarthy, for helpful discussions.
 
 \section{Setup}
 
