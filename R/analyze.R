@@ -9,6 +9,10 @@ pv.DBA = function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T,
       }
    }
    
+   if(is.null(pv$contrasts)) {
+      stop('Unable to perform analysis: no contrasts specified.')	
+   }
+   
    noreps = FALSE
    for(contrast in pv$contrasts) {
       if(sum(contrast$group1)<2) {

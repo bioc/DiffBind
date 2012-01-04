@@ -2,6 +2,8 @@
 pv.contrast = function(pv,group1,group2=!group1,name1="group1",name2="group2",
                        minMembers=3,categories,bMulti=T,block) {
    
+   numStart = length(pv$contrasts)
+    
    if(missing(group1)) {    
    	  
       if( (sum(pv.mask(pv,PV_CALLER,'source'))==0) &
@@ -30,6 +32,8 @@ pv.contrast = function(pv,group1,group2=!group1,name1="group1",name2="group2",
       }
       if(!is.null(res)) {
          res = pv.contrastDups(res)
+      } else {
+         warning("No contrasts added. Perhaps try with lower value for minMembers?")	
       }
       if(!missing(block)){
          for(i in 1:length(res)){
@@ -38,7 +42,7 @@ pv.contrast = function(pv,group1,group2=!group1,name1="group1",name2="group2",
                #res[[i]]$blocklist = NULL   		
             }
          }      	
-      } 
+      }
    } else {
       res = pv.addContrast(pv,group1,group2,name1,name2)
       if(!missing(block)) {
@@ -48,10 +52,17 @@ pv.contrast = function(pv,group1,group2=!group1,name1="group1",name2="group2",
             #res$contrasts[[length(res$contrasts)]]$blocklist = NULL   	
          }
       }
+      if(!is.null(res$contrasts)) {
+         res$contrasts = pv.contrastDups(res$contrasts)	
+      }
+      if(length(res$contrasts) == numStart) {
+         warning('Unable to add redundant contrast.')  	
+      }
       return(res)
    }
 
    pv$contrasts = pv.listaddto(pv$contrasts,res)
+   
    return(pv)
 
 }
@@ -191,12 +202,18 @@ pv.addContrast = function(pv,group1,group2=!group1,name1="group1",name2="group2"
   }
   
   if(!is.logical(group1)) {
+  	 if(max(group1) > length(pv$peaks)) {
+  	    stop('Invalid sample number in first group.')	
+  	 }
      temp = rep(F,length(pv$peaks))
      temp[group1] = T
      group1 = temp
   }
   
   if(!is.logical(group2)) {
+  	 if(max(group2) > length(pv$peaks)) {
+  	    stop('Invalid sample number in second group.')	
+  	 }  	
      temp = rep(F,length(pv$peaks))
      temp[group2] = T
      group2 = temp
@@ -208,6 +225,11 @@ pv.addContrast = function(pv,group1,group2=!group1,name1="group1",name2="group2"
   if(sum(group2)==0) {
      return(pv)
   }
+  
+  if( length(group1) != length(pv$peaks) || length(group2) != length(pv$peaks) ) {
+     stop('Length of vector specifying groups greater than number of samples.')
+  }
+      
   crec = NULL
   crec$name1  = name1
   crec$name2  = name2

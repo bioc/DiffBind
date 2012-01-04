@@ -1,3 +1,7 @@
+version 1.0.7: (2012-01-03)
+
+- added warnings to dba.contrast and dba.analyze when no contrasts are added
+
 version 1.0.6: (2011-12-14)
 
 - fixed bugs related to blocking factor (method=DBA_EDGER_BLOCK)
