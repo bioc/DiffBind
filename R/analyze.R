@@ -932,7 +932,8 @@ pv.DESeqplots = function(pv,contrast=1,maxSites=1000,bMA=T,bHeatmap=T,PCA=NULL,
 
 pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
                         bCounts=F,bCalledDetail=F,
-                        file,initString='reports/DBA',bNormalized=T,ext="csv",minFold=0) {
+                        file,initString='reports/DBA',bNormalized=T,ext="csv",minFold=0,
+                        bSupressWarning=F) {
    
    if(contrast > length(pv$contrasts)) {
       stop('Specified contrast number is greater than number of contrasts')
@@ -1006,7 +1007,10 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
    keep =  data[,thCol]<=th
    sites = as.numeric(data[keep,siteCol])
    if(sum(keep)==0) {
-      stop('No sites above threshold')
+   	  if(!bSupressWarning) {
+         warning('No sites above threshold')
+      }
+      return(NULL)
    } else if(sum(keep)==1) {
       cnames = colnames(counts)
       counts = matrix(counts[sites,],nrow=1,ncol=ncol(counts))

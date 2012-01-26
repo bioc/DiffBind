@@ -350,7 +350,11 @@ pv.getPlotData = function(pv,attributes=PV_GROUP,contrast=1,method=DBA_EDGER,th=
    con = pv$contrasts[[contrast]]
   
    if(missing(report)) {
-     report = pv.DBAreport(pv,contrast=contrast,method=method,th=th,bUsePval=bUsePval,bNormalized=bNormalized,bCounts=T)
+     report = pv.DBAreport(pv,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
+                           bNormalized=bNormalized,bCounts=T,bSupressWarning=T)
+      if(is.null(report)) {
+         stop('Unable to plot -- no sites within threshold')	
+      }   
    }
       
    repcols = colnames(report)

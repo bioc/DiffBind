@@ -342,11 +342,20 @@ dba.analyze = function(DBA, method=DBA$config$AnalysisMethod,
    res = pv.DBA(DBA, method ,bSubControl,bFullLibrarySize,bTagwise=bTagwise,minMembers=3,bParallel)
     
    if(bCorPlot){
-   	  if(nrow(dba.report(res,method=method[1],bRangedData=F))>1) {
-         x = dba.plotHeatmap(res,contrast=1,method=method[1],correlations=T)
-      }
+   	  warn = T
+   	  rep = pv.DBAreport(res,contrast=1,method=method[1],th=.1,bSupressWarning=T)
+   	  if(!is.null(rep)) {
+   	     if(!is.null(dim(rep))) {
+   	        if(nrow(rep)>1) {
+   	           warn=F
+   	           x = dba.plotHeatmap(res,contrast=1,method=method[1],correlations=T)
+   	        }	
+   	     }
+   	  }
+   	  if(warn) {
+   	     warning('No correlation heatmap plotted -- contrast 1 has no diffentially bound sites.')	
+   	  }
    }
-
 
    if(class(res)!="DBA") {
       class(res) = "DBA"
