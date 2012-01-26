@@ -92,7 +92,8 @@ pv.peakset = function(pv=NULL,peaks, sampID, tissue, factor,condition, replicate
    if(length(readBam)==0)    readBam=NA
    if(missing(controlBam))   controlBam=NA
    if(length(controlBam)==0) controlBam=NA
-                        
+   
+   bNormCol=0                     
    if(is.character(peaks)){
       pcaller = strtrim(peak.caller,6)
       if        (pcaller == 'macs') {
@@ -105,7 +106,7 @@ pv.peakset = function(pv=NULL,peaks, sampID, tissue, factor,condition, replicate
       } else if (pcaller == 'swembl') {
         peaks = pv.swembl(peaks)
       } else if (pcaller == 'source') {
-        peaks   = pv.sourcedata(peaks,10000)
+        peaks   = pv.sourcedata(peaks,100000)
         zeroVal = 0
         bLog    = F
         bNormCol = 0
@@ -127,8 +128,8 @@ pv.peakset = function(pv=NULL,peaks, sampID, tissue, factor,condition, replicate
       }
    }
    
-   if(ncol(peaks)==3) {
-      peaks = cbind(peaks,1)
+   if(ncol(peaks)< bNormCol) {
+      peaks = cbind(peaks[,1:3],1)
       bNormCol = 0
    }
       

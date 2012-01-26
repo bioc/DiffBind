@@ -362,6 +362,14 @@ pv.DEedgeR = function(pv,group1,group2,label1="Group 1",label2="Group 2",blockLi
      attr =  blockList[[1]]$attribute
      if(attr=='Replicate') {
         res$designmatrix = model.matrix(~ Replicate + group,data = targets)
+     } else if(attr=='Tissue') {
+        res$designmatrix = model.matrix(~ Tissue + group,data = targets)
+     } else if(attr=='Factor') {
+        res$designmatrix = model.matrix(~ Factor + group,data = targets)
+     } else if(attr=='Condition') {
+        res$designmatrix = model.matrix(~ Condition + group,data = targets)
+     } else if(attr=='Caller') {
+        res$designmatrix = model.matrix(~ Caller + group,data = targets)
      } else {
        warning('Unsupported blocking attribute: ',attr)
        return(NULL)	

@@ -50,7 +50,14 @@ when automatically generating contrasts, attribute or vector of attributes to ba
 }
 }
 \item{block}{
-blocking attribute for multi-factor analysis. Only when adding a specific contrast, and will only work with edgeR analysis; see dba.analysis. NOTE: only DBA_REPLICATE is supported in this release.
+blocking attribute for multi-factor analysis. Only when adding a specific contrast, and will only work with edgeR analysis; see dba.analysis. There must be at least one value for the specified attribute that is associated with samples in each of the two groups of the contrast. For example, if DBA_REPLICATE is specified, there must be at least one sample in each group with the same replicate number. Possible attribute values include:
+\itemize{ 
+\item DBA_TISSUE
+\item DBA_FACTOR
+\item DBA_CONDITION
+\item DBA_REPLICATE
+\item DBA_CALLER
+}
 }
 }
 \details{

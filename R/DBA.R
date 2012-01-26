@@ -123,6 +123,10 @@ dba.peakset = function(DBA=NULL, peaks, sampID, tissue, factor, condition,replic
          writeFile = NULL
       }
       
+      if(missing(peaks)) {
+         DBA = pv.check(DBA)	
+      }
+      
       res = pv.writePeakset(DBA, fname=writeFile, peaks=peaks, numCols=numCols)     
       
       if(bRangedData) {

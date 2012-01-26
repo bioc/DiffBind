@@ -38,8 +38,8 @@ pv.contrast = function(pv,group1,group2=!group1,name1="group1",name2="group2",
       if(!missing(block)){
          for(i in 1:length(res)){
             if(!pv.checkBlock(res[[i]])){
-               warning("Blocking factor has unmatched sample(s).")
-               #res[[i]]$blocklist = NULL   		
+               #warning("Blocking factor has unmatched sample(s).")
+               res[[i]]$blocklist = NULL   		
             }
          }      	
       }
@@ -48,8 +48,8 @@ pv.contrast = function(pv,group1,group2=!group1,name1="group1",name2="group2",
       if(!missing(block)) {
          res$contrasts[[length(res$contrasts)]]$blocklist = pv.BlockList(pv,block)
          if(!pv.checkBlock(res$contrasts[[length(res$contrasts)]])) {
-            warning("Blocking factor has unmatched sample(s).")
-            #res$contrasts[[length(res$contrasts)]]$blocklist = NULL   	
+            #warning("Blocking factor has unmatched sample(s).")
+            res$contrasts[[length(res$contrasts)]]$blocklist = NULL   	
          }
       }
       if(!is.null(res$contrasts)) {
@@ -73,9 +73,9 @@ pv.getContrasts = function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_C
    mdata = pv$class[,srcidx]
    
    if(!missing(block)) {
-   	  if(block != PV_REPLICATE) {
-   	     warning('Unsupported blocking attribute')
-   	  }
+   	  #if(block != PV_REPLICATE) {
+   	  #   warning('Unsupported blocking attribute')
+   	  #}
       block = pv.BlockList(pv,block)
    } else block = NULL
    
@@ -269,6 +269,9 @@ pv.BlockList = function(pv,attribute=PV_REPLICATE) {
 
    vals    = sort(unique(pv$class[attribute,]))
    attname = rownames(pv$class)[attribute]
+   if(attname == 'Peak caller') {
+      attname = 'Caller'
+   }
    res = NULL
    for(val in vals) {
    	  newmask = pv.mask(pv,attribute,val)
@@ -277,18 +280,42 @@ pv.BlockList = function(pv,attribute=PV_REPLICATE) {
    return(res)	
 }
 
-pv.checkBlock = function(contrast) {
+pv.checkBlock = function(contrast,bCheckBalanced=F,bCheckMultiple=T,bCheckCross=T) {
    
-   if(sum(contrast$group1)!=sum(contrast$group2)) {
-      return(FALSE)	
+   if(bCheckBalanced){
+      if(sum(contrast$group1)!=sum(contrast$group2)) {
+         warning("Blocking factor has unmatched sample(s).")
+         return(FALSE)	
+      }
+   
+      for(att in contrast$blocklist) {
+         if(sum(contrast$group1 & att$samples) != sum(contrast$group2 & att$samples)) {
+            warning("Blocking factor has unmatched sample(s).")
+            return(FALSE)
+         }
+      }
    }
    
-   for(att in contrast$blocklist) {
-      if(sum(contrast$group1 & att$samples) != sum(contrast$group2 & att$samples)) {
+   if(bCheckMultiple) {
+      if(length(contrast$blocklist)<2) {
+         warning('Blocking factor has only one value')
+         return(FALSE)	
+      }	
+   }
+   
+   if(bCheckCross) {
+   	  cross = FALSE
+      for(att in contrast$blocklist) {
+         if(sum(contrast$group1 & att$samples) & sum(contrast$group2 & att$samples)) {
+            cross = TRUE
+         }
+      }
+      if(!cross) {
+         warning('No blocking values are present in both groups')	
          return(FALSE)
       }
    }
-
+   
    return(TRUE)
 }
 

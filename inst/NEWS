@@ -1,3 +1,7 @@
+version 1.0.8: (2012-01-25)
+
+- blocking factor can be any attribute, balanced or unbalanced
+
 version 1.0.7: (2012-01-03)
 
 - added warnings to dba.contrast and dba.analyze when no contrasts are added
