@@ -139,7 +139,7 @@ pv.counts = function(pv,peaks,minOverlap=2,defaultScore=PV_RES_READS_MINUS,bLog=
       colnames(peaks)[1:3] = c("CHR","START","END")
       bed = pv.dovectors(peaks[,1:3],bKeepAll=T)
    } else {
-     if(minOverlap == 2) {
+     if(minOverlap == pv$minOverlap) {
         bed = pv$vectors[,1:3]
      } else if (minOverlap == 1) {
         bed = pv$allvectors[,1:3]

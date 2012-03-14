@@ -353,7 +353,7 @@ dba.analyze = function(DBA, method=DBA$config$AnalysisMethod,
    	     }
    	  }
    	  if(warn) {
-   	     warning('No correlation heatmap plotted -- contrast 1 has no diffentially bound sites.')	
+   	     warning('No correlation heatmap plotted -- contrast 1 has no differentially bound sites.')	
    	  }
    }
 
