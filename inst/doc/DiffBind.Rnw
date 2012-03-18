@@ -85,7 +85,7 @@ A reporting mechanism enables differentially bound sites to be extracted for fur
 
 This section offers a quick example of how to use \DBA to identify significantly differentially bound sites using affinity (read count) data.
 
-The dataset for this example consists of ChIPs against the transcription factor ERa using five breast cancer cell lines (\cite{rossinnesinprep}). 
+The dataset for this example consists of ChIPs against the transcription factor ERa using five breast cancer cell lines (\cite{ross2012differential}). 
 Three of these cell lines are responsive to tamoxifen, while two others are resistant to tamoxifen treatment. 
 There are at least two replicates for each of the cell lines, with one cell line having three replicates, for a total of eleven sequenced libraries. 
 For each sample, we have one peakset originally derived using the MACS peak caller  (\cite{zhang2008model}), for a total of eleven peaksets. 
