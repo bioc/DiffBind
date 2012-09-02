@@ -158,17 +158,17 @@ int bode::IntervalTree::i_coverage(bode::IntervalNode *n,int point) {
   }
 }
 
-int bode::IntervalTree::i_countIntervals(bode::IntervalNode *n,int left,int right) {
+int bode::IntervalTree::i_countIntervals(bode::IntervalNode *n,int left,int right,int withoutDupes) {
   if (n == NULL) {
     return 0;
   } else if (left >= n->r()) {
-    return i_countIntervals(n->getRight(),left,right);
+    return i_countIntervals(n->getRight(),left,right,withoutDupes);
   } else if (right <= n->l()) {
-    return i_countIntervals(n->getLeft(),left,right);
+    return i_countIntervals(n->getLeft(),left,right,withoutDupes);
   } else {
-    return (  i_countIntervals(n->getLeft(),left,right)
-            + n->getCount()
-            + i_countIntervals(n->getRight(),left,right));
+    return (  i_countIntervals(n->getLeft(),left,right,withoutDupes)
+            + (withoutDupes ? 1 : n->getCount())
+            + i_countIntervals(n->getRight(),left,right,withoutDupes));
   }
 }
 
@@ -202,8 +202,8 @@ int bode::IntervalTree::coverage(int point) {
   return i_coverage(root,point);
 }
 
-int bode::IntervalTree::reads(int left,int right) {
-  return i_countIntervals(root,left,right);
+int bode::IntervalTree::reads(int left,int right,int withoutDupes) {
+  return i_countIntervals(root,left,right,withoutDupes);
 }
 
 int bode::IntervalTree::summit(int left,int right) {

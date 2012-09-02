@@ -73,29 +73,29 @@ pv.peakset = function(pv=NULL,peaks, sampID, tissue, factor,condition, treatment
          pv$class[PV_ID,nset]=sampID
          colnames(pv$class)[nset]=sampID
       }
-      if(!missing(tissue))      pv$class[PV_TISSUE,nset]=tissue
-      if(!missing(factor))      pv$class[PV_FACTOR,nset]=factor
-      if(!missing(condition))   pv$class[PV_CONDITION,nset]=condition
-      if(!missing(treatment))   pv$class[PV_TREATMENT,nset]=treatment
-      if(!missing(replicate))   pv$class[PV_REPLICATE,nset]=replicate
-      if(!missing(control))     pv$class[PV_CONTROL,nset]=control
-      if(!missing(peak.caller)) pv$class[PV_CALLER,nset]=peak.caller
-      if(!missing(readBam))     pv$class[PV_BAMREADS,nset]=readBam
-      if(!missing(controlBam))  pv$class[PV_BAMCONTROL,nset]=controlBam
+      if(!pv.missing(tissue))      pv$class[PV_TISSUE,nset]=tissue
+      if(!pv.missing(factor))      pv$class[PV_FACTOR,nset]=factor
+      if(!pv.missing(condition))   pv$class[PV_CONDITION,nset]=condition
+      if(!pv.missing(treatment))   pv$class[PV_TREATMENT,nset]=treatment
+      if(!pv.missing(replicate))   pv$class[PV_REPLICATE,nset]=replicate
+      if(!pv.missing(control))     pv$class[PV_CONTROL,nset]=control
+      if(!pv.missing(peak.caller)) pv$class[PV_CALLER,nset]=peak.caller
+      if(!pv.missing(readBam))     pv$class[PV_BAMREADS,nset]=readBam
+      if(!pv.missing(controlBam))  pv$class[PV_BAMCONTROL,nset]=controlBam
       return(pv)
    }
    
-   if(missing(tissue))       tissue=''
-   if(missing(factor))       factor=''
-   if(missing(condition))    condition=''
-   if(missing(treatment))    treatment=''
-   if(missing(replicate))    replicate=''
-   if(missing(control))      control=''
-   if(missing(peak.caller))  peak.caller=''
-   if(missing(readBam))      readBam=NA
-   if(length(readBam)==0)    readBam=NA
-   if(missing(controlBam))   controlBam=NA
-   if(length(controlBam)==0) controlBam=NA
+   if(pv.missing(tissue))       tissue=''
+   if(pv.missing(factor))       factor=''
+   if(pv.missing(condition))    condition=''
+   if(pv.missing(treatment))    treatment=''
+   if(pv.missing(replicate))    replicate=''
+   if(pv.missing(control))      control=''
+   if(pv.missing(peak.caller))  peak.caller=''
+   if(pv.missing(readBam))      readBam=NA
+   if(length(readBam)==0)       readBam=NA
+   if(pv.missing(controlBam))   controlBam=NA
+   if(length(controlBam)==0)    controlBam=NA
    
    bNormCol=0                     
    if(is.character(peaks)){
@@ -166,7 +166,7 @@ pv.peakset = function(pv=NULL,peaks, sampID, tissue, factor,condition, treatment
 
    pv$peaks = pv.listadd(pv$peaks,peaks)
    
-   if(missing(sampID)) {
+   if(pv.missing(sampID)) {
       if(is.null(pv)) {
          sampID=1
       } else if (is.null(pv$peaks)) {
@@ -233,23 +233,24 @@ pv.vectors = function(pv,mask,minOverlap=2,bKeepAll=T,bAnalysis=T,attributes,bAl
       }
    }
         
+   peaks=NULL     
    if(!missing(mask)){
       if(!is.logical(mask)) {
-         tmp  = rep (F,length(pv$peaks))
-         tmp[mask] = T
-         mask = tmp
-      }
-   	  peaks = NULL
-      for(i in 1:length(mask)){
-         if(mask[i]) {
+         for(i in mask){
             peaks = pv.listadd(peaks,pv$peaks[[i]])
          }	
+      } else {
+         for(i in 1:length(mask)){
+            if(mask[i]) {
+               peaks = pv.listadd(peaks,pv$peaks[[i]])
+            }	
+         }
       }
       class     = pv$class[,mask]
       chrmap    = pv$chrmap
       config    = pv$config
       samples   = pv$samples
-      contrasts = pv$contrasts
+      contrasts = NULL #pv$contrasts
       
       pv = NULL
       pv$peaks     = peaks
@@ -314,8 +315,10 @@ pv.vectors = function(pv,mask,minOverlap=2,bKeepAll=T,bAnalysis=T,attributes,bAl
    } else { ## ALL SAME
       pv$allvectors = pv$peaks[[1]][,1:4]
 
-      for(i in 2:numvecs){
-         pv$allvectors = cbind(pv$allvectors,pv$peaks[[i]][,4])
+      if(numvecs>1){
+         for(i in 2:numvecs){
+            pv$allvectors = cbind(pv$allvectors,pv$peaks[[i]][,4])
+         }
       }	
       colnames(pv$allvectors) = c("CHR","START","END",pv$class[PV_ID,1:numvecs])
       pv$vectors = pv$allvectors
@@ -383,6 +386,7 @@ pv.list = function(pv,mask,bContrasts=F,attributes=pv.deflist,th=0.1,bUsePval=F)
    
    j = ncol(res)
    for(i in j:1) {
+   	  numrows = nrow(res)
       x = unique(res[,i])
       if(colnames(res)[i]=='Peak caller') {
          if(all.equal(attributes,pv.deflist) == TRUE) {
@@ -394,6 +398,11 @@ pv.list = function(pv,mask,bContrasts=F,attributes=pv.deflist,th=0.1,bUsePval=F)
          if(length(x)==1 && x[1]=="") {
             res = res[,-i]	
          }    	
+      }
+      if(is.null(dim(res))) {
+      	 cnames = names(res)
+         res = matrix(res,1,length(res))
+         colnames(res) = cnames         	
       }
    }
    
@@ -741,7 +750,7 @@ pv.plotPCA = function(pv,attributes=PV_ID,second,third,fourth,size,mask,
        plot3d(pc$loadings[,startComp:(startComp+2)],col=pv.colorv(classvec,vColors),type='s',size=sval,
               aspect=c(1,1,1),main=thetitle,...)
     } else {
-       warning("Package rgl not installed")
+       warning("Package rgl not installed",call.=F)
        plot(pc$loadings[,startComp:(startComp+1)],col=pv.colorv(classvec,vColors),type='p',pch=19,cex=sval,
             xlab=sprintf('Principal Component #%d',startComp),ylab=sprintf('Principal Component #%d',startComp+1),
             main = thetitle,...)
@@ -852,7 +861,7 @@ pv.plotHeatmap = function(pv,numSites=1000,attributes=pv$attributes,mask,sites,
       	 if(length(unique(rownames(ocm)))==nrow(ocm)) {
             ocm = pv.reorderM(ocm,res$rowDendrogram)
          } else {
-            warning("Unable to re-order returned correlation matrix as labels are non-unique")	
+            warning("Unable to re-order returned correlation matrix as labels are non-unique",call.=F)	
          }
       }
 
@@ -878,8 +887,10 @@ pv.sort = function(pv,fun=sd,mask,...) {
 ## pv.overlap -- generate overlapping/unique peaksets
 pv.overlap = function(pv,A,B,C,mask,bFast=F,minVal=0) {
    
+   savemask = NULL
    if(!missing(mask)){
    	  if(!is.logical(mask)) {
+   	  	 savemask = mask
          newmask = rep(F,length(pv$peaks))
          newmask[mask] = T
          mask = newmask
@@ -892,7 +903,7 @@ pv.overlap = function(pv,A,B,C,mask,bFast=F,minVal=0) {
             C = peaksets[3]
          }
       } else {
-         warning('Too many peaksets in mask.')
+         warning('Too many peaksets in mask.',call.=F)
          return(NULL)
       }	
    } else {
@@ -905,7 +916,9 @@ pv.overlap = function(pv,A,B,C,mask,bFast=F,minVal=0) {
    }
    
    if(!bFast) {
+   	  scores = pv$allvectors[,which(mask)+3]
       pv = pv.vectors(pv,mask=mask,bAnalysis=F)
+      pv$allvectors[,4:ncol(pv$allvectors)] = scores
       if(sum(mask) == 2) {
          ovec = order(c(A,B))
          A = ovec[1]
@@ -923,9 +936,25 @@ pv.overlap = function(pv,A,B,C,mask,bFast=F,minVal=0) {
    pv$allvectors[,1] = pv$chrmap[pv$allvectors[,1]]
    if(missing(C)) {
       res = pv.contrast2(pv$allvectors,A,B,minVal=minVal)
+      if(!is.null(savemask)) {
+         ord = order(savemask)
+         if(!identical(savemask,ord)){
+            res = list(onlyA=res[[ord[1]]],onlyB=res[[ord[2]]],
+                       inAll=res[[3]]) 
+         }   	
+      }
    } else {
       res = pv.contrast3(pv$allvectors,A,B,C,minVal=minVal)
-   }
+      if(!is.null(savemask)) {
+         ord = order(savemask)
+         if(!identical(savemask,ord)){
+            res = list(onlyA=res[[ord[1]]],onlyB=res[[ord[2]]],onlyC=res[[ord[3]]],
+                       notA=res[[ord[1]+3]],notB=res[[ord[2]+3]],notC=res[[ord[3]+3]],
+                       inAll=res[[7]])  	
+         }
+      }
+   }   
+   
    return(res)
 }
 

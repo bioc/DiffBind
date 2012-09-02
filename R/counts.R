@@ -29,7 +29,7 @@ pv.model = function(model,mask,minOverlap=2,
       return(model)
    }
    
-   if(missing(attributes)) {   
+   if(pv.missing(attributes)) {   
       attributes = PV_ID
    }
 
@@ -154,6 +154,7 @@ pv.counts = function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog=
    
    pv = pv.check(pv)
    
+   
    if(!missing(peaks)) {
       if(is.character(peaks[1,1])){
          tmp = pv.peakset(NULL,peaks)
@@ -178,8 +179,20 @@ pv.counts = function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog=
    bed[,1] = pv$chrmap[bed[,1]]
    bed = pv.peaksort(bed)
 
+   nas = is.na(pv$class[PV_BAMREADS,])
+   if(sum(nas)>0) {
+   	  warning('Not all peaksets have associated read files.',call.=F)
+      #nasnum = which(nas)
+      #for(na in nasnum) {
+      #   warning(sprintf('Peakset %d: no read file specified.',na),call.=FALSE)	
+      #}
+      #stop('All peaksets must have an associated read file.')
+      pv = pv.vectors(pv,mask=!nas)	
+   }
+   
    numChips = ncol(pv$class)
-   chips  = unique(pv$class[PV_BAMREADS,])
+   chips  = pv$class[PV_BAMREADS,]
+   chips  = unique(chips[!is.na(chips)])
    inputs = pv$class[PV_BAMCONTROL,]
    inputs = unique(inputs[!is.na(inputs)])
    todo   = unique(c(chips,inputs))
@@ -217,21 +230,21 @@ pv.counts = function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog=
       defaultScore = PV_SCORE_READS_MINUS	
    } else redoScore = 0
       
-   allchips = unique(pv$class[c(PV_BAMREADS,PV_BAMCONTROL),])
+   #allchips = unique(pv$class[c(PV_BAMREADS,PV_BAMCONTROL),])
    numAdded = 0
    for(chipnum in 1:numChips) {
    	  if (pv.nodup(pv,chipnum)) {
       	 jnum = which(todo %in% pv$class[PV_BAMREADS,chipnum])
    	     cond = results[[jnum]]
    	     if(length(cond$counts)==0){
-   	        warning('ERROR IN PROCESSING ',todo[jnum])
+   	        warning('ERROR IN PROCESSING ',todo[jnum],call.=F)
    	     }
  	  
    	     if(!is.na(pv$class[PV_BAMCONTROL,chipnum])) {
    	        cnum = which(todo %in% pv$class[PV_BAMCONTROL,chipnum])
    	        cont = results[[cnum]]
    	        if(length(cont$counts)==0){
-   	           warning('ERROR IN PROCESSING ',todo[cnum])
+   	           warning('ERROR IN PROCESSING ',todo[cnum],call.=F)
    	        }
    	     } else {
    	  	    cont = NULL

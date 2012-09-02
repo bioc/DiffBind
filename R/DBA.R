@@ -35,8 +35,8 @@
 ## dba -- construct DBA object, e.g. from sample sheet ##
 #########################################################
 DBA_VERSION1  = 1
-DBA_VERSION2  = 1
-DBA_VERSION3  = 4
+DBA_VERSION2  = 2
+DBA_VERSION3  = 1
 
 DBA_GROUP     = PV_GROUP
 DBA_ID        = PV_ID 
@@ -114,6 +114,10 @@ dba = function(DBA,mask, minOverlap=2,
    
    if(bCorPlot) {
       dba.plotHeatmap(res)
+   }
+   
+   if(length(DBA$peaks)==1) {
+      warning('Only one sample in DBA object!',call.=F)
    }
     
    return(res)                 
@@ -218,6 +222,8 @@ dba.peakset = function(DBA=NULL, peaks, sampID, tissue, factor, condition, treat
             
       if(bMerge) {
          res = pv.check(res)
+      } else {
+      	res$masks = pv.mask(res)
       }
    }   
                        
@@ -285,7 +291,7 @@ dba.overlap = function(DBA, mask, mode=DBA_OLAP_PEAKS, minVal=0,
    
       res = pv.consensus(DBA,sampvec=mask,minOverlap=NULL)
    
-   }  else {
+   }  else { # DBA_OLAP_PEAKS
    
       res = pv.overlap(DBA,mask=mask,minVal=minVal)
       
@@ -366,6 +372,11 @@ dba.contrast = function(DBA, group1, group2=!group1, name1="group1", name2="grou
    }
    
    DBA = pv.check(DBA)
+   
+   if(length(DBA$peaks)==1) {
+      warning('Only one sample in DBA object: unable to add any contrasts',call.=F)
+      return(NULL)	
+   }
       
    res = pv.contrast(DBA, group1=group1, group2=group2, name1=name1, name2=name2,
                      minMembers=minMembers, categories=categories,block=block)
@@ -392,6 +403,11 @@ dba.analyze = function(DBA, method=DBA$config$AnalysisMethod,
    #}
    	
    DBA = pv.check(DBA)
+   
+   if(length(DBA$peaks)==1) {
+      warning('Only one sample in DBA object: unable to analyze',call.=F)
+      return(NULL)	
+   }
       
    res = pv.DBA(DBA, method ,bSubControl,bFullLibrarySize,bTagwise=bTagwise,minMembers=3,bParallel)
    
@@ -439,7 +455,7 @@ dba.report = function(DBA, contrast=1, method=DBA$config$AnalysisMethod, th=.1, 
                      
 {
 
-   DBA = pv.check(DBA) 
+   DBA = pv.check(DBA,contrast=contrast,method=method) 
 
    res = pv.DBAreport(pv=DBA,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
                       bCalled=bCalled,bCounts=bCounts,bCalledDetail=bCalledDetail,
@@ -464,7 +480,12 @@ dba.plotHeatmap = function(DBA, attributes=DBA$attributes, maxSites=1000, minval
                            margin=10, colScheme="Greens", distMethod="pearson",
                            ...)
 {
-   DBA = pv.check(DBA)
+   DBA = pv.check(DBA,contrast=contrast,method=method)
+   
+   if(length(DBA$peaks)==1) {
+      warning('Only one sample in DBA object: unable to plot',call.=F)
+      return(NULL)	
+   }
    
    if(missing(contrast) && !missing(score)) {
       DBA = dba.count(DBA,peaks=NULL,score=score)	
@@ -527,8 +548,13 @@ dba.plotPCA = function(DBA, attributes, minval, maxval,
                        b3D=FALSE, vColors, dotSize, ...)
                        
 {
-   DBA = pv.check(DBA)
+   DBA = pv.check(DBA,contrast,method)
    
+   if(length(DBA$peaks)==1) {
+      warning('Only one sample in DBA object: unable to plot',call.=F)
+      return(NULL)	
+   }
+      
    if(missing(contrast) && !missing(score)) {
       DBA = dba.count(DBA,peaks=NULL,score=score)	
    }   
@@ -573,7 +599,7 @@ dba.plotBox = function(DBA, contrast=1, method=DBA$config$AnalysisMethod, th=0.1
                        vColors, varwidth=TRUE, notch=TRUE, ...) 
 
 {
-   DBA = pv.check(DBA)
+   DBA = pv.check(DBA,contrast=contrast,method=method)
    
    if(contrast > length(DBA$contrasts)) {
       stop('Supplied contrast greater than number of contrasts')	
@@ -596,7 +622,7 @@ dba.plotMA = function(DBA, contrast=1, method=DBA$config$AnalysisMethod, th=.1, 
                       factor="", bXY=FALSE, dotSize=.33, ...)
 
 {
-   DBA = pv.check(DBA)
+   DBA = pv.check(DBA,contrast=contrast,method=method)
    res = pv.DBAplotMA(DBA, contrast=contrast, method=method, bMA=!bXY, bXY=bXY, th=th, bUsePval=bUsePval,
                       facname=factor, bNormalized=bNormalized, cex=dotSize, ...)
  

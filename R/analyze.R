@@ -257,7 +257,7 @@ pv.DEedgeR = function(pv,group1,group2,label1="Group 1",label2="Group 2",blockLi
            res = estimateGLMCommonDisp(res,res$design)
         }
         res$GLM = glmFit(res,res$design)
-        res$LRT = glmLRT(res,res$GLM,2)
+        res$LRT = glmLRT(res$GLM,2)
      } else {
         if(bTagwise){
   	       res = estimateTagwiseDisp(res,prior.n=50/(ncol(res$counts)-2),trend="none")
@@ -307,7 +307,7 @@ pv.DEedgeR = function(pv,group1,group2,label1="Group 1",label2="Group 2",blockLi
       res = estimateGLMTagwiseDisp(res,res$designmatrix)
      }
      res$GLM = glmFit(res,res$designmatrix)
-     res$LRT = glmLRT(res,res$GLM,ncol(res$designmatrix))
+     res$LRT = glmLRT(res$GLM,ncol(res$designmatrix))
      res$counts=NULL	 
      #res$fdr = topTags(res$LRT,nrow(res$counts))
   }
@@ -626,6 +626,10 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
    con = pv$contrasts[[contrast]]
    if(method=='edgeR' || method=='edgeRGLM'){
       if(is.null(con$edgeR) || class(con$edgeR)=="try-error") {
+         if(!is.null(con$DESeq)) {
+            warning('DESeq analysis present, try \"method=DBA_DESEQ\" or make this the default by setting \"DBA$config$AnalysisMethod = DBA_DESEQ\"',
+                    call.=FALSE)   	
+         }
          stop('edgeR analysis has not been run for this contrast')
          return(NULL)
       }
@@ -650,7 +654,7 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
       if(bNormalized){
       	 sizes = con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors
       	 counts = t(t(counts)/sizes)
-      	 counts = counts * con$edgeR$common.lib.size
+      	 counts = counts * con$edgeR$pseudo.lib.size
       } 
    } else if (method=='DESeq' || method=='DESeqGLM' || method=='DESeqBlock') {
       if (length(find.package(package='DESeq',quiet=T))>0) {
@@ -668,6 +672,9 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
       counts = pv.DEinit(pv,con$group1,con$group2,con$label1,con$label2,method='DESeq',
 	                     bSubControl=con$DESeq$bSubControl,bFullLibrarySize=con$DESeq$bFullLibrarySize,bRawCounts=T)
       if(method=='DESeqBlock') {
+      	 if(is.null(con$DESeq$block)) {
+      	    stop('No blocking analysis for this contrast.',call.=F) 	
+      	 }
          data = con$DESeq$block$de
          if(bNormalized){
       	    counts = t(t(counts)/con$DESeq$block$facs)
@@ -678,7 +685,10 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
       	    counts = t(t(counts)/con$DESeq$facs)
          }
       }   
-   } else if(method=='edgeRlm'){
+   } else if(method=='edgeRlm'){     	
+      if(is.null(con$edgeR$block)) {
+         stop('No blocking analysis for this contrast.',call.=F) 	
+      }
    	  if(is.null(con$edgeR$counts)) {
          counts = pv.DEinit(pv,con$group1,con$group2,con$label1,con$label2,method='edgeR',
                             bSubControl=con$edgeR$block$bSubControl,bFullLibrarySize=con$edgeR$block$bFullLibrarySize,
@@ -695,7 +705,7 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
       if(bNormalized){
       	 sizes = con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors
       	 counts = t(t(counts)/sizes)
-      	 counts = counts * con$edgeR$common.lib.size
+      	 counts = counts * con$edgeR$pseudo.lib.size
       } 
    } else {
       stop('Unknown DE method: ',method)

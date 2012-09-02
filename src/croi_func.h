@@ -9,7 +9,7 @@ class Croi {
     Croi(void);
     ~Croi(void);
     int load(const char *filename,int insertLength);
-    int count(const char *chrom,int left,int right);
+    int count(const char *chrom,int left,int right,int withoutDupes);
     int size();
   private:
     bode::IntervalSetSplit *isets;

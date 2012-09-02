@@ -10,7 +10,7 @@
 ## pv HELPER FUNCTIONS ##
 #########################
 
-pv.check = function(pv) {
+pv.check = function(pv,contrast,method) {
    if(is.null(pv)) {
       return(NULL)	
    }
@@ -33,6 +33,23 @@ pv.check = function(pv) {
    if(nrow(pv$class)<PV_TREATMENT) {
      pv$class = rbind(pv$class,'')
      rownames(pv$class)[PV_TREATMENT]='Treatment'	
+   }
+   
+   if(!missing(contrast)) {
+      if(contrast > length(pv$contrasts)) {
+         stop('Supplied contrast greater than number of contrasts')	
+      }
+      if(!missing(method)) {
+         if(method[1]==DBA_EDGER_BLOCK) {
+            if(is.null(pv$contrasts[[contrast]]$edgeR$block)) {
+               stop('No blocking analysis for this contrast.',call.=F) 	
+            }
+         } else if(method[1]==DBA_DESEQ_BLOCK) {
+            if(is.null(pv$contrasts[[contrast]]$DESeq$block)) {
+               stop('No blocking analysis for this contrast.',call.=F) 	
+            }
+         }
+      }         
    }
    
    return(pv)
@@ -96,6 +113,11 @@ pv.setScore = function(pv,score,bLog=F,minMaxval) {
       if(score == DBA_SCORE_TMM_READS_EFFECTIVE) {
          bMinus   = FALSE
          bFullLib = FALSE	
+      }
+      
+      if(ncol(pv$allvectors)==4) {
+         warning('Not enough samples -- unable to score using TMM normalization',call.=FALSE)
+         return(pv)	
       }
       
       pv$allvectors[,4:ncol(pv$allvectors)] = pv.normTMM(pv,bMinus=bMinus,bFullLib=bFullLib)

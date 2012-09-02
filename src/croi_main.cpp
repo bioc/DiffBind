@@ -57,10 +57,10 @@ extern "C" {
     return rv;
   }
 
-  SEXP croi_count_reads(SEXP tree_r,SEXP chrom_r,SEXP left_r,SEXP right_r,SEXP ilen_r) {
+  SEXP croi_count_reads(SEXP tree_r,SEXP chrom_r,SEXP left_r,SEXP right_r,SEXP ilen_r,SEXP withoutDupes_r) {
     Croi *tree;
     const char *chrom;
-    int ilen,*left,*right,i,*count;
+    int ilen,*left,*right,i,*count,withoutDupes;
     SEXP count_r;
 
     tree = (Croi *) R_ExternalPtrAddr(tree_r);
@@ -69,10 +69,11 @@ extern "C" {
     right = INTEGER(right_r);
     count_r = allocVector(INTSXP,ilen);
     count = INTEGER(count_r);
+    withoutDupes = LOGICAL(withoutDupes_r)[0];
 
     for (i=0;i<ilen;i++) {
       chrom = CHAR(STRING_ELT(chrom_r,i));
-      count[i] = tree->count(chrom,left[i],right[i]);
+      count[i] = tree->count(chrom,left[i],right[i],withoutDupes);
     }
     return count_r;
   }

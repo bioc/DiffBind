@@ -1,5 +1,9 @@
 pv.peaks2DataType = function(peaks,datatype=DBA_DATA_DEFAULT) {
    
+   if(is.null(peaks)) {
+     return(NULL)
+   }
+   
    if(datatype==DBA_DATA_FRAME) {
       return(peaks)	
    }
@@ -290,6 +294,15 @@ pv.get_scores = function(pv,peaksets){
    }
    return(scores)
 }
+
+pv.missing = function(x) {
+	if(missing(x) || length(x)==0 || is.na(x)) {
+       return(T)
+	} else {
+	   return(F)
+	}
+}
+
 
 
 
