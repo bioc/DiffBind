@@ -257,7 +257,7 @@ pv.DEedgeR = function(pv,group1,group2,label1="Group 1",label2="Group 2",blockLi
            res = estimateGLMCommonDisp(res,res$design)
         }
         res$GLM = glmFit(res,res$design)
-        res$LRT = glmLRT(res$GLM,2)
+        res$LRT = glmLRT(res,res$GLM,2)
      } else {
         if(bTagwise){
   	       res = estimateTagwiseDisp(res,prior.n=50/(ncol(res$counts)-2),trend="none")
@@ -307,7 +307,7 @@ pv.DEedgeR = function(pv,group1,group2,label1="Group 1",label2="Group 2",blockLi
       res = estimateGLMTagwiseDisp(res,res$designmatrix)
      }
      res$GLM = glmFit(res,res$designmatrix)
-     res$LRT = glmLRT(res$GLM,ncol(res$designmatrix))
+     res$LRT = glmLRT(res,res$GLM,ncol(res$designmatrix))
      res$counts=NULL	 
      #res$fdr = topTags(res$LRT,nrow(res$counts))
   }
@@ -654,7 +654,7 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
       if(bNormalized){
       	 sizes = con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors
       	 counts = t(t(counts)/sizes)
-      	 counts = counts * con$edgeR$pseudo.lib.size
+      	 counts = counts * con$edgeR$common.lib.size
       } 
    } else if (method=='DESeq' || method=='DESeqGLM' || method=='DESeqBlock') {
       if (length(find.package(package='DESeq',quiet=T))>0) {
@@ -705,7 +705,7 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
       if(bNormalized){
       	 sizes = con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors
       	 counts = t(t(counts)/sizes)
-      	 counts = counts * con$edgeR$pseudo.lib.size
+      	 counts = counts * con$edgeR$common.lib.size
       } 
    } else {
       stop('Unknown DE method: ',method)
