@@ -283,7 +283,7 @@ pv.contrast3 = function(vectors,n1,n2,n3,minVal=0){
    notB   = !v2 &  (v1 | v3)
    v1 = v1 & !notB
    v3 = v3 & !notB
-   notC   = !v3 &  (v1 | v3)       
+   notC   = !v3 &  (v1 | v2)       
 	    
    res = list(onlyA = vectors[onlyA,c(1:3,(n1+3))],
    	          onlyB = vectors[onlyB,c(1:3,(n2+3))],
