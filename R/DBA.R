@@ -488,7 +488,12 @@ dba.plotHeatmap = function(DBA, attributes=DBA$attributes, maxSites=1000, minval
    }
    	                          	  
    if(length(correlations)==1 & ((correlations[1] == DBA_OLAP_ALL) | (correlations[1] == TRUE)))  {
-   	  if(nrow(DBA$allvectors)>1) { 	
+   	  if(nrow(DBA$allvectors)>1) {
+          if(!missing(sites)) {
+		     if(is.logical(sites)) {
+               sites = which(sites)	
+		    }
+		  }
    	     correlations = pv.occupancy(DBA, mask=mask, sites=sites, Sort='cor', bCorOnly=T,CorMethod=distMethod)
    	  } else {
    	     warning('No correlation heatmap plotted -- contrast does not have enough differentially bound sites.')	

@@ -153,19 +153,20 @@ pv.setScore = function(pv,score,bLog=F,minMaxval) {
          }
          pv$overlapping = pv$overlapping[tokeep]
          pv = pv.vectors(pv,minOverlap=1,bAnalysis=F,bAllSame=T)
+		  if(!is.null(pv$contrasts)) {
+			  for(i in 1:length(pv$contrasts)) {
+				  pv$contrasts[[i]]$edgeR=NULL
+				  pv$contrasts[[i]]$DESeq=NULL
+			  }
+		  }
       } else {
-      	 if(sum(tokeep)<2) {
-            stop('No sites have activity greater than maxFilter')
-         }
+		  if(sum(tokeep)<2) {
+			  stop('No sites have activity greater than maxFilter')
+		  }
       }
-      if(!is.null(pv$contrasts)) {
-         for(i in 1:length(pv$contrasts)) {
-            pv$contrasts[[i]]$edgeR=NULL
-            pv$contrasts[[i]]$DESeq=NULL
-         }
-      }
-      pv$maxFilter = minMaxval
+	   pv$maxFilter = minMaxval
    }
+	
    
    pv$score = score
       

@@ -98,7 +98,9 @@ dba.multicore.init = function(config) {
    config$lapplyFun    = dba.multicore.lapply
    config$wait4jobsFun = dba.multicore.wait4jobs
 
-   config$cores = parallel:::detectCores(logical=FALSE)
+   if(is.null(config$cores)) {
+      config$cores = parallel:::detectCores(logical=FALSE)
+   }
    
    return(config)
 }

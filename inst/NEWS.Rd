@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.4.2}{
+ \itemize{
+   \item{Change contact emails; bugfixes and warnings.}
+ }
+}
+
 \section{Version 1.4.1}{
  \itemize{
    \item{Bugfixes and warnings.}
