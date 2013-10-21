@@ -2,8 +2,17 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{version 1.8.2}{
+ \itemize{
+  \item{Fix: missing header file introduced in 1.8.1.}
+  \item{Fix: minor edit to NEWS text for 1.8.1.}
+ }
+}
+
 \section{version 1.8.1}{
-  \item{Fix: longstanding bug in dba.count that could case reads mapped to chrN_random to be counted aginst intervals on chrN.}
+ \itemize{
+  \item{Fix: longstanding bug in dba.count that could cause reads mapped to chrN_random to be counted aginst intervals on chrN.}
+ }
 }
 
 \section{version 1.8.0}{
