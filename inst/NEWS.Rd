@@ -2,10 +2,15 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{version 1.8.3}{
+ \itemize{
+  \item{Fix:  bug when generating GRanges overlaps and one peakset is empty.}
+ }
+}
+
 \section{version 1.8.2}{
  \itemize{
   \item{Fix: missing header file introduced in 1.8.1.}
-  \item{Fix: minor edit to NEWS text for 1.8.1.}
  }
 }
 
