@@ -432,6 +432,7 @@ pv.list = function(pv,mask,bContrasts=F,attributes=pv.deflist,th=0.1,bUsePval=F)
    
    
    res = t(pv$class[attributes,mask])
+   colnames(res) = sapply(attributes,pv.attname,pv)
    rownames(res) = which(mask)
    
    if(bIntervals) {
@@ -820,6 +821,8 @@ pv.plotPCA = function(pv,attributes=PV_ID,second,third,fourth,size,mask,
     if(missing(numSites)){
        numSites = nrow(pv$vectors)
     }
+   
+   config = pv$config
          	  
    if(!missing(mask) || !missing(numSites)){
    	  if(missing(mask)) {
@@ -827,7 +830,7 @@ pv.plotPCA = function(pv,attributes=PV_ID,second,third,fourth,size,mask,
    	  }
       pv = pv.pcmask(pv,numSites,mask,sites,cor=cor)
    } 
-   
+   pv$config = config
    pc = pv$pc
    
    if(is.null(pc)) {
@@ -859,28 +862,28 @@ pv.plotPCA = function(pv,attributes=PV_ID,second,third,fourth,size,mask,
    c3p = vr[3]/sum(vr)*100
    
    if(!missing(second)){
-   	  if(!missing(third)) {
-   	     if(!missing(fourth)) {
-	     	classvec = sprintf("%s:%s:%s:%s",classes[class,],classes[second,],classes[third,],classes[fourth,])      
-            thetitle = sprintf("PCA: %s:%s:%s:%s",rownames(classes)[class],
-                                               rownames(classes)[second],
-                                               rownames(classes)[third],
-                                               rownames(classes)[fourth],pvar)
-   	     } else {
-            classvec = sprintf("%s:%s:%s",classes[class,],classes[second,],classes[third,])      
-            thetitle = sprintf("PCA: %s:%s:%s",rownames(classes)[class],
-                                               rownames(classes)[second],
-                                               rownames(classes)[third],pvar)
-            }
+      if(!missing(third)) {
+         if(!missing(fourth)) {
+            classvec = sprintf("%s:%s:%s:%s",classes[class,],classes[second,],classes[third,],classes[fourth,])      
+            thetitle = sprintf("PCA: %s:%s:%s:%s",pv.attname(class,pv),
+                               pv.attname(second,pv),
+                               pv.attname(third,pv),
+                               pv.attname(fourth,pv),pvar)
          } else {
+            classvec = sprintf("%s:%s:%s",classes[class,],classes[second,],classes[third,])      
+            thetitle = sprintf("PCA: %s:%s:%s",pv.attname(class,pv),
+                               pv.attname(second,pv),
+                               pv.attname(third,pv),pvar)
+         }
+      } else {
          classvec = sprintf("%s:%s",classes[class,],classes[second,])      
-         thetitle = sprintf("PCA: %s:%s",rownames(classes)[class],
-                                            rownames(classes)[second],pvar)
+         thetitle = sprintf("PCA: %s:%s",pv.attname(class,pv),
+                            pv.attname(second,pv),pvar)
       }
    } else {
       classvec = classes[class,]	
-      thetitle = sprintf("PCA: %s",rownames(classes)[class],pvar)
-  }
+      thetitle = sprintf("PCA: %s",pv.attname(class,pv),pvar)
+   }
    
    numsamps = ncol(classes)
    if(numsamps <=10) {
