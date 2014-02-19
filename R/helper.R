@@ -917,10 +917,15 @@ pv.orderfacs = function(facvec,decreasing=F) {
    return(res)	
 }
 
-pv.normalize = function(peaks,pCol,zeroVal=-1,bLog=F){
-   width   = peaks[,3] - peaks[,2]
-   density = peaks[,pCol]/width 
-   res = density/max(density)
+pv.normalize = function(peaks,pCol,zeroVal=-1,bLog=F,bDensity=T){
+   if(bDensity) {
+      width   = peaks[,3] - peaks[,2]
+      width[width==0]=1
+      density = peaks[,pCol]/width 
+      res = density/max(density)
+   } else {
+      res = peaks[,pCol]/max(peaks[,pCol])
+   }
    if(bLog) {
       res = log2(res)
       x = res == -Inf

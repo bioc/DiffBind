@@ -69,10 +69,10 @@ data frame containing configuration options, or file name of config file to load
 }
 }
   \item{peakCaller}{
-if a sampleSheet is specified, the default peak caller that will be used if the \code{fPeakCaller} column is absent.
+if a sampleSheet is specified, the default peak caller that will be used if the \code{PeakCaller} column is absent.
 }
  \item{peakFormat}{
-if a sampleSheet is specified, the default peak file format that will be used if the \code{fPeakFormat} column is absent.
+if a sampleSheet is specified, the default peak file format that will be used if the \code{PeakFormat} column is absent.
 }
  \item{scoreCol}{
 if a sampleSheet is specified, the default column  in the peak files that will be used for scoring if the \code{ScoreCol} column is absent.

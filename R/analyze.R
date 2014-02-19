@@ -852,7 +852,8 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
       if(bNormalized){
       	 sizes = con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors
       	 counts = t(t(counts)/sizes)
-      	 counts = counts * con$edgeR$pseudo.lib.size
+      	 #counts = counts * con$edgeR$pseudo.lib.size
+      	 counts = counts * mean(con$edgeR$samples$lib.size)
       } 
    } else if (method=='DESeq1' || method=='DESeq1GLM' || method=='DESeq1Block') {
       if (length(find.package(package='DESeq',quiet=T))>0) {
@@ -897,7 +898,8 @@ pv.DBAreport = function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
       if(bNormalized){
       	 sizes = con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors
       	 counts = t(t(counts)/sizes)
-      	 counts = counts * con$edgeR$pseudo.lib.size
+      	 #counts = counts * con$edgeR$pseudo.lib.size
+      	 counts = counts * mean(con$edgeR$samples$lib.size)
       } 
    } else if (method=='DESeq2' || method=='DESeq2Block') {
      if (length(find.package(package='DESeq2',quiet=T))>0) {

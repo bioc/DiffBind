@@ -150,8 +150,9 @@ pv.peakset = function(pv=NULL,peaks, sampID, tissue, factor,condition, treatment
       if(is.null(bLowerScoreBetter)) bLowerScoreBetter = FALSE   
    }
    
-   if(ncol(peaks) < scoreCol) {
-      peaks = cbind(peaks=1)
+   scoreSave = scoreCol
+   while(ncol(peaks) < scoreSave) {
+      peaks = cbind(peaks,1)
       scoreCol = 0
    }
 

@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{version 1.8.4}{
+ \itemize{
+  \item{Fix: more consistent scores for DBA_SCORE_TMM_*.}
+  \item{Fix: remove spurious f's in man page for dba detailing column name lables in samplesheet.}  
+  \item{Change: disable tamoxifen_GEO.R script as it no longer works due to SRA changing data format.}  
+ }
+}
+
 \section{version 1.8.3}{
  \itemize{
   \item{Fix:  bug when generating GRanges overlaps and one peakset is empty.}
