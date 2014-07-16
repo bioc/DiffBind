@@ -644,7 +644,7 @@ dba.plotHeatmap = function(DBA, attributes=DBA$attributes, maxSites=1000, minval
         DBA = dba.count(DBA,peaks=NULL,score=score)	
     }
     
-    mask = pv.setMask(DBA,mask)
+    mask = pv.setMask(DBA,mask,contrast)
     
     if(!missing(contrast)) {
         if(!missing(report)) {
@@ -725,7 +725,7 @@ dba.plotPCA = function(DBA, attributes, minval, maxval,
 {
     DBA = pv.check(DBA,TRUE)
     
-    mask = pv.setMask(DBA,mask)
+    mask = pv.setMask(DBA,mask,contrast)
     
     if(missing(contrast) && !missing(score)) {
         DBA = dba.count(DBA,peaks=NULL,score=score)	

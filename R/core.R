@@ -936,7 +936,15 @@ pv.plotPCA = function(pv,attributes=PV_ID,second,third,fourth,size,mask,
                   ylab=sprintf('PC #%d [%2.0f%%]',startComp+2,c3p),
                   zlab=sprintf('PC #%d [%2.0f%%]',startComp+1,c2p),
                   aspect=c(1,1,1),main=thetitle,...)
-      p = cbind(uclass,vColors[1:length(uclass)])
+      uclass = unique(classvec)
+      p = matrix(vColors[1:length(uclass)],length(uclass),1)
+      rownames(p) = uclass
+      colnames(p) = "Legend"
+      for(i in 1:nrow(p)) {
+          if(p[i]==crukBlue) p[i]="crukBlue"
+          if(p[i]==crukMagenta) p[i]="crukMagenta"
+          if(p[i]==crukCyan) p[i]="crukCyan"
+      }
       print(p)
     } else {
       warning("Package rgl not installed")
