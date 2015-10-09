@@ -2,33 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 1.15.5}{
+\section{Version 1.16.0}{
 \itemize{
-   \item{Roll up bugfixes form release}
- }
-}
-
-
-\section{Version 1.15.4}{
-\itemize{
-   \item{Fix bug when plotting correlation heatmap for peak scores and bLog=TRUE}
- }
-}
-
-
-\section{Version 1.15.2}{
-\itemize{
-   \item{Fix bug when not all chromosome names in first peakset}
- }
-}
-
-\section{Version 1.15.1}{
-\itemize{
-   \item{Fix bug when summit heights are zero}
-   \item{Update version number in object}
+   \item{Roll up bugfixes}
    \item{dba.plotHeatmap returns binding sites in row order}
- }
+   }
 }
+
 
 \section{Version 1.14.0}{
 \itemize{
@@ -250,8 +230,8 @@ Changes since last release:
 
    \item{Added new metadata type, DBA_TREATMENT.}
 
-   \item{New DBA_SCORE_ options for specifying scoring method, including TMM normalized counts, and ability to change scoring 
-             method on the fly in dba.plotHeatmap and dba.plotPCA when plotting global binding matrix.}
+   \item{New DBA_SCORE_ options for specifying scoring method, including TMM normalized counts, 
+and ability to change scoring method on the fly in dba.plotHeatmap and dba.plotPCA when plotting global binding matrix.}
 
    \item{bRemoveDuplicates parameter in dba.count allows duplicate reads to be discarded when computing counts}
 
