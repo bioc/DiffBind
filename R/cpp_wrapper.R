@@ -62,3 +62,7 @@ cpp_mergeOne <- function(peaks,bKeepAll,minOverlap) {
 cpp_mergeTwo <- function(peaksA,peaksB,bKeepAll,minOverlap,zero) {
   return(.Call("mo_mergeTwo",peaksA,peaksB,bKeepAll,minOverlap,zero))
 }
+
+cpp_peakOrder <- function(peaks) {
+  return(peakOrder(peaks[,1],peaks[,2],peaks[,3]))
+}

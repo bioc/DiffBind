@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.17.1}{
+\itemize{
+   \item{Include a C++ peakOrder function for ordering peaks quickly without using much space.}
+   \item{Include the beginnings of some unit tests using the testthat package.}
+   }
+}
+
 \section{Version 1.16.0}{
 \itemize{
    \item{Roll up bugfixes}

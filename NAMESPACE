@@ -115,3 +115,5 @@ import(locfit)
 importFrom(systemPipeR,vennPlot)
 
 importFrom(tools,file_ext)
+
+importFrom(Rcpp, evalCpp)

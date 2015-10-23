@@ -1,6 +1,6 @@
 Package: DiffBind
 Type: Package
-Version: 1.17.0
+Version: 1.17.1
 Title: Differential Binding Analysis of ChIP-Seq peak data
 Author: Rory Stark<rory.stark@cruk.cam.ac.uk>, Gord Brown
         <gdbzork@gmail.com>
@@ -13,10 +13,10 @@ LazyLoad: yes
 Depends: R (>= 3.2.2), GenomicRanges, SummarizedExperiment, limma,
         GenomicAlignments, locfit
 Imports: RColorBrewer, amap, edgeR, gplots, grDevices,
-        stats, utils, IRanges, zlibbioc, lattice, systemPipeR, tools
-Suggests: DESeq, Rsamtools, DESeq2, BiocStyle
+        stats, utils, IRanges, zlibbioc, lattice, systemPipeR, tools, Rcpp
+Suggests: DESeq, Rsamtools, DESeq2, BiocStyle, testthat
 Enhances: rgl, parallel, BiocParallel, XLConnect
-LinkingTo: Rsamtools (>= 1.19.38)
+LinkingTo: Rsamtools (>= 1.19.38), Rcpp
 Collate: core.R parallel.R counts.R contrast.R analyze.R io.R helper.R
-        utils.R cpp_wrapper.R DBA.R
+        utils.R RcppExports.R cpp_wrapper.R DBA.R
 biocViews: Sequencing, ChIPSeq, DifferentialPeakCalling
