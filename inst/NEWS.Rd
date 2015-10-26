@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.17.2}{
+\itemize{
+   \item{Added a space-efficient merge, with "mergePeaks" and "mergeScores" functions.}
+   }
+}
+
 \section{Version 1.17.1}{
 \itemize{
    \item{Include a C++ peakOrder function for ordering peaks quickly without using much space.}
