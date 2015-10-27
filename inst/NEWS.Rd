@@ -2,6 +2,15 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.17.3}{
+\itemize{
+   \item{Bug fix: tildes in file paths now accepted.}
+   \item{Bug fix: spaces trimmed from entries in sample sheets (with warning).}
+   \item{Feature: maxGap implemented in merge.}
+   \item{Bug fix: functions added to importFrom stats to satisfy BiocCheck.}
+   }
+}
+
 \section{Version 1.17.2}{
 \itemize{
    \item{Added a space-efficient merge, with "mergePeaks" and "mergeScores" functions.}

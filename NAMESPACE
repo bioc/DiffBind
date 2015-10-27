@@ -100,7 +100,8 @@ importFrom(grDevices, colorRampPalette)
 importFrom(RColorBrewer, brewer.pal)
 
 importFrom(stats, model.matrix, p.adjust, princomp, t.test,
-           wilcox.test)
+           wilcox.test, dist, hclust, order.dendrogram,
+           as.dendrogram, reorder)
 
 importFrom(utils, read.table, write.csv, write.table)
 

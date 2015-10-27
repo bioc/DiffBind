@@ -53,6 +53,7 @@ pv.model = function(model,mask,minOverlap=2,
         } else {
             samples = read.table(samplesheet,sep=',',stringsAsFactors=F,header=T)
         }
+        samples = stripSpaces(samples)
     } else samples = samplesheet
     
     if(is.null(samples$SampleID)){

@@ -39,13 +39,12 @@ bool validData(Rcpp::DataFrame peaks,bool score=false) {
 }
 
 // [[Rcpp::export]]
-Rcpp::DataFrame mergePeaks(Rcpp::DataFrame data,Rcpp::NumericVector vMaxGap) {
+Rcpp::DataFrame mergePeaks(Rcpp::DataFrame data,int maxGap) {
   PeakSet src;
   src.chr = data[0];
   src.left = data[1];
   src.right = data[2];
   
-  int maxGap = vMaxGap[0];
   int sourceLen = src.chr.size();
   int total;
   PeakSet dest;

@@ -558,13 +558,13 @@ pv.readPeaks = function(peaks,peak.format,skipLines=0){
         peaks = pv.swembl(peaks)
     } 
     else if(peak.format == "raw") {
-        peaks = pv.readbed(peaks)
+        peaks = pv.readbed(peaks,checkHeader=TRUE)
     } 
     else if(peak.format == "fp4") {
         peaks =  pv.readbed(peaks,1)
     } 
     else if(peak.format == "bed") {
-        peaks =  pv.readbed(peaks,skipLines)
+        peaks =  pv.readbed(peaks,checkHeader=TRUE)
     } 
     else if(peak.format == "tpic") {
         peaks =  pv.tpic(peaks)
@@ -642,7 +642,18 @@ pv.swembl = function(fn){
     return(res) 
 }
 
-pv.readbed = function(fn,skipnum=0){
+hasHeader <- function(fn) {
+  line <- readLines(fn,n=1)
+  flds <- strsplit(line,"\\s")
+  f2 <- suppressWarnings(as.numeric(flds[[1]][2]))
+  f3 <- suppressWarnings(as.numeric(flds[[1]][3]))
+  return(is.na(f2) || is.na(f3))
+}
+
+pv.readbed = function(fn,skipnum=0,checkHeader=FALSE){
+    if (checkHeader) {
+      skipnum = if (hasHeader(fn)) 1 else 0
+    }
     data = read.table(fn,skip=skipnum)
     res  = pv.peaksort(data)
     if(ncol(res)==3) {
@@ -1400,4 +1411,21 @@ pv.assaysFromPeaks = function(DBA) {
     return(assays)
 }
 
-
+stripSpaces <- function(data) {
+  cnames <- names(data)
+  for (cname in cnames) {
+    stripped <- trimws(data[,cname])
+    changed <- !(stripped == data[,cname])
+    if (sum(changed) > 0) {
+      rows <- seq(1,length(stripped))
+      rownums <- rows[changed]
+      orig <- paste(stripped[changed],sep=",",collapse=",")
+      warning(sprintf("Removed white space from %s in column %s (%s %s)",
+                      orig,cname,
+                      if (length(rownums)==1) "row" else "rows",
+                      paste(rownums,sep=",",collapse=",")))
+      data[,cname] = stripped
+    }
+  }
+  return(data)
+}

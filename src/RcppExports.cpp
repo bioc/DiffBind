@@ -6,14 +6,14 @@
 using namespace Rcpp;
 
 // mergePeaks
-Rcpp::DataFrame mergePeaks(Rcpp::DataFrame data, Rcpp::NumericVector vMaxGap);
-RcppExport SEXP DiffBind_mergePeaks(SEXP dataSEXP, SEXP vMaxGapSEXP) {
+Rcpp::DataFrame mergePeaks(Rcpp::DataFrame data, int maxGap);
+RcppExport SEXP DiffBind_mergePeaks(SEXP dataSEXP, SEXP maxGapSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< Rcpp::DataFrame >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type vMaxGap(vMaxGapSEXP);
-    __result = Rcpp::wrap(mergePeaks(data, vMaxGap));
+    Rcpp::traits::input_parameter< int >::type maxGap(maxGapSEXP);
+    __result = Rcpp::wrap(mergePeaks(data, maxGap));
     return __result;
 END_RCPP
 }

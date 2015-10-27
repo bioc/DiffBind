@@ -1,0 +1,5 @@
+SampleID,Tissue,Factor,Condition,Replicate,ControlID,Peaks,PeakCaller
+alpha,breast,ERa,untreated,1,zork,bed_with_header.bed.gz ,bed
+bravo,breast,ERa,untreated,2,zork, bed_without_header.bed.gz,bed
+charlie,breast,ERa,treated ,1,zork,raw_with_header.raw.gz ,raw
+delta,breast,ERa,treated,2,zork,raw_without_header.raw.gz,raw

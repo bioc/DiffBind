@@ -26,6 +26,7 @@ cpp_count_reads <- function(bamfile,insertLength,fileType,bufferSize,
     heights.vec <- vector()
     bSummits = FALSE
   }
+  bamfile <- path.expand(bamfile)
   libsize <- .Call("croi_count_reads",bamfile,
                    as.integer(insertLength),
                    as.integer(fileType),
