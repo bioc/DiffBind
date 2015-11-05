@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.17.4}{
+\itemize{
+   \item{Bug fix: ensure loading sample sheet doesn't treat hash as comment char.}
+   }
+}
+
 \section{Version 1.17.3}{
 \itemize{
    \item{Bug fix: tildes in file paths now accepted.}

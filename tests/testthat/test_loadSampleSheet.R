@@ -79,3 +79,14 @@ test_that("loading xlsx sample sheet with spaces generates warnings",{
     setwd(wd)
   }
 })
+
+test_that("sample sheet loading does not interpret hash as a comment character",{
+  wd <- getwd()
+  setwd(system.file('extra','testdata',package='DiffBind'))
+  fn = 'test_sampleSheet_comment_char.csv'
+  dobj = dba(sampleSheet=fn)
+  expect_is(dobj,"DBA")
+  expect_equal(dobj$samples$SampleID[2],"bravo#")
+  expect_equal(dobj$samples$SampleID[3],"char#lie")
+  setwd(wd)
+})

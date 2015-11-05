@@ -51,7 +51,7 @@ pv.model = function(model,mask,minOverlap=2,
                 stop("Package XLConnect is needed to read Excel-format sample sheets.")
             }
         } else {
-            samples = read.table(samplesheet,sep=',',stringsAsFactors=F,header=T)
+            samples = read.table(samplesheet,sep=',',stringsAsFactors=F,header=T,comment.char="")
         }
         samples = stripSpaces(samples)
     } else samples = samplesheet
