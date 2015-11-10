@@ -51,7 +51,7 @@ Rory Stark
 \examples{
 data(tamoxifen_peaks)
 dba.save(tamoxifen,'tamoxifenPeaks')
-tamoxifen = dba.load('tamoxifenPeaks')
+tamoxifen <- dba.load('tamoxifenPeaks')
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

@@ -101,12 +101,12 @@ dba.show(tamoxifen,tamoxifen$masks$Responsive)
 dba.show(tamoxifen,attributes=c(DBA_TISSUE,DBA_REPLICATE,DBA_CONDITION))
 
 data(tamoxifen_counts)
-tamoxifen = dba.contrast(tamoxifen)
+tamoxifen <- dba.contrast(tamoxifen)
 dba.show(tamoxifen,bContrasts=TRUE)
 
 #alternatively:
 tamoxifen
-tamoxifen$config$th = .05
+tamoxifen$config$th <- .05
 tamoxifen
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

@@ -2,6 +2,20 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.17.5}{
+\itemize{
+   \item{Update: major overhaul of internals to minimize memory consumption}
+   \item{Update: upgrade peaksort to use inplace peakOrder}
+   \item{Update: optimize peak merging memory usage}
+   \item{Update: remove $allvectors and $vectors; 
+replace with $merged (without score matrix) and $binding}
+   \item{Update: designate DESeq method as obsolete (in favor of DESeq2); 
+alter documentaiton and vignette accordingly.}
+   \item{Update: change PCA method from princomp() to prcomp()}
+   \item{Update: change bCorPlot default to FALSE (no more automatic clustering heatmaps)}
+   }
+}
+
 \section{Version 1.17.4}{
 \itemize{
    \item{Bug fix: ensure loading sample sheet doesn't treat hash as comment char.}

@@ -32,10 +32,8 @@ contrast number to report on. When generating a report-based DBA object, this ca
 method used for analysis:
 \itemize{ 
 \item \link{DBA_EDGER}
-\item \link{DBA_DESEQ}
 \item \link{DBA_DESEQ2}
 \item \link{DBA_EDGER_BLOCK}
-\item \link{DBA_DESEQ_BLOCK}
 \item \link{DBA_DESEQ2_BLOCK}
 }
 When generating a report-based DBA object (see \code{bDB} and \code{bNotDB} parameters below), a list of methods may be supplied, including the shortcuts
@@ -146,35 +144,35 @@ Rory Stark
 data(tamoxifen_analysis)
 
 #Retrieve DB sites with FDR <  0.1
-tamoxifen.DB = dba.report(tamoxifen)
+tamoxifen.DB <- dba.report(tamoxifen)
 tamoxifen.DB
 
 #Retrieve DB sites with p-value <  0.05 and Fold > 2
-tamoxifen.DB = dba.report(tamoxifen, th=.05, bUsePval=TRUE, fold=2)
+tamoxifen.DB <- dba.report(tamoxifen, th=.05, bUsePval=TRUE, fold=2)
 tamoxifen.DB
 
 #Retrieve all sites with confidence stats
 # and how many times each site was identified as a peak
-tamoxifen.DB = dba.report(tamoxifen, th=1, bCalled=TRUE)
+tamoxifen.DB <- dba.report(tamoxifen, th=1, bCalled=TRUE)
 tamoxifen.DB
 
 #Retrieve all sites with confidence stats and normalized counts
-tamoxifen.DB = dba.report(tamoxifen, th=1, bCounts=TRUE)
+tamoxifen.DB <- dba.report(tamoxifen, th=1, bCounts=TRUE)
 tamoxifen.DB
 
 #Retrieve all sites with confidence stats and raw counts
-tamoxifen.DB = dba.report(tamoxifen, th=1, bCounts=TRUE,bNormalized=FALSE)
+tamoxifen.DB <- dba.report(tamoxifen, th=1, bCounts=TRUE,bNormalized=FALSE)
 tamoxifen.DB
 
 #Retrieve report as a SummarizedObject
-tamoxifen.sset = dba.report(tamoxifen, DataType=DBA_DATA_SUMMARIZED_EXPERIMENT)
+tamoxifen.sset <- dba.report(tamoxifen, DataType=DBA_DATA_SUMMARIZED_EXPERIMENT)
 tamoxifen.sset
 
 #Retrieve report-based DBA object
 data(tamoxifen_counts)
-tamoxifen = dba.contrast(tamoxifen, categories=DBA_CONDITION, block=tamoxifen$masks$MCF7)
-tamoxifen = dba.analyze(tamoxifen,bCorPlot=FALSE)
-tamoxifen.DB = dba.report(tamoxifen,method=c(DBA_EDGER,DBA_EDGER_BLOCK),
+tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION, block=tamoxifen$masks$MCF7)
+tamoxifen <- dba.analyze(tamoxifen,bCorPlot=FALSE)
+tamoxifen.DB <- dba.report(tamoxifen,method=c(DBA_EDGER,DBA_EDGER_BLOCK),
                           bDB=TRUE, bGain=TRUE, bLoss=TRUE)
 dba.plotVenn(tamoxifen.DB,1:4,label1="Single Factor GAIN",label2="Single Factor LOSS",
                              label3="Blocking Factor GAIN",label4="Blocking Factor LOSS")

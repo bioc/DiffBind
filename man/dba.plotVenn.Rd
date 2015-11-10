@@ -164,29 +164,29 @@ dba.plotVenn(tamoxifen,tamoxifen$masks$ZR75)
 
 # 3-way Venn (done two different ways)
 dba.plotVenn(tamoxifen,tamoxifen$masks$MCF7&tamoxifen$masks$Responsive)
-olaps = dba.overlap(tamoxifen,tamoxifen$masks$MCF7&tamoxifen$masks$Responsive)
+olaps <- dba.overlap(tamoxifen,tamoxifen$masks$MCF7&tamoxifen$masks$Responsive)
 dba.plotVenn(tamoxifen,overlaps=olaps,
              label1="Rep 1",label2="Rep 2",label3="Rep 3",main="MCF7 (Responsive) Replicates")
 
 #Venn of overlaps
 Responsive=dba(tamoxifen,tamoxifen$masks$Responsive)
 Responsive
-Responsive = dba.peakset(Responsive,1:3,sampID="MCF7")
-Responsive = dba.peakset(Responsive,4:5,sampID="T47D")
-Responsive = dba.peakset(Responsive,6:7,sampID="ZR75")
+Responsive <- dba.peakset(Responsive,1:3,sampID="MCF7")
+Responsive <- dba.peakset(Responsive,4:5,sampID="T47D")
+Responsive <- dba.peakset(Responsive,6:7,sampID="ZR75")
 par(mfrow=c(1,1))
 dba.plotVenn(Responsive,Responsive$masks$Consensus)
 
 #4-way overlap
 data(tamoxifen_peaks)
-tamoxifen = dba.peakset(tamoxifen, consensus=DBA_TISSUE)
+tamoxifen <- dba.peakset(tamoxifen, consensus=DBA_TISSUE)
 par(mfrow=c(1,1))
 dba.plotVenn(tamoxifen,tamoxifen$masks$Consensus,main="Tissue consensus overlaps")
 
 #Venns of differentially bound sites
 data(tamoxifen_analysis)
-tamoxifen = dba.contrast(tamoxifen,categories=DBA_CONDITION,block=tamoxifen$masks$MCF7)
-tamoxifen = dba.analyze(tamoxifen,method=c(DBA_EDGER,DBA_DESEQ2))
+tamoxifen <- dba.contrast(tamoxifen,categories=DBA_CONDITION,block=tamoxifen$masks$MCF7)
+tamoxifen <- dba.analyze(tamoxifen,method=c(DBA_EDGER,DBA_DESEQ2))
 dba.plotVenn(tamoxifen,contrast=1,method=DBA_ALL_METHODS_BLOCK)
 dba.plotVenn(tamoxifen,contrast=1,method=DBA_ALL_BLOCK,bAll=FALSE,bGain=TRUE,bLoss=TRUE)
 par(mfrow=c(2,1))

@@ -8,7 +8,7 @@ Compute binding site overlaps (occupancy analysis)
 Computes binding overlaps and co-occupancy statistics 
 }
 \usage{
-dba.overlap(DBA, mask, mode=DBA_OLAP_PEAKS, minVal=0,
+dba.overlap(DBA, mask, mode=DBA_OLAP_PEAKS, 
             contrast, method=DBA$config$AnalysisMethod, th=DBA$config$th, 
             bUsePval=DBA$config$bUsePval, 
             report, byAttribute, bCorOnly=TRUE, CorMethod="pearson", 
@@ -39,9 +39,6 @@ indicates which results should be returned (see MODES below). One of:
 }
 }
 
-\item{minVal}{
-minimum score value to be considered a "called" peak.
-}
   \item{contrast}{
 contrast number to use. Only specified if contrast data is to be used when mode=DBA_OLAP_ALL. See  \code{\link{dba.show}(DBA, bContrast=T)} to get contrast numbers. 
 }
@@ -174,18 +171,18 @@ Rory Stark
 \examples{
 data(tamoxifen_peaks)
 # default mode: DBA_OLAP_PEAKS -- get overlapping/non overlapping peaksets
-mcf7 = dba.overlap(tamoxifen,tamoxifen$masks$MCF7&tamoxifen$masks$Responsive)
+mcf7 <- dba.overlap(tamoxifen,tamoxifen$masks$MCF7&tamoxifen$masks$Responsive)
 names(mcf7)
 mcf7$inAll
 
 # mode:  DBA_OLAP_ALL -- get correlation record
-mcf7 = dba(tamoxifen,tamoxifen$masks$MCF7)
-mcf7.corRec = dba.overlap(mcf7,mode=DBA_OLAP_ALL,bCorOnly=FALSE)
+mcf7 <- dba(tamoxifen,tamoxifen$masks$MCF7)
+mcf7.corRec <- dba.overlap(mcf7,mode=DBA_OLAP_ALL,bCorOnly=FALSE)
 mcf7.corRec
 
 # mode: DBA_OLAP_RATE -- get overlap rate vector
 data(tamoxifen_peaks)
-rate = dba.overlap(tamoxifen, mode=DBA_OLAP_RATE)
+rate <- dba.overlap(tamoxifen, mode=DBA_OLAP_RATE)
 rate
 plot(rate,type='b',xlab="# peaksets",ylab="# common peaks",
      main="Tamoxifen dataset overlap rate")

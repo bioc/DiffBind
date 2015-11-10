@@ -237,8 +237,8 @@ sites
 data(tamoxifen_counts)
 #Examples of  heatmaps using DB sites with different subsets of samples
 #exclude T47D
-tamoxifen = dba.contrast(tamoxifen,tamoxifen$masks$Resistant,c(3:5,10:11)) 
-tamoxifen = dba.analyze(tamoxifen,bCorPlot=FALSE)
+tamoxifen <- dba.contrast(tamoxifen,tamoxifen$masks$Resistant,c(3:5,10:11)) 
+tamoxifen <- dba.analyze(tamoxifen,bCorPlot=FALSE)
 # regular heatmaps with two contrast groups
 dba.plotHeatmap(tamoxifen, contrast=1) 
 #also include the T47D samples

@@ -697,6 +697,8 @@ pv.doResults = function(res,DBA,contrast,method,th,bUsePval,fold=0,bDB=T,bNotDB=
        return(res)	
     }
     
+    rep <- rep[order(as.integer(rownames(rep))),]
+    
     id = sprintf("%s_vs_%s",DBA$contrast[[contrast]]$name1,DBA$contrast[[contrast]]$name2)
     
     if(bUsePval) {

@@ -10,7 +10,7 @@ Sets up contrasts for differential binding affinity analysis
 \usage{
 dba.contrast(DBA, group1, group2=!group1, name1="group1", name2="group2",
              minMembers=3, block,
-             categories = c(DBA_TISSUE,DBA_FACTOR,DBA_CONDITION,DBA_TREATMENT))
+             categories=c(DBA_TISSUE,DBA_FACTOR,DBA_CONDITION,DBA_TREATMENT))
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -104,32 +104,32 @@ Contrasts can be cleared by DBA$contrasts=NULL.
 
 \examples{
 data(tamoxifen_counts)
-tamoxifen = dba.contrast(tamoxifen, categories=DBA_CONDITION)
+tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION)
 tamoxifen
 
 # Another way to do the same thing
 tamoxifen$contrasts=NULL
-tamoxifen = dba.contrast(tamoxifen, tamoxifen$masks$Responsive, tamoxifen$masks$Resistant,
+tamoxifen <- dba.contrast(tamoxifen, tamoxifen$masks$Responsive, tamoxifen$masks$Resistant,
                                               "Responsive", "Resistant")
 tamoxifen
 
 # Add add default contrasts
 tamoxifen$contrasts=NULL
-tamoxifen = dba.contrast(tamoxifen)
+tamoxifen <- dba.contrast(tamoxifen)
 tamoxifen
 
 # Specify a blocking factor
 tamoxifen$contrasts=NULL
-tamoxifen = dba.contrast(tamoxifen, categories=DBA_CONDITION, block=DBA_TISSUE)
+tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION, block=DBA_TISSUE)
 tamoxifen
 
 tamoxifen$contrasts=NULL
-tamoxifen = dba.contrast(tamoxifen, categories=DBA_CONDITION, block=list(c(3,4,5,8,9),c(1,2,10,11)))
+tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION, block=list(c(3,4,5,8,9),c(1,2,10,11)))
 tamoxifen
 
 tamoxifen$contrasts=NULL
-tamoxifen = dba.contrast(tamoxifen, categories=DBA_CONDITION, block=tamoxifen$masks$MCF7)
-tamoxifen = dba.analyze(tamoxifen)
+tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION, block=tamoxifen$masks$MCF7)
+tamoxifen <- dba.analyze(tamoxifen)
 tamoxifen
 
 }

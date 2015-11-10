@@ -12,7 +12,7 @@ dba(DBA,mask, minOverlap=2,
     sampleSheet="dba_samples.csv", 
     config=data.frame(RunParallel=TRUE, reportInit="DBA", DataType=DBA_DATA_GRANGES, 
                       AnalysisMethod=DBA_EDGER, minQCth=15, fragmentSize=125, 
-                      bCorPlot=TRUE, th=.1, bUsePval=FALSE),
+                      bCorPlot=FALSE, th=.1, bUsePval=FALSE),
     peakCaller="raw", peakFormat, scoreCol, bLowerScoreBetter, 
     filter, skipLines=0, 
     bAddCallerConsensus=FALSE, 
@@ -112,7 +112,7 @@ logical indicating whether to remove peaks on chrN_random when constructing a ne
 logical indicating whether to return resulting object as a \code{\link{SummarizedExperiment}}.
 }
 \item{bCorPlot}{
-logical indicating that a correlation heatmap should be plotted before returning. If \code{DBA} is \code{NULL} (a new DBA object is being created), and \code{bCorPlot} is missing, then this will take the default value (\code{TRUE}). However if \code{DBA} is \code{NULL} (a new DBA object is being created), and \code{bCorPlot} is specified, then the specified value will become the default value of \code{bCorPlot} for the resultant \code{DBA} object.
+logical indicating that a correlation heatmap should be plotted before returning. If \code{DBA} is \code{NULL} (a new DBA object is being created), and \code{bCorPlot} is missing, then this will take the default value (\code{FALSE}). However if \code{DBA} is \code{NULL} (a new DBA object is being created), and \code{bCorPlot} is specified, then the specified value will become the default value of \code{bCorPlot} for the resultant \code{DBA} object.
 }
 \item{attributes}{
 vector of attributes to use subsequently as defaults when generating labels in plotting functions:
@@ -167,28 +167,29 @@ Rory Stark and Gordon Brown
 \examples{
 # Create DBA object from a samplesheet
 setwd(system.file("extra", package="DiffBind"))
-tamoxifen = dba(sampleSheet="tamoxifen.csv")
+tamoxifen <- dba(sampleSheet="tamoxifen.csv")
 tamoxifen
 
-tamoxifen = dba(sampleSheet="tamoxifen_allfields.csv")
+tamoxifen <- dba(sampleSheet="tamoxifen_allfields.csv")
 tamoxifen
 
-tamoxifen = dba(sampleSheet="tamoxifen_allfields.csv",config="config.csv")
+tamoxifen <- dba(sampleSheet="tamoxifen_allfields.csv",config="config.csv")
 tamoxifen
 
 #Create a DBA object with a subset of samples
 data(tamoxifen_peaks)
-Responsive = dba(tamoxifen,tamoxifen$masks$Responsive)
+Responsive <- dba(tamoxifen,tamoxifen$masks$Responsive)
 Responsive
 
 # change peak caller but leave peak format the same
 setwd(system.file("extra", package="DiffBind"))
-tamoxifen = dba(sampleSheet="tamoxifen.csv", peakCaller="macs", peakFormat="raw")
+tamoxifen <- dba(sampleSheet="tamoxifen.csv", peakCaller="macs", 
+                 peakFormat="raw", scoreCol=5 )
 dba.show(tamoxifen, attributes=c(DBA_TISSUE,DBA_CONDITION,DBA_REPLICATE,DBA_CALLER))
 
 # Convert DBA object to SummarizedExperiment
 data(tamoxifen_counts)
-sset = dba(tamoxifen,bSummarizedExperiment=TRUE)
+sset <- dba(tamoxifen,bSummarizedExperiment=TRUE)
 sset
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

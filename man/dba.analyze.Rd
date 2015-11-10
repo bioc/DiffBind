@@ -26,18 +26,14 @@ DBA object. If no contrasts are specified (DBA$contrast is NULL), default contra
 \item{method}{
 method, or vector of methods, by which to analyze differential binding affinity. Supported methods:
 \itemize{ 
-\item DBA_EDGER
-\item DBA_DESEQ
-\item DBA_DESEQ2
+\item \link{DBA_EDGER}
+\item \link{DBA_DESEQ2}
 }
 also, for backward compatibility:
 \itemize{
-\item DBA_EDGER_GLM
-\item DBA_DESEQ_GLM
-\item DBA_EDGER_CLASSIC
-\item DBA_DESEQ_CLASSIC
+\item \link{DBA_DESEQ}
 }
-Additionally, if this value is set to \code{DBA_ALL_METHODS}, this is equivalent to specifying \code{c(DBA_EDGER,DBA_DESEQ,DBA_DESEQ2)}.
+Additionally, if this value is set to \code{DBA_ALL_METHODS}, this is equivalent to specifying \code{c(DBA_EDGER,DBA_DESEQ2)}.
 }
 
 \item{bSubControl}{
@@ -61,7 +57,7 @@ logical indicating that the analyses is to be done in parallel using multicore (
 }
 }
 \details{
-See the DBA User Guide for more details on how the edgeR, DESeq, and DESeq2 analyses are carried out.  
+See the DBA User Guide for more details on how the \code{edgeR} and \code{DESeq2} analyses are carried out.  
 }
 \value{
 DBA object with results of analysis added to DBA$contrasts. 
@@ -85,12 +81,12 @@ If there is a blocking factor for the contrast(s) specified using a previous cal
 \examples{
 data(tamoxifen_counts)
 
-tamoxifen = dba.analyze(tamoxifen)
+tamoxifen <- dba.analyze(tamoxifen)
 tamoxifen
 
 data(tamoxifen_counts)
-tamoxifen = dba.contrast(tamoxifen,categories=DBA_CONDITION,block=tamoxifen$masks$MCF7)
-tamoxifen = dba.analyze(tamoxifen,method=DBA_ALL_METHODS)
+tamoxifen <- dba.contrast(tamoxifen,categories=DBA_CONDITION,block=tamoxifen$masks$MCF7)
+tamoxifen <- dba.analyze(tamoxifen,method=DBA_ALL_METHODS)
 tamoxifen
 }
 

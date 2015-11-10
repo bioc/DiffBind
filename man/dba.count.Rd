@@ -148,38 +148,38 @@ Rory Stark and Gordon Brown
 \examples{
 # These won't run unless you have the reads available in a BAM or BED file
 data(tamoxifen_peaks)
-\dontrun{tamoxifen = dba.count(tamoxifen)}
+\dontrun{tamoxifen <- dba.count(tamoxifen)}
 
 
 # Count using a peakset made up of only peaks in all responsive MCF7 replicates
 data(tamoxifen_peaks)
-mcf7Common = dba.overlap(tamoxifen,tamoxifen$masks$MCF7&tamoxifen$masks$Responsive)
-\dontrun{tamoxifen = dba.count(tamoxifen,peaks=mcf7Common$inAll)}
+mcf7Common <- dba.overlap(tamoxifen,tamoxifen$masks$MCF7&tamoxifen$masks$Responsive)
+\dontrun{tamoxifen <- dba.count(tamoxifen,peaks=mcf7Common$inAll)}
 tamoxifen
 
 #First make consensus peaksets from each set of replicates, 
 #then derive master consensus set for counting from those
 data(tamoxifen_peaks)
-tamoxifen = dba.peakset(tamoxifen,consensus = -DBA_REPLICATE)
-\dontrun{tamoxifen = dba.count(tamoxifen, peaks=tamoxifen$masks$Consensus)}
+tamoxifen <- dba.peakset(tamoxifen,consensus = -DBA_REPLICATE)
+\dontrun{tamoxifen <- dba.count(tamoxifen, peaks=tamoxifen$masks$Consensus)}
 tamoxifen
 
 # Change binding affinity scores
 data(tamoxifen_counts)
-tamoxifen = dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_READS)
-head(tamoxifen$vectors)
-tamoxifen = dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_RPKM_FOLD)
-head(tamoxifen$vectors)
-tamoxifen = dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_TMM_MINUS_FULL)
-head(tamoxifen$vectors)
+tamoxifen <- dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_READS)
+dba.peakset(tamoxifen, bRetrieve=TRUE)
+tamoxifen <- dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_RPKM_FOLD)
+dba.peakset(tamoxifen, bRetrieve=TRUE)
+tamoxifen <- dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_TMM_MINUS_FULL)
+dba.peakset(tamoxifen, bRetrieve=TRUE)
 
 # Plot effect of a range of filter values and then apply filter 
 data(tamoxifen_counts)
-rate.max = dba.count(tamoxifen, peaks=NULL, filter=0:250)
-rate.sum = dba.count(tamoxifen, peaks=NULL, filter=0:250,filterFun=sum)
+rate.max <- dba.count(tamoxifen, peaks=NULL, filter=0:250)
+rate.sum <- dba.count(tamoxifen, peaks=NULL, filter=0:250,filterFun=sum)
 plot(0:250,rate.max/rate.max[1],type='l',xlab="Filter Value",ylab="Proportion Retained Sites")
 lines(0:250,rate.sum/rate.sum[1],col=2)
-tamoxifen = dba.count(tamoxifen,peaks=NULL,filter=125,filterFun=sum)
+tamoxifen <- dba.count(tamoxifen,peaks=NULL,filter=125,filterFun=sum)
 tamoxifen
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

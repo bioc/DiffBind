@@ -255,20 +255,20 @@ When counting read files, assume the file type is BED (or zipped BED), regardles
 \item{DBA_EDGER}{
 differential analysis method: edgeR (default: DBA_EDGER_GLM)
 }
-\item{DBA_DESEQ}{
-differential analysis method: DESeq (default: DBA_DESEQ_CLASSIC)
-}
 \item{DBA_DESEQ2}{
 differential analysis method: DESeq2 (using a single-factor GLM)
 }
 \item{DBA_EDGER_BLOCK}{
 differential analysis method: edgeR with blocking factors (GLM)
 }
-\item{DBA_DESEQ_BLOCK}{
-differential analysis method: DESeq with blocking factors (GLM)
-}
 \item{DBA_DESEQ2_BLOCK}{
 differential analysis method: DESeq2 with blocking factors (GLM)
+}
+\item{DBA_DESEQ}{
+differential analysis method: DESeq (default: DBA_DESEQ_CLASSIC)
+}
+\item{DBA_DESEQ_BLOCK}{
+differential analysis method: DESeq with blocking factors (GLM)
 }
 \item{DBA_EDGER_CLASSIC}{
 differential analysis method: "classic" edgeR for two-group comparisons
@@ -283,10 +283,10 @@ differential analysis method: use GLM in edgeR for two-group comparisons
 differential analysis method: use GLM in DESeq for two-group comparisons
 }
 \item{DBA_ALL_METHODS}{
-use all three analysis methods: \code{c(DBA_EDGER, DBA_DESEQ, DBA_DESEQ2)}
+use both analysis methods: \code{c(DBA_EDGER, DBA_DESEQ2)}
 }
 \item{DBA_ALL_BLOCK}{
-report on block results for all three analysis methods: \code{c(DBA_EDGER_BLOCK, DBA_DESEQ_BLOCK, DBA_DESEQ2_BLOCK)}
+report on block results for both analysis methods: \code{c(DBA_EDGER_BLOCK, DBA_DESEQ2_BLOCK)}
 }
 \item{DBA_ALL_METHODS_BLOCK}{
 report on block results for all analysis methods, both blocked and unblocked: \code{c(DBA_ALL_METHODS, DBA_ALL_BLOCK)}

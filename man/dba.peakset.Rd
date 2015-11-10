@@ -206,43 +206,46 @@ to add peaksets using a sample sheet, see  \code{\link{dba}}.
 \examples{
 
 # create a new DBA object by adding three peaksets
-mcf7 = dba.peakset(NULL,
+mcf7 <- dba.peakset(NULL,
                    peaks=system.file("extra/peaks/MCF7_ER_1.bed.gz", package="DiffBind"),
-                   sampID="MCF7.1",tissue="MCF7",factor="ER",condition="Responsive",replicate=1)
-mcf7 = dba.peakset(mcf7,
+                   peak.caller="bed", sampID="MCF7.1",tissue="MCF7",
+                   factor="ER",condition="Responsive",replicate=1)
+mcf7 <- dba.peakset(mcf7,
                    peaks=system.file("extra/peaks/MCF7_ER_2.bed.gz", package="DiffBind"),    
-                   sampID="MCF7.2",tissue="MCF7",factor="ER",condition="Responsive",replicate=2)
-mcf7 = dba.peakset(mcf7,
+                   peak.caller="bed", sampID="MCF7.2",tissue="MCF7",
+                   factor="ER",condition="Responsive",replicate=2)
+mcf7 <- dba.peakset(mcf7,
                    peaks=system.file("extra/peaks/MCF7_ER_3.bed.gz", package="DiffBind"),      
-                   sampID="MCF7.3",tissue="MCF7",factor="ER",condition="Responsive",replicate=3)
+                   peak.caller="bed", sampID="MCF7.3",tissue="MCF7",
+                   factor="ER",condition="Responsive",replicate=3)
 mcf7
 
 #retrieve peaks that are in all three peaksets
-mcf7.consensus = dba.peakset(mcf7, 1:3, minOverlap=3, bRetrieve=TRUE)
+mcf7.consensus <- dba.peakset(mcf7, 1:3, minOverlap=3, bRetrieve=TRUE)
 mcf7.consensus
 
 #add a consensus peakset -- peaks in all three replicates
-mcf7 = dba.peakset(mcf7, 1:3, minOverlap=3,sampID="MCF7_3of3")
+mcf7 <- dba.peakset(mcf7, 1:3, minOverlap=3,sampID="MCF7_3of3")
 mcf7
 
 #add consensus peaksets for all sample types by combining replicates
 data(tamoxifen_peaks)
-tamoxifen = dba.peakset(tamoxifen,consensus = -DBA_REPLICATE)
+tamoxifen <- dba.peakset(tamoxifen,consensus = -DBA_REPLICATE)
 dba.show(tamoxifen,mask=tamoxifen$masks$Consensus)
 
 #add consensus peaksets for all sample types by (same tissue and condition) 
 data(tamoxifen_peaks)
-tamoxifen = dba.peakset(tamoxifen,consensus = c(DBA_TISSUE,DBA_CONDITION))
+tamoxifen <- dba.peakset(tamoxifen,consensus = c(DBA_TISSUE,DBA_CONDITION))
 dba.show(tamoxifen,mask=tamoxifen$masks$Consensus)
 dba.plotVenn(tamoxifen,tamoxifen$masks$Responsive & tamoxifen$masks$Consensus)
 
 #create consensus peaksets from sample type consensuses for Responsive and Resistant sample groups
-tamoxifen = dba.peakset(tamoxifen,peaks=tamoxifen$masks$Consensus,consensus=DBA_CONDITION)
+tamoxifen <- dba.peakset(tamoxifen,peaks=tamoxifen$masks$Consensus,consensus=DBA_CONDITION)
 dba.show(tamoxifen,mask=tamoxifen$masks$Consensus)
 dba.plotVenn(tamoxifen,17:18)
  
 #retrieve the consensus peakset as RangedData object
-mcf7.consensus = dba.peakset(mcf7,mcf7$masks$Consensus,bRetrieve=TRUE)
+mcf7.consensus <- dba.peakset(mcf7,mcf7$masks$Consensus,bRetrieve=TRUE)
 mcf7.consensus
 
 }

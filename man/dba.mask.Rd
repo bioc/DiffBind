@@ -112,9 +112,9 @@ names(tamoxifen$masks)
 dba.show(tamoxifen,tamoxifen$masks$MCF7)
 
 # New masks
-mcf7Mask = dba.mask(tamoxifen,DBA_TISSUE, "MCF7")
-mcf7DerivedMask = dba.mask(tamoxifen,DBA_TISSUE,"TAMR",mask=mcf7Mask)
-mcf7Derived = dba(tamoxifen,mcf7DerivedMask)
+mcf7Mask <- dba.mask(tamoxifen,DBA_TISSUE, "MCF7")
+mcf7DerivedMask <- dba.mask(tamoxifen,DBA_TISSUE,"TAMR",mask=mcf7Mask)
+mcf7Derived <- dba(tamoxifen,mcf7DerivedMask)
 mcf7Derived
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

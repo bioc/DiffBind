@@ -175,11 +175,11 @@ dba.plotPCA(tamoxifen)
 dba.plotPCA(tamoxifen,contrast=1,th=1)
 
 #PCA based on DB sites only
-p = dba.plotPCA(tamoxifen,contrast=1)
-p = dba.plotPCA(tamoxifen,contrast=1,attributes=DBA_TISSUE)
-p = dba.plotPCA(tamoxifen,contrast=1,attributes=DBA_TISSUE,label=DBA_CONDITION)
-p = dba.plotPCA(tamoxifen,contrast=1,attributes=DBA_CONDITION,label=DBA_TISSUE)
-p = dba.plotPCA(tamoxifen,contrast=1,attributes=c(DBA_TISSUE,DBA_CONDITION),
+p <- dba.plotPCA(tamoxifen,contrast=1)
+p <- dba.plotPCA(tamoxifen,contrast=1,attributes=DBA_TISSUE)
+p <- dba.plotPCA(tamoxifen,contrast=1,attributes=DBA_TISSUE,label=DBA_CONDITION)
+p <- dba.plotPCA(tamoxifen,contrast=1,attributes=DBA_CONDITION,label=DBA_TISSUE)
+p <- dba.plotPCA(tamoxifen,contrast=1,attributes=c(DBA_TISSUE,DBA_CONDITION),
                 label=DBA_REPLICATE)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

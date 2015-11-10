@@ -60,9 +60,9 @@ Rory Stark
 
 \examples{
 data(tamoxifen_peaks)
-savefile = dba.save(tamoxifen,'tamoxifenPeaks')
+savefile <- dba.save(tamoxifen,'tamoxifenPeaks')
 savefile
-tamoxifen = dba.load('tamoxifenPeaks')
+tamoxifen <- dba.load('tamoxifenPeaks')
 unlink(savefile)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
