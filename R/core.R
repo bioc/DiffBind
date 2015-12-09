@@ -349,13 +349,14 @@ pv.vectors <- function(pv,mask,minOverlap=2,attributes,bAllSame=F,
     pv$attributes <- attributes
     pv$minOverlap <- minOverlap
     
-    if(nrow(pv$binding)>0) {
-        vnames <- pv$chrmap[pv$binding[,1]]
-    }
     if(is.null(allnames)) {
         allnames <- pv$chrmap[pv$binding[,1]]
     }
+    if(nrow(pv$binding)>0) {
+        vnames <- allnames[pv$binding[,1]]
+    }
     newmap <- sort(unique(allnames))
+    
     if(nrow(pv$binding)>0) {
         pv$binding[,1] <- match(vnames,newmap)
         if(is.unsorted(unique(pv$binding[,1]))) {

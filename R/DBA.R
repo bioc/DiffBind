@@ -603,6 +603,7 @@ dba.report = function(DBA, contrast, method=DBA$config$AnalysisMethod, th=DBA$co
         res = pv.resultsDBA(DBA,contrasts=contrast,methods=method,th=th,bUsePval=bUsePval,fold=fold,
                             bDB=bDB,bNotDB=bNotDB,bUp=bGain,bDown=bLoss,bAll=bAll)
         
+        res = dba(res,minOverlap=1)
         res$resultObject = TRUE
         return(res)                    
     }
@@ -1196,7 +1197,7 @@ dba.load = function(file='DBA', dir='.', pre='dba_', ext='RData')
     if(is.null(res$config$reportInit)) {
         res$config$saveDir = "reports/DBA"
     }
-    if(is.null(res$AnalysisMethod)){
+    if(is.null(res$config$AnalysisMethod)){
         res$config$AnalysisMethod=DBA_EDGER
     }
     
