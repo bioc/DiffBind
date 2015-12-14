@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.16.1}{
+\itemize{
+   \item{Fix bug when no peaks}
+ }
+}
+   
 \section{Version 1.16.0}{
 \itemize{
    \item{Roll up bugfixes}
