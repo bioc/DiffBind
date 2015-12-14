@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.17.8}{
+\itemize{
+   \item{Fix bug when no peaks}
+ }
+}
+
 \section{Version 1.17.5}{
 \itemize{
    \item{Update: major overhaul of internals to minimize memory consumption}
