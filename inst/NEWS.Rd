@@ -4,6 +4,12 @@
 
 \section{Version 1.16.1}{
 \itemize{
+   \item{Fix bug when retrieving report as SummarizedExperiment}
+ }
+}
+   
+\section{Version 1.16.1}{
+\itemize{
    \item{Fix bug when no peaks}
  }
 }
