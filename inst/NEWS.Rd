@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.17.9}{
+\itemize{
+   \item{Fix bug in retrieving SummarizedExperiment}
+ }
+}
+
 \section{Version 1.17.8}{
 \itemize{
    \item{Fix bug when no peaks}
