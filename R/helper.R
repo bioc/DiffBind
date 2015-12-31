@@ -1195,8 +1195,10 @@ pv.pcmask = function(pv,numSites, mask, sites,removeComps,cor = F,bLog =
    }
    
    if (bLog) {
-      pv$values[pv$values <= 0] = 1
-      pv$values = log2(pv$values)
+      if(max(pv$values)>1) {
+         pv$values[pv$values <= 0] = 1     
+         pv$values = log2(pv$values)
+      } 
    }
    
    if (nrow(pv$values) >= sum(mask)) {
