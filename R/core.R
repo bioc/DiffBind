@@ -1345,8 +1345,8 @@ pv.overlapRate <- function(pv,mask = mask) {
 
 ## pv.plotVenn -- draw venn diagrams
 pv.plotVenn <-
-   function(ovrec,label1 = "A",label2 = "B",label3 = "C",label4 = "D",main =
-               "",sub = "") {
+   function(ovrec,label1 = "A",label2 = "B",label3 = "C",label4 = "D",
+            main = "",sub = "") {
       if (length(ovrec) == 3) {
          pv.venn2(ovrec,label1,label2,main,sub)
       }
@@ -1363,8 +1363,8 @@ pv.plotVenn <-
 ## pv.occupancy-- generate co-occupancy stats from peaksets in a model
 pv.occupancy <-
    function(pv,mask,sites,byAttribute,Sort = 'inall',CorMethod = "pearson",
-            labelAtts = pv$attributes,bPlot = F,minVal = 0,bCorOnly =
-               F,bNonZeroCors = F,chrmask) {
+            labelAtts = pv$attributes,bPlot = F,minVal = 0,bCorOnly = F,
+            bNonZeroCors = F,chrmask) {
       pv <- pv.check(pv)
       
       vecs = pv$binding

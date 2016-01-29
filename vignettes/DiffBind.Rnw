@@ -131,7 +131,7 @@ samples
 
 The peaksets are read in using the following \DBA function:
 
-<<dbaContruct, eval=TRUE,echo=TRUE,results=verbatim>>=
+<<dbaConstruct, eval=TRUE,echo=TRUE,results=verbatim>>=
 tamoxifen <- dba(sampleSheet="tamoxifen.csv")
 @
 

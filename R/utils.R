@@ -1,6 +1,6 @@
-pv.peaks2DataType = function(peaks,datatype=DBA_DATA_DEFAULT) {
+pv.peaks2DataType <- function(peaks,datatype=DBA_DATA_DEFAULT) {
    
-   res = peaks
+   res <- peaks
    
    if(is.null(peaks)) {
       return(NULL)
@@ -19,24 +19,24 @@ pv.peaks2DataType = function(peaks,datatype=DBA_DATA_DEFAULT) {
    if(datatype==DBA_DATA_RANGEDDATA) {
       if(class(peaks)!="RangedData") {
          #require(IRanges)
-         cnames = colnames(peaks)
-         cnames[1:3] = c("space","start","end")
-         colnames(peaks) = cnames
+         cnames <- colnames(peaks)
+         cnames[1:3] <- c("space","start","end")
+         colnames(peaks) <- cnames
       }
-      res = as(peaks,"RangedData")
+      res <- as(peaks,"RangedData")
    }
    
    if(datatype==DBA_DATA_GRANGES) {
       #require(GenomicRanges)
       if(class(peaks)=="RangedData") {
-         res = suppressWarnings(as(peaks,"GRanges"))
+         res <- suppressWarnings(as(peaks,"GRanges"))
       } else if (class(peaks) != "GRanges") {
-         res = GRanges(Rle(peaks[,1]),IRanges(peaks[,2],width=peaks[,3]-peaks[,2]+1,names=rownames(peaks)),
-                       strand = Rle("*", length(seqnames)))
+         res <- GRanges(Rle(peaks[,1]),IRanges(peaks[,2],width=peaks[,3]-peaks[,2]+1,names=rownames(peaks)),
+                       strand <- Rle("*", length(seqnames)))
          if(ncol(peaks)>3) {
-            mdata = data.frame(peaks[,4:ncol(peaks)])
-            colnames(mdata)  = colnames(peaks)[4:ncol(peaks)]
-            elementMetadata(res) = mdata
+            mdata <- data.frame(peaks[,4:ncol(peaks)])
+            colnames(mdata)  <- colnames(peaks)[4:ncol(peaks)]
+            elementMetadata(res) <- mdata
          }   	
       }
    }   
@@ -45,7 +45,7 @@ pv.peaks2DataType = function(peaks,datatype=DBA_DATA_DEFAULT) {
    
 }
 
-pv.DataType2Peaks = function(RDpeaks){
+pv.DataType2Peaks <- function(RDpeaks){
    
    if(is.null(RDpeaks)) {
       return(NULL)
@@ -65,20 +65,20 @@ pv.DataType2Peaks = function(RDpeaks){
    }
    if(class(RDpeaks)!="data.frame") {
       #require(IRanges)
-      res = as.data.frame(RDpeaks)[,-4]
-      cnames = colnames(res)
-      cnames[1:3] = c("CHR","START","END")
-      colnames(res) = cnames
+      res <- as.data.frame(RDpeaks)[,-4]
+      cnames <- colnames(res)
+      cnames[1:3] <- c("CHR","START","END")
+      colnames(res) <- cnames
       if(class(RDpeaks)=="GRanges") {
-         res = res[,-4]	
+         res <- res[,-4]	
       }
    } else {
-      res = RDpeaks
+      res <- RDpeaks
    }
    return(res)
 }
 
-pv.getPlotData = function(pv,attributes=PV_GROUP,contrast=1,method=DBA_EDGER,th=.1,bUsePval=FALSE,bNormalized=T,report,
+pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_EDGER,th=.1,bUsePval=FALSE,bNormalized=T,report,
                           bPCA=F,bLog=T,minval,maxval,mask,fold=0) {
    
    if(contrast > length(pv$contrasts)) {
@@ -86,17 +86,17 @@ pv.getPlotData = function(pv,attributes=PV_GROUP,contrast=1,method=DBA_EDGER,th=
       return(NULL)
    }
    
-   con = pv$contrasts[[contrast]]
+   con <- pv$contrasts[[contrast]]
    
    if(missing(report)) {
-      report = pv.DBAreport(pv,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
+      report <- pv.DBAreport(pv,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
                             bNormalized=bNormalized,bCounts=T,bSupressWarning=T,
                             minFold=fold)
       if(is.null(report)) {
          stop('Unable to plot -- no sites within threshold')	
       }
    } else {
-      report = report[abs(report$Fold)>=fold,]
+      report <- report[abs(report$Fold)>=fold,]
    }
    
    if(!missing(mask)){
@@ -104,71 +104,71 @@ pv.getPlotData = function(pv,attributes=PV_GROUP,contrast=1,method=DBA_EDGER,th=
          if (max(mask) > length(pv$peaks)) {
             stop("Invalid sample number in mask.",call.=F)
          }
-         temp = rep(F, length(pv$peaks))
-         temp[mask] = T
-         mask = temp
+         temp <- rep(F, length(pv$peaks))
+         temp[mask] <- T
+         mask <- temp
       }
-      sites = as.numeric(rownames(report))
-      group1 = con$group1 & mask
-      group2 = con$group2 & mask
-      extra = mask & !(group1 | group2)
-      allsamps = c(which(group1), which(group2), which(extra))
-      numsamps = length(allsamps)
-      domap = matrix(0,length(sites),0)
+      sites <- as.numeric(rownames(report))
+      group1 <- con$group1 & mask
+      group2 <- con$group2 & mask
+      extra <- mask & !(group1 | group2)
+      allsamps <- c(which(group1), which(group2), which(extra))
+      numsamps <- length(allsamps)
+      domap <- matrix(0,length(sites),0)
       if(sum(group1)) {     
-         domap = cbind(domap,pv$binding[sites,3+which(group1)])
+         domap <- cbind(domap,pv$binding[sites,3+which(group1)])
       }
       if(sum(group2)) {
-         domap = cbind(domap,pv$binding[sites,3+which(group2)])
+         domap <- cbind(domap,pv$binding[sites,3+which(group2)])
       }
       if(sum(extra)) {
-         domap = cbind(domap,pv$binding[sites,3+which(extra)])
+         domap <- cbind(domap,pv$binding[sites,3+which(extra)])
       }
-      rownames(domap) = rownames(report)
-      colnames(domap) = pv$class[PV_ID,allsamps] 
-      con$group1 = group1
-      con$group2 = group2
-      peaks = pv$peaks[allsamps]
+      rownames(domap) <- rownames(report)
+      colnames(domap) <- pv$class[PV_ID,allsamps] 
+      con$group1 <- group1
+      con$group2 <- group2
+      peaks <- pv$peaks[allsamps]
       for(i in 1:length(peaks)){
-         peaks[[i]] = peaks[[i]][sites,]
+         peaks[[i]] <- peaks[[i]][sites,]
       }  
    } else {   
-      allsamps = c(which(con$group1),which(con$group2))
-      extra = rep(F,ncol(pv$class)) 
-      repcols = colnames(report)
-      numsamps = sum(con$group1)+sum(con$group2)
+      allsamps <- c(which(con$group1),which(con$group2))
+      extra <- rep(F,ncol(pv$class)) 
+      repcols <- colnames(report)
+      numsamps <- sum(con$group1)+sum(con$group2)
       if(length(repcols) < (numsamps+9)) {
          stop('Report does not have count data, re-run dba.report with bCounts=T')
       }
-      first = 10
+      first <- 10
       if(repcols[10]=="Called1") {
          if(length(repcols) < (numsamps+11)) {
             stop('Report does not have count data, re-run dba.report with bCounts=T')
          }
-         first = 12	 
+         first <- 12	 
       }
-      domap = report[,first:(first+numsamps-1)]
-      group1 = rep(F,numsamps)
-      group2 = rep(T,numsamps)
-      group1[1:sum(con$group1)] = T
-      group2[1:sum(con$group1)] = F
-      con$group1 = group1
-      con$group2 = group2
+      domap <- report[,first:(first+numsamps-1)]
+      group1 <- rep(F,numsamps)
+      group2 <- rep(T,numsamps)
+      group1[1:sum(con$group1)] <- T
+      group2[1:sum(con$group1)] <- F
+      con$group1 <- group1
+      con$group2 <- group2
       
-      sites = as.numeric(rownames(report))
-      peaks = pv$peaks[allsamps]
+      sites <- as.numeric(rownames(report))
+      peaks <- pv$peaks[allsamps]
       for(i in 1:length(peaks)){
-         peaks[[i]] = peaks[[i]][sites,]
+         peaks[[i]] <- peaks[[i]][sites,]
       }  
    }
    
    if(bLog) {
       domap[domap<=0]=1
-      domap = log2(domap)
+      domap <- log2(domap)
       if(missing(minval)) {
-         minval = 0
+         minval <- 0
       } else {
-         minval = max(0,minval)
+         minval <- max(0,minval)
       }
    }
    
@@ -176,18 +176,18 @@ pv.getPlotData = function(pv,attributes=PV_GROUP,contrast=1,method=DBA_EDGER,th=
       domap[domap< minval]= minval
    }
    if(!missing(maxval)) {
-      domap[domap>maxval] = maxval
+      domap[domap>maxval] <- maxval
    }
    
-   pv$binding = cbind(report[,1:3],domap)
-   pv$class = pv$class[,allsamps]
-   pv$peaks = peaks
+   pv$binding <- cbind(report[,1:3],domap)
+   pv$class <- pv$class[,allsamps]
+   pv$peaks <- peaks
    pv$called <- pv$called[sites,allsamps]
    pv$merged <- pv$binding[,1:3]
    pv$totalMerged <- nrow(pv$merged)
-   pv$contrasts = list(pv$contrasts[[contrast]])
-   pv$contrasts[[1]]$group1 = rep(F,ncol(pv$class))
-   pv$contrasts[[1]]$group2 = rep(F,ncol(pv$class))
+   pv$contrasts <- list(pv$contrasts[[contrast]])
+   pv$contrasts[[1]]$group1 <- rep(F,ncol(pv$class))
+   pv$contrasts[[1]]$group2 <- rep(F,ncol(pv$class))
    if(sum(con$group1)) {
       pv$contrasts[[1]]$group1[1:sum(con$group1)]=T
    }
@@ -197,10 +197,10 @@ pv.getPlotData = function(pv,attributes=PV_GROUP,contrast=1,method=DBA_EDGER,th=
    
    if(bPCA)  {
       
-      #pv$pc = princomp(domap,cor=bPCAcor)
+      #pv$pc <- princomp(domap,cor=bPCAcor)
       
       if(attributes[1] == PV_GROUP) {
-         pv$class[PV_ID,] = c( rep(con$name1,sum(con$group1)), rep(con$name2,sum(con$group2)), rep("other",sum(extra)) )
+         pv$class[PV_ID,] <- c( rep(con$name1,sum(con$group1)), rep(con$name2,sum(con$group2)), rep("other",sum(extra)) )
       }
    } 
    
@@ -208,15 +208,15 @@ pv.getPlotData = function(pv,attributes=PV_GROUP,contrast=1,method=DBA_EDGER,th=
 }
 
 
-pv.get_reads = function(pv,peaksets,bSubControl=T){
+pv.get_reads <- function(pv,peaksets,bSubControl=T){
    if(is.null(bSubControl)) {
-      bSubControl = T
+      bSubControl <- T
    }
-   reads = NULL
+   reads <- NULL
    for(peakset in peaksets) {
-      reads = cbind(reads,pv$peaks[[peakset]]$Reads)
+      reads <- cbind(reads,pv$peaks[[peakset]]$Reads)
       if(bSubControl) {
-         reads[,ncol(reads)] = reads[,ncol(reads)] - pv$peaks[[peakset]]$cReads
+         reads[,ncol(reads)] <- reads[,ncol(reads)] - pv$peaks[[peakset]]$cReads
       }
    }
    
@@ -225,8 +225,8 @@ pv.get_reads = function(pv,peaksets,bSubControl=T){
    return(reads)
 }
 
-pv.getoneorNA = function(vec) {
-   res = unique(vec)
+pv.getoneorNA <- function(vec) {
+   res <- unique(vec)
    if (length(res) == 1) {
       return(res)
    } else {
@@ -234,13 +234,13 @@ pv.getoneorNA = function(vec) {
    }
 }
 
-pv.add_consensus = function(model,psets){
+pv.add_consensus <- function(model,psets){
    
    if(missing(psets)) {
-      toadd = unique(model$class[PV_ID,duplicated(model$class[PV_ID,])])
+      toadd <- unique(model$class[PV_ID,duplicated(model$class[PV_ID,])])
       for(pset in toadd) {
-         tomerge = which(model$class[PV_ID,] %in% pset)
-         model = pv.consensus(model,tomerge,minOverlap=2)
+         tomerge <- which(model$class[PV_ID,] %in% pset)
+         model <- pv.consensus(model,tomerge,minOverlap=2)
       }   
       return(model) 
    }
@@ -249,127 +249,333 @@ pv.add_consensus = function(model,psets){
       return(model)
    }
    
-   model$psets = psets
+   model$psets <- psets
    for(pset in psets){
       if(length(pset)>1){
-         model = pv.consensus(model,pset,minOverlap=2)
+         model <- pv.consensus(model,pset,minOverlap=2)
       }   
    }
    return(model)	
 }
 
-pv.removeComp = function (data,numRemove=0) {
+pv.removeComp <- function (data,numRemove=0) {
    
    if(numRemove == 0) {
       return(data)
    }
    
-   res = svd(data)
-   U   = res$u
-   d   = res$d
-   Vt  = t(res$v)
+   res <- svd(data)
+   U   <- res$u
+   d   <- res$d
+   Vt  <- t(res$v)
    
-   tot = sum(d)
-   run = 0
+   tot <- sum(d)
+   run <- 0
    for(i in 1:numRemove) {
-      run = run + d[i]
+      run <- run + d[i]
       #cat(i,d[i],d[i]/tot,run/tot,'\n')
-      d[i] = 0
+      d[i] <- 0
    }	
-   M =  U %*% diag(d) %*% Vt
+   M <-  U %*% diag(d) %*% Vt
    return(M)
 }
 
-pv.occ2matrix = function(occ,col=PV_COR,div){
-   #occ[,1] = as.character(occ[,1])
-   #occ[,2] = as.character(occ[,2])
-   els = unique(c(occ[,1],occ[,2]))
+pv.occ2matrix <- function(occ,col=PV_COR,div){
+   #occ[,1] <- as.character(occ[,1])
+   #occ[,2] <- as.character(occ[,2])
+   els <- unique(c(occ[,1],occ[,2]))
    
-   nels = length(els)
-   els  = els[order(els,decreasing=F)]
-   res = matrix(NA,nels,nels)
+   nels <- length(els)
+   els  <- els[order(els,decreasing=F)]
+   res <- matrix(NA,nels,nels)
    
    for(i in 1:nels) {
       for(j in 1:nels) {
          if(i==j) {
-            res[i,j] = 1
+            res[i,j] <- 1
          } else {
-            entry = (occ[,1] == els[i]) & (occ[,2] == els[j])
-            entry = entry | (occ[,1] == els[j]) & (occ[,2] == els[i])
+            entry <- (occ[,1] == els[i]) & (occ[,2] == els[j])
+            entry <- entry | (occ[,1] == els[j]) & (occ[,2] == els[i])
             if(sum(entry)>0) {
-               res[i,j] = as.numeric(occ[entry,col])
+               res[i,j] <- as.numeric(occ[entry,col])
                if(!missing(div)) {
                   if(div != PV_TOTAL) {
-                     todiv = as.numeric(occ[entry,div])
+                     todiv <- as.numeric(occ[entry,div])
                   } else {
-                     todiv = as.numeric(occ[entry,PV_ONLYA]) +
+                     todiv <- as.numeric(occ[entry,PV_ONLYA]) +
                         as.numeric(occ[entry,PV_ONLYB]) +
                         as.numeric(occ[entry,PV_INALL])
                   }
-                  res[i,j] = res[i,j] / todiv
+                  res[i,j] <- res[i,j] / todiv
                }
             }
          }
       }
    } 
    
-   colnames(res) = els
-   rownames(res) = els
+   colnames(res) <- els
+   rownames(res) <- els
    return(res)
 }
 
-pv.nums2labels = function(pv,els,atts) {
+pv.nums2labels <- function(pv,els,atts) {
    if(is.null(atts)) {
       return(els)
    }
    for(i in 1:length(els)) {
-      els[i] = pv.namestrings(pv$class[atts,as.numeric(els[i])])$tstring
+      els[i] <- pv.namestrings(pv$class[atts,as.numeric(els[i])])$tstring
    }
    return(els)
 }
 
-pv.getOverlapData = function(pv,contrast,report) {
-   con = pv$contrasts[[contrast]]                       	
-   repcols = colnames(report)
-   numsamps = sum(con$group1)+sum(con$group2)
+pv.getOverlapData <- function(pv,contrast,report) {
+   con <- pv$contrasts[[contrast]]                       	
+   repcols <- colnames(report)
+   numsamps <- sum(con$group1)+sum(con$group2)
    if(length(repcols) < (numsamps+9)) {
       return(pv)
    }
-   first = 10
+   first <- 10
    if(repcols[10]=="Called1") {
       if(length(repcols) < (numsamps+11)) {
          return(pv)
       }
-      first = 12	 
+      first <- 12	 
    }
    
-   domap = report[,first:(first+numsamps-1)]
+   domap <- report[,first:(first+numsamps-1)]
    
-   pv$binding    = cbind(report[,1:3],domap)
-   pv$class      = cbind(pv$class[,con$group1],pv$class[,con$group2])
+   pv$binding    <- cbind(report[,1:3],domap)
+   pv$class      <- cbind(pv$class[,con$group1],pv$class[,con$group2])
    
    return(pv)     
 }
 
-#PV_CHIP_RPKM      = 6
-#PV_CHIP_READS     = 7
-#PV_CONTROL_RPKM   = 8
-#PV_CONTROL_READS  = 9
+#PV_CHIP_RPKM      <- 6
+#PV_CHIP_READS     <- 7
+#PV_CONTROL_RPKM   <- 8
+#PV_CONTROL_READS  <- 9
 
 
-pv.get_scores = function(pv,peaksets){
-   control = rep(0,nrow(pv$peaks[[peaksets[1]]]))
-   scores = NULL
+pv.get_scores <- function(pv,peaksets){
+   control <- rep(0,nrow(pv$peaks[[peaksets[1]]]))
+   scores <- NULL
    for(peakset in peaksets) {
-      control = control + pv$peaks[[peakset]]$cRPKM
-      scores = cbind(scores,pv$peaks[[peakset]]$RPKM)
+      control <- control + pv$peaks[[peakset]]$cRPKM
+      scores <- cbind(scores,pv$peaks[[peakset]]$RPKM)
    }
-   control = control/length(peaksets)
+   control <- control/length(peaksets)
    for(i in 1:ncol(scores)) {
-      scores[,i] = log2(scores[,i] / control)	
+      scores[,i] <- log2(scores[,i] / control)	
    }
    return(scores)
 }
+
+pv.attname <- function(attribute,pv=NULL) {
+   if(attribute == PV_ID) {
+      if(!is.null(pv)) {
+         if(!is.null(pv$config$id)) {
+            return(pv$config$id)
+         }
+      }
+      return("ID")
+   }
+   if(attribute == PV_GROUP) {
+      if(!is.null(pv)) {
+         if(!is.null(pv$config$group)) {
+            return(pv$config$group)
+         }
+      }
+      return("Group")
+   }
+   if(attribute == PV_TISSUE) {
+      if(!is.null(pv)) {
+         if(!is.null(pv$config$tissue)) {
+            return(pv$config$tissue)
+         }
+      }
+      return("Tissue")
+   }
+   if(attribute == PV_FACTOR) {
+      if(!is.null(pv)) {
+         if(!is.null(pv$config$factor)) {
+            return(pv$config$factor)
+         }
+      }
+      return("Factor")
+   }
+   if(attribute == PV_CONDITION) {
+      if(!is.null(pv)) {
+         if(!is.null(pv$config$condition)) {
+            return(pv$config$condition)
+         }
+      }
+      return("Condition")
+   }
+   if(attribute == PV_TREATMENT) {
+      if(!is.null(pv)) {
+         if(!is.null(pv$config$treatment)) {
+            return(pv$config$treatment)
+         }
+      }
+      return("Treatment")
+   }
+   
+   if(attribute == PV_REPLICATE) {
+      if(!is.null(pv)) {
+         if(!is.null(pv$config$replicate)) {
+            return(pv$config$replicate)
+         }
+      }
+      return("Replicate")
+   }
+   if(attribute == PV_CALLER) {
+      if(!is.null(pv)) {
+         if(!is.null(pv$config$caller)) {
+            return(pv$config$caller)
+         }
+      }
+      return("Caller")
+   }
+   
+   if(!is.null(pv)) {
+      if(!is.null(pv$config$group)) {
+         return(pv$config$group)
+      }
+   }
+   return("Group")
+}
+
+pv.attributematrix <- function(pv,mask,contrast,attributes,cols,bReverse=F,bAddGroup=F) {
+   
+   if(is.null(attributes)){
+      attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT,PV_REPLICATE,PV_CALLER)
+      if(bAddGroup) {
+         attributes=c(PV_GROUP,attributes)	
+      }	
+   }
+   
+   classdb <- pv$class[,mask]
+   numsamps <- ncol(classdb)
+   atts <- NULL
+   for(num in length(attributes):1) {
+      attribute <- attributes[num]
+      if(attribute==PV_GROUP) {
+         vals <- NA
+         if(!missing(contrast)) {
+            if(sum(pv$contrasts[[contrast]]$group1) || 
+                  sum(pv$contrast[[contrast]]$group2)) {
+               gps <- rep(3,length(pv$contrasts[[contrast]]$group1))
+               gps[pv$contrasts[[contrast]]$group1]=1
+               gps[pv$contrasts[[contrast]]$group2]=2
+               classdb <- rbind(classdb,gps)
+               attribute <- nrow(classdb)
+               vals <- 1:max(gps)
+            }
+         } else {
+            vals <- NA	
+         }
+      } else {
+         vals <- unique(classdb[attribute,])
+      }
+      numvals <- suppressWarnings(as.numeric(vals))
+      if(!sum(is.na(numvals))) {
+         vals <- sort(numvals)
+      }
+      if ( (sum(!is.na(vals))>1) && (sum(!is.na(vals))<numsamps) ) {
+         addcol <- matrix(classdb[attribute,],numsamps,1)
+         for(i in 1:length(vals)) {
+            #addcol[addcol[,1]==vals[i],1]=cols[i]
+            addcol[addcol[,1]==vals[i],1]=i
+         }
+         colnames(addcol) <- pv.attname(attribute,pv)
+         if(bReverse) {
+            atts <- cbind(addcol,atts)  
+         } else { 	
+            atts <- cbind(atts,addcol)  	
+         }
+      }         	
+   }
+   if(is.null(atts)) {
+      return(NULL)
+   }
+   attnum <- 1
+   for(i in ncol(atts):1) {
+      if(is.list(cols)) {
+         usecols <- cols[[attnum]]
+      } else usecols <- cols
+      atts[,i] <- usecols[as.numeric(atts[,i])]
+      attnum <- attnum+1
+   }
+   return(atts)	
+}
+
+pv.attributePCA <- function(DBA) {
+   
+   if(pv.morethanone(DBA,DBA_TISSUE))    return(DBA_TISSUE)	
+   if(pv.morethanone(DBA,DBA_FACTOR))    return(DBA_FACTOR)	
+   if(pv.morethanone(DBA,DBA_CONDITION)) return(DBA_CONDITION)	
+   if(pv.morethanone(DBA,DBA_TREATMENT)) return(DBA_TREATMENT)	
+   if(pv.morethanone(DBA,DBA_REPLICATE)) return(DBA_REPLICATE)	
+   if(pv.morethanone(DBA,DBA_CALLER))    return(DBA_CALLER)
+   
+   return(DBA_ID)
+}
+
+pv.morethanone <- function(DBA,att){
+   
+   vals <- unique(DBA$class[att,])
+   
+   if(sum(!is.na(vals))>=2) {
+      return(TRUE)
+   } else {
+      return(FALSE)	
+   }	
+}
+
+pv.checkValue <- function(val,check) {
+   if(is.null(val)) {
+      return(FALSE)
+   } 
+   if (val != check) {
+      return(FALSE)
+   }
+   return(TRUE)
+}
+
+pv.setMask <- function(pv,mask,contrast) {
+   if(missing(contrast)) {
+      newmask <- rep(T,length(pv$peaks))
+   } else {
+      if(contrast <= length(pv$contrasts)) {
+         newmask <- pv$contrasts[[contrast]]$group1 | pv$contrasts[[contrast]]$group2
+      } else {
+         stop('Invalid contrast',call.=FALSE)
+      }
+   }
+   if(missing(mask)) {
+      mask <- newmask
+   } else if(is.null(mask)) {
+      mask <- newmask   
+   } else {
+      if(!is.logical(mask)) {
+         tmp  <- rep(F,length(pv$peaks))
+         tmp[mask] <- T
+         mask <- tmp
+      }
+   }
+   if(length(mask) != length(pv$peaks)) {
+      stop('Mask does not match samples.')
+   }
+   for(pnum in 1:length(pv$peaks)) {
+      if(nrow(pv$peaks[[pnum]])==0) {
+         mask[pnum]=F
+      }
+   }
+   return(mask)
+}
+
+
 
 ### Thanks to Obi Griffith 
 ### Obtained at http://www.biostars.org/post/show/18211/how-do-i-draw-a-heatmap-in-r-with-both-a-color-key-and-multiple-color-side-bars/
@@ -439,7 +645,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
       cellnote <- matrix("", ncol = ncol(x), nrow = nrow(x))
    if (!inherits(Rowv, "dendrogram")) {
       if (((!isTRUE(Rowv)) || (is.null(Rowv))) && (dendrogram %in% 
-                                                      c("both", "row"))) {
+                                                   c("both", "row"))) {
          if (is.logical(Colv) && (Colv)) 
             dendrogram <- "column"
          else dedrogram <- "none"
@@ -449,7 +655,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
    }
    if (!inherits(Colv, "dendrogram")) {
       if (((!isTRUE(Colv)) || (is.null(Colv))) && (dendrogram %in% 
-                                                      c("both", "column"))) {
+                                                   c("both", "column"))) {
          if (is.logical(Rowv) && (Rowv)) 
             dendrogram <- "row"
          else dendrogram <- "none"
@@ -547,7 +753,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
       x <- sweep(x, 2, sx, "/")
    }
    if (missing(breaks) || is.null(breaks) || length(breaks) < 
-          1) {
+       1) {
       if (missing(col) || is.function(col)) 
          breaks <- 16
       else breaks <- length(col) + 1
@@ -581,7 +787,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
             #if (!is.matrix(ColSideColors)) 
             #stop("'ColSideColors' must be a matrix")
             if (!is.character(ColSideColors) || dim(ColSideColors)[1] != 
-                   nc) 
+                nc) 
                stop("'ColSideColors' dim()[2] must be of length ncol(x)")
             lmat <- rbind(lmat[1, ] + 1, c(NA, 1), lmat[2, ] + 1)
             #lhei <- c(lhei[1], 0.2, lhei[2])
@@ -593,7 +799,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
             #if (!is.matrix(RowSideColors)) 
             #stop("'RowSideColors' must be a matrix")
             if (!is.character(RowSideColors) || dim(RowSideColors)[1] != 
-                   nr) 
+                nr) 
                stop("'RowSideColors' must be a character vector of length nrow(x)")
             lmat <- cbind(lmat[, 1] + 1, c(rep(NA, nrow(lmat) - 1), 1), lmat[,2] + 1)
             #lwid <- c(lwid[1], 0.2, lwid[2])
@@ -821,209 +1027,4 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
    retval$colorTable <- data.frame(low = retval$breaks[-length(retval$breaks)], 
                                    high = retval$breaks[-1], color = retval$col)
    invisible(retval)
-}
-
-
-pv.attname = function(attribute,pv=NULL) {
-   if(attribute == PV_ID) {
-      if(!is.null(pv)) {
-         if(!is.null(pv$config$id)) {
-            return(pv$config$id)
-         }
-      }
-      return("ID")
-   }
-   if(attribute == PV_GROUP) {
-      if(!is.null(pv)) {
-         if(!is.null(pv$config$group)) {
-            return(pv$config$group)
-         }
-      }
-      return("Group")
-   }
-   if(attribute == PV_TISSUE) {
-      if(!is.null(pv)) {
-         if(!is.null(pv$config$tissue)) {
-            return(pv$config$tissue)
-         }
-      }
-      return("Tissue")
-   }
-   if(attribute == PV_FACTOR) {
-      if(!is.null(pv)) {
-         if(!is.null(pv$config$factor)) {
-            return(pv$config$factor)
-         }
-      }
-      return("Factor")
-   }
-   if(attribute == PV_CONDITION) {
-      if(!is.null(pv)) {
-         if(!is.null(pv$config$condition)) {
-            return(pv$config$condition)
-         }
-      }
-      return("Condition")
-   }
-   if(attribute == PV_TREATMENT) {
-      if(!is.null(pv)) {
-         if(!is.null(pv$config$treatment)) {
-            return(pv$config$treatment)
-         }
-      }
-      return("Treatment")
-   }
-   
-   if(attribute == PV_REPLICATE) {
-      if(!is.null(pv)) {
-         if(!is.null(pv$config$replicate)) {
-            return(pv$config$replicate)
-         }
-      }
-      return("Replicate")
-   }
-   if(attribute == PV_CALLER) {
-      if(!is.null(pv)) {
-         if(!is.null(pv$config$caller)) {
-            return(pv$config$caller)
-         }
-      }
-      return("Caller")
-   }
-   
-   if(!is.null(pv)) {
-      if(!is.null(pv$config$group)) {
-         return(pv$config$group)
-      }
-   }
-   return("Group")
-}
-
-pv.attributematrix = function(pv,mask,contrast,attributes,cols,bReverse=F,bAddGroup=F) {
-   
-   if(is.null(attributes)){
-      attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT,PV_REPLICATE,PV_CALLER)
-      if(bAddGroup) {
-         attributes=c(PV_GROUP,attributes)	
-      }	
-   }
-   
-   classdb = pv$class[,mask]
-   numsamps = ncol(classdb)
-   atts = NULL
-   for(num in length(attributes):1) {
-      attribute = attributes[num]
-      if(attribute==PV_GROUP) {
-         vals = NA
-         if(!missing(contrast)) {
-            if(sum(pv$contrasts[[contrast]]$group1) || 
-                  sum(pv$contrast[[contrast]]$group2)) {
-               gps = rep(3,length(pv$contrasts[[contrast]]$group1))
-               gps[pv$contrasts[[contrast]]$group1]=1
-               gps[pv$contrasts[[contrast]]$group2]=2
-               classdb = rbind(classdb,gps)
-               attribute = nrow(classdb)
-               vals = 1:max(gps)
-            }
-         } else {
-            vals = NA	
-         }
-      } else {
-         vals = unique(classdb[attribute,])
-      }
-      numvals <- suppressWarnings(as.numeric(vals))
-      if(!sum(is.na(numvals))) {
-         vals <- sort(numvals)
-      }
-      if ( (sum(!is.na(vals))>1) && (sum(!is.na(vals))<numsamps) ) {
-         addcol = matrix(classdb[attribute,],numsamps,1)
-         for(i in 1:length(vals)) {
-            #addcol[addcol[,1]==vals[i],1]=cols[i]
-            addcol[addcol[,1]==vals[i],1]=i
-         }
-         colnames(addcol) = pv.attname(attribute,pv)
-         if(bReverse) {
-            atts = cbind(addcol,atts)  
-         } else { 	
-            atts = cbind(atts,addcol)  	
-         }
-      }         	
-   }
-   if(is.null(atts)) {
-      return(NULL)
-   }
-   attnum = 1
-   for(i in ncol(atts):1) {
-      if(is.list(cols)) {
-         usecols = cols[[attnum]]
-      } else usecols = cols
-      atts[,i] = usecols[as.numeric(atts[,i])]
-      attnum = attnum+1
-   }
-   return(atts)	
-}
-
-pv.attributePCA = function(DBA) {
-   
-   if(pv.morethanone(DBA,DBA_TISSUE))    return(DBA_TISSUE)	
-   if(pv.morethanone(DBA,DBA_FACTOR))    return(DBA_FACTOR)	
-   if(pv.morethanone(DBA,DBA_CONDITION)) return(DBA_CONDITION)	
-   if(pv.morethanone(DBA,DBA_TREATMENT)) return(DBA_TREATMENT)	
-   if(pv.morethanone(DBA,DBA_REPLICATE)) return(DBA_REPLICATE)	
-   if(pv.morethanone(DBA,DBA_CALLER))    return(DBA_CALLER)
-   
-   return(DBA_ID)
-}
-
-pv.morethanone = function(DBA,att){
-   
-   vals = unique(DBA$class[att,])
-   
-   if(sum(!is.na(vals))>=2) {
-      return(TRUE)
-   } else {
-      return(FALSE)	
-   }	
-}
-
-pv.checkValue = function(val,check) {
-   if(is.null(val)) {
-      return(FALSE)
-   } 
-   if (val != check) {
-      return(FALSE)
-   }
-   return(TRUE)
-}
-
-pv.setMask = function(pv,mask,contrast) {
-   if(missing(contrast)) {
-      newmask = rep(T,length(pv$peaks))
-   } else {
-      if(contrast <= length(pv$contrasts)) {
-         newmask = pv$contrasts[[contrast]]$group1 | pv$contrasts[[contrast]]$group2
-      } else {
-         stop('Invalid contrast',call.=FALSE)
-      }
-   }
-   if(missing(mask)) {
-      mask = newmask
-   } else if(is.null(mask)) {
-      mask = newmask   
-   } else {
-      if(!is.logical(mask)) {
-         tmp  = rep(F,length(pv$peaks))
-         tmp[mask] = T
-         mask = tmp
-      }
-   }
-   if(length(mask) != length(pv$peaks)) {
-      stop('Mask does not match samples.')
-   }
-   for(pnum in 1:length(pv$peaks)) {
-      if(nrow(pv$peaks[[pnum]])==0) {
-         mask[pnum]=F
-      }
-   }
-   return(mask)
 }

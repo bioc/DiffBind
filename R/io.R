@@ -1,17 +1,17 @@
-pv.save = function(DBAobject,file='model',dir='Robjects',pre='pv_',ext='RData',
-                   compress=TRUE,compression_level=9,ascii=FALSE) {
-   fn = sprintf('%s/%s%s.%s',dir,pre,file,ext)
+pv.save <- function(DBAobject,file='model',dir='Robjects',pre='pv_',ext='RData',
+                    compress=TRUE,compression_level=9,ascii=FALSE) {
+   fn <- sprintf('%s/%s%s.%s',dir,pre,file,ext)
    save(DBAobject,file=fn,compress=compress,
         compression_level=compression_level,ascii=ascii)
    return(fn)
 }
 
-pv.load = function(file='model',dir='Robjects',pre='pv_',ext='RData') {
-   DBAobject = NULL
-   pv = NULL
+pv.load <- function(file='model',dir='Robjects',pre='pv_',ext='RData') {
+   DBAobject <- NULL
+   pv <- NULL
    load(sprintf('%s/%s%s.%s',dir,pre,file,ext))
    if(is.null(DBAobject)) {
-      DBAobject = pv
+      DBAobject <- pv
    }
    return(DBAobject)
 }
@@ -20,18 +20,18 @@ pv.load = function(file='model',dir='Robjects',pre='pv_',ext='RData') {
 
 
 ## pv.writePeakset --- write out vectorized peaks as a bed file for external 
-pv.writePeakset = function(pv,fname,peaks,numCols=4){
+pv.writePeakset <- function(pv,fname,peaks,numCols=4){
    
    if(missing(peaks)) {
-      peaks = rep(T,nrow(pv$binding))
+      peaks <- rep(T,nrow(pv$binding))
    } else {
       if(class(peaks)=='logical') {
-         peaks = which(peaks)[1]	
+         peaks <- which(peaks)[1]	
       }	
    }
    
    if(missing(fname)) {
-      fname = NULL
+      fname <- NULL
    }
    
    if((class(peaks)=='numeric') || (class(peaks)=='integer')) {
@@ -40,12 +40,12 @@ pv.writePeakset = function(pv,fname,peaks,numCols=4){
    
    if(!is.null(dim(peaks))) {
       if(class(peaks[1,1])=="character") {
-         bed = pv.do_peaks2bed(peaks,NULL,fname,numCols=numCols)
+         bed <- pv.do_peaks2bed(peaks,NULL,fname,numCols=numCols)
       } else {
-         bed = pv.do_peaks2bed(peaks,pv$chrmap,fname,numCols=numCols)
+         bed <- pv.do_peaks2bed(peaks,pv$chrmap,fname,numCols=numCols)
       }
    } else {
-      bed = pv.do_peaks2bed(pv$binding,pv$chrmap,fname,numCols=ncol(pv$binding))
+      bed <- pv.do_peaks2bed(pv$binding,pv$chrmap,fname,numCols=ncol(pv$binding))
    }
    
    return(bed)
