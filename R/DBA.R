@@ -232,7 +232,9 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor, condition, trea
          }
       }
       if(is.null(res)) {
-         
+         if(!missing(consensus) && pv.isConsensus(DBA)) {
+            stop("DBA object is already formed from a consensus peakset!")
+         }
          res <- pv.peakset(DBA, peaks=peaks, 
                            sampID=sampID, tissue=tissue, factor=factor,condition=condition,treatment=treatment,
                            replicate=replicate,control=control,

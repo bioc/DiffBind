@@ -1294,13 +1294,12 @@ pv.overlap <- function(pv,mask,bFast = F,minVal = 0) {
    }
    
    if (pv$totalMerged != nrow(pv$binding)) {
-      pv <- pv.vectors(pv,mask = peaksets,minOverlap = 1)
+      pv <- pv.vectors(pv,mask = peaksets,minOverlap=1)
       peaksets <- 1:length(peaksets)
       A = 1; B = 2; C = 3; D = 4
    }
    if (is.null(pv$called)) {
-      stop("Called masks not present; re-run dba.count with bCalledMasks=TRUE",call. =
-              F)
+      stop("Called masks not present; re-run dba.count",call.=FALSE)
    }
    maskA <- pv$called[,A]
    maskB <- pv$called[,B]
@@ -1335,7 +1334,7 @@ pv.overlapRate <- function(pv,mask = mask) {
       }
    }
    if (is.null(pv$called)) {
-      stop("No peak overlap information available",call. = FALSE)
+      stop("No peak overlap information available",call.=FALSE)
    }
    sums <- apply(pv$called,1,sum)
    res <- sapply(1:length(pv$peaks),function(x)
@@ -1396,8 +1395,8 @@ pv.occupancy <-
          }
          res <-
             pv.pairs(
-               pv,mask = mask,CorMethod = CorMethod,bPlot = bPlot,minVal = minVal,bCorOnly =
-                  bCorOnly,bNonZeroCors = bNonZeroCors
+               pv,mask=mask,CorMethod=CorMethod,bPlot=bPlot,minVal=minVal,bCorOnly =
+                  bCorOnly,bNonZeroCors=bNonZeroCors
             )
          if (!is.null(nrow(res))) {
             if (!missing(labelAtts)) {
@@ -1410,13 +1409,13 @@ pv.occupancy <-
          for (i in 1:length(vals)) {
             comps <- which(pv$class[byAttribute,] %in% vals[i])
             vmask <- rep(F,length(mask))
-            vmask[comps] = T
+            vmask[comps] <- TRUE
             if (sum(vmask) > 1) {
                res <- rbind(
                   res,pv.occupancy(
-                     pv,mask = vmask,sites = sites,
-                     Sort = Sort,CorMethod = CorMethod,minVal =
-                        minVal,bCorOnly = bCorOnly
+                     pv,mask=vmask,sites=sites,
+                     Sort=Sort,CorMethod=CorMethod,minVal =
+                        minVal,bCorOnly=bCorOnly
                   )
                )
             }
@@ -1425,11 +1424,11 @@ pv.occupancy <-
       
       if (!is.null(nrow(res))) {
          if (Sort == 'cor') {
-            res <- res[pv.orderfacs(res[,6],decreasing = T),]
+            res <- res[pv.orderfacs(res[,6],decreasing=T),]
          } else if (Sort == 'percent') {
-            res <- res[pv.orderfacs(res[,7],decreasing = T),]
+            res <- res[pv.orderfacs(res[,7],decreasing=T),]
          } else {
-            res <- res[pv.orderfacs(res[,5],decreasing = T),]
+            res <- res[pv.orderfacs(res[,5],decreasing=T),]
          }
       }
       
@@ -1439,11 +1438,11 @@ pv.occupancy <-
 
 ## pv.plotBoxplot -- Boxplots
 pv.plotBoxplot <-
-   function(DBA, contrast, method = DBA_EDGER, th = 0.1, bUsePval = F, bNormalized =
-               T, attribute = DBA_GROUP,
+   function(DBA, contrast, method=DBA_EDGER, th=0.1, bUsePval=F, bNormalized =
+               T, attribute=DBA_GROUP,
             bAll, bAllIncreased, bAllDecreased, bDB, bDBIncreased, bDBDecreased,
-            pvalMethod = wilcox.test,  bReversePos = FALSE, attribOrder, vColors, varwidth =
-               T, notch = T, ...) {
+            pvalMethod=wilcox.test,  bReversePos=FALSE, attribOrder, vColors, varwidth =
+               T, notch=T, ...) {
       if (missing(bAll) &&
           missing(bAllIncreased) && missing(bAllDecreased)) {
          bMissingAll <- T
@@ -1524,7 +1523,7 @@ pv.plotBoxplot <-
       if (bAll | bAllIncreased | bAllDecreased) {
          report <-
             pv.DBAreport(
-               DBA, contrast = contrast, method = method,th = 1,bNormalized = bNormalized,bCounts =
+               DBA, contrast=contrast, method=method,th=1,bNormalized=bNormalized,bCounts =
                   T
             )
          if (bReversePos) {
@@ -1585,8 +1584,8 @@ pv.plotBoxplot <-
       if (is.null(report)) {
          report <-
             pv.DBAreport(
-               DBA, contrast = contrast, method = method,th = th,bUsePval = bUsePval,bNormalized =
-                  bNormalized,bCounts = T
+               DBA, contrast=contrast, method=method,th=th,bUsePval=bUsePval,bNormalized =
+                  bNormalized,bCounts=T
             )
       } else {
          report <- report[DB,]
@@ -1654,9 +1653,9 @@ pv.plotBoxplot <-
          subt <- ""
       }
       boxplot(
-         toplot,notch = notch, varwidth = varwidth,
-         col = vcols,names = vnames,main = "Binding affinity",
-         sub = subt,ylab = ystr
+         toplot,notch=notch, varwidth=varwidth,
+         col=vcols,names=vnames,main="Binding affinity",
+         sub=subt,ylab=ystr
       )
       
       if (!is.null(pvalMethod)) {
@@ -1667,16 +1666,16 @@ pv.plotBoxplot <-
             for (j in (i + 1):length(toplot)) {
                if (length(toplot[[i]]) == length(toplot[[j]])) {
                   pvals[i,j] <-
-                     pvalMethod(toplot[[i]],toplot[[j]],paired = TRUE)$p.value
+                     pvalMethod(toplot[[i]],toplot[[j]],paired=TRUE)$p.value
                } else {
                   pvals[i,j] <-
-                     pvalMethod(toplot[[i]],toplot[[j]],paired = FALSE)$p.value
+                     pvalMethod(toplot[[i]],toplot[[j]],paired=FALSE)$p.value
                }
                pvals[j,i] <- pvals[i,j]
             }
          }
       } else {
-         pvals = NULL
+         pvals <- NULL
       }
       return(pvals)
    }
@@ -1685,4 +1684,14 @@ pv.box <- function(ids,report) {
    idx <- match(ids,colnames(report))
    res <- log2(apply(report[,idx],1,mean))
    return(res)
+}
+
+pv.isConsensus <- function(DBA) {
+   if(sum(DBA$class[DBA_CALLER, ]=="counts") != length(tamoxifen$peaks)) {
+      return(FALSE)
+   } 
+   if (sum(sapply(tamoxifen$peaks,function(x)nrow(x)!=nrow(DBA$peaks[[1]])))) {
+      return(FALSE)
+   }
+   return(TRUE)
 }
