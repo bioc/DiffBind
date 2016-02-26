@@ -287,6 +287,7 @@ pv.peakset <-
             "Peak caller","Control","Reads","Replicate","bamRead",
             "bamControl","Treatment"
          )
+      pv$merged  <- NULL
       pv$binding <- NULL
       if (bMakeMasks) {
          pv$masks <- pv.mask(pv)
@@ -353,8 +354,12 @@ pv.vectors <-
       if (!bAllSame) {
          if (sum(sapply(peaks,nrow)) > 0) {
             if (merge) {
-               allpeaks <- bind_rows(lapply(peaks,function(x)
-                  x[,1:3]))
+               allpeaks <- bind_rows(lapply(peaks,
+                                            function(x) {
+                                               y <- x[,1:3]
+                                               colnames(y) <- c("chr","start","end")
+                                               y})
+               )
             } else {
                allpeaks <- data.frame(pv$merged)
                allpeaks[,1] <- pv$chrmap[allpeaks[,1]]
@@ -1687,10 +1692,16 @@ pv.box <- function(ids,report) {
 }
 
 pv.isConsensus <- function(DBA) {
-   if(sum(DBA$class[DBA_CALLER, ]=="counts") != length(tamoxifen$peaks)) {
+   if(is.null(DBA$class)) {
+      return(FALSE)
+   }
+   if(sum(DBA$class[DBA_CALLER, ]=="counts") != length(DBA$peaks)) {
       return(FALSE)
    } 
-   if (sum(sapply(tamoxifen$peaks,function(x)nrow(x)!=nrow(DBA$peaks[[1]])))) {
+   if(is.null(DBA$peaks)) {
+      return(FALSE)
+   }   
+   if (sum(sapply(DBA$peaks,function(x)nrow(x)!=nrow(DBA$peaks[[1]])))) {
       return(FALSE)
    }
    return(TRUE)

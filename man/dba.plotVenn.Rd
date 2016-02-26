@@ -12,7 +12,7 @@ dba.plotVenn(DBA, mask, overlaps, label1, label2, label3, label4, main, sub,
              contrast, method=DBA$config$AnalysisMethod, 
              th=DBA$config$th, bUsePval=DBA$config$bUsePval,
              bDB=TRUE, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
-             labelAttributes, bReturnPeaksets=FALSE, DataType=DBA$config$DataType)
+             labelAttributes, DataType=DBA$config$DataType)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -105,10 +105,12 @@ is \code{label}s are not specified, use these attributes to create default label
 }
 Only specified attributes that differ between peaksets will be used for labels; the ones that have the same value for all peaksets will be used as the default subtitle.
 }
-\item{bReturnPeaksets}{
-logical indicating that the peaksets that make up portions of the Venn diagram should be returned. See \code{\link{dba.overlap}} for the format of the returned object. 
-If the \code{DataType} parameter is set to \code{\link{DBA_DATA_DBAOBJECT}}, and a \code{contrast} has been spceified, a result-based DBA object will be returned, as described in \code{\link{dba.report}}.
-}
+%\item{bReturnPeaksets}{
+%logical indicating that the peaksets that make up portions of the Venn diagram should be returned. See \code{\link{dba.overlap}}
+% for the format of the returned object. 
+%If the \code{DataType} parameter is set to \code{\link{DBA_DATA_DBAOBJECT}}, and a \code{contrast} has been spceified, 
+% a result-based DBA object will be returned, as described in \code{\link{dba.report}}.
+%}
 \item{DataType}{
 if \code{bReturnPeaksets} is set to \code{TRUE}, the class of object that peaksets should be returned as:
 \itemize{
@@ -130,7 +132,7 @@ to return a results-based DBA object, if a \code{contrast} is specified.
 %%  ~~ If necessary, more details than the description above ~~
 %}
 \value{
-None, unless \code{bReturnPeaksets = TRUE}. In this case, either a list of peaksets is returned (as decribed in \code{\link{dba.overlap}}), or, if \code{DataType=DBA_DATA_DBAOBJECT}, a results-based DBA object.
+Either a list of peaksets is returned invisibly (as decribed in \code{\link{dba.overlap}}), or, if \code{DataType=DBA_DATA_DBAOBJECT}, a results-based DBA object.
 }
 %\references{
 %% ~put references to the literature/web site here ~

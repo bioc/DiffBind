@@ -9,7 +9,7 @@ Sets up contrasts for differential binding affinity analysis
 }
 \usage{
 dba.contrast(DBA, group1, group2=!group1, name1="group1", name2="group2",
-             minMembers=3, block,
+             minMembers=3, block, bNot=FALSE,
              categories=c(DBA_TISSUE,DBA_FACTOR,DBA_CONDITION,DBA_TREATMENT))
 
 }
@@ -38,6 +38,10 @@ label for samples in second group (when adding a specific contrast).
   \item{minMembers}{
 when automatically generating contrasts, minimum number of unique samples in a group. Must be at least 2, as replicates are strongly advised. If you wish to do an analysis with no replicates, you can set the group1 and group2 parameters explicitly.
 }
+  \item{bNot}{
+include contrasts consisting of a group and all other samples not in that group (indicated by a ! in the contrast name).
+}
+
   \item{categories}{
 when automatically generating contrasts, attribute or vector of attributes to base contrasts on:
 \itemize{ 

@@ -1330,6 +1330,7 @@ pv.peaksetCounts <- function(pv=NULL,peaks,counts,
    tos   <- NULL
    if(is.null(dim(counts)) && length(counts)==1) { # filename
       counts <- read.table(counts,as.is=T)
+      counts <- counts[!is.na(counts[,2]),]
       #annotation <- as.character(counts[,1])
       #counts[,1] <- 1:nrow(counts)
    }

@@ -1,7 +1,7 @@
 
 
 pv.contrast <- function(pv,group1,group2=!group1,name1="group1",name2="group2",
-                        minMembers=3,categories,bMulti=T,block) {
+                        minMembers=3,categories,bMulti=T,block, bNot=FALSE) {
    
    numStart <- length(pv$contrasts)
    
@@ -21,14 +21,14 @@ pv.contrast <- function(pv,group1,group2=!group1,name1="group1",name2="group2",
          attributes=categories
       }
       if(missing(block)) {
-         res <- pv.getContrasts(pv,minMembers=minMembers,attributes=attributes)
+         res <- pv.getContrasts(pv,minMembers=minMembers,attributes=attributes,bNot=bNot)
          if(bMulti) {
-            res <- pv.listaddto(res,pv.contrastPairs(pv,minMembers=minMembers,attributes=attributes,conlist=res))  
+            res <- pv.listaddto(res,pv.contrastPairs(pv,minMembers=minMembers,attributes=attributes,conlist=res,bNot=bNot))  
          }
       } else {
-         res <- pv.getContrasts(pv,minMembers=minMembers,attributes=attributes,block=block)
+         res <- pv.getContrasts(pv,minMembers=minMembers,attributes=attributes,block=block,bNot=bNot)
          if(bMulti) {
-            res <- pv.listaddto(res,pv.contrastPairs(pv,minMembers=minMembers,attributes=attributes,block=block))   
+            res <- pv.listaddto(res,pv.contrastPairs(pv,minMembers=minMembers,attributes=attributes,block=block,bNot=bNot))   
          }
       }
       if(!is.null(res)) {
@@ -80,7 +80,8 @@ pv.contrast <- function(pv,group1,group2=!group1,name1="group1",name2="group2",
    
 }
 
-pv.getContrasts <- function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT),block){
+pv.getContrasts <- function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT),
+                            block,bNot=FALSE){
    
    srcidx <-  pv.mask(pv,PV_CALLER,"source") | pv.mask(pv,PV_CALLER,"counts")
    mdata <- pv$class[,srcidx]
@@ -116,7 +117,7 @@ pv.getContrasts <- function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_
                      }
                   }      
                }
-               if((sum(members)-members[i]) >= minMembers) {
+               if(bNot && ( (sum(members)-members[i]) >= minMembers) ) {
                   job <- NULL
                   job$group1 <- pv.mask(pv,mcat,vals[i]) & srcidx
                   job$group2 <- pv.mask(pv,mcat,vals[i],merge='nand') & srcidx
@@ -132,7 +133,8 @@ pv.getContrasts <- function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_
    return(jobs)   
 }
 
-pv.contrastPairs <- function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT),block=NULL,conlist=NULL) {
+pv.contrastPairs <- function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT),
+                             block=NULL,conlist=NULL, bNot=TRUE) {
    
    if(length(attributes)==1) {
       return(pv$contrasts)
@@ -184,7 +186,7 @@ pv.contrastPairs <- function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV
                   }
                }                      
             }
-            if(sum((!m1)&srcmask) >=minMembers) {
+            if(bNot && (sum((!m1)&srcmask) >= minMembers)) {
                crec <- NULL
                crec$group1 <- m1
                crec$group2 <- (!m1) & srcmask

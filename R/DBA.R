@@ -233,7 +233,9 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor, condition, trea
       }
       if(is.null(res)) {
          if(!missing(consensus) && pv.isConsensus(DBA)) {
-            stop("DBA object is already formed from a consensus peakset!")
+            if(consensus != TRUE) {
+               stop("DBA object is already formed from a consensus peakset!")
+            }
          }
          res <- pv.peakset(DBA, peaks=peaks, 
                            sampID=sampID, tissue=tissue, factor=factor,condition=condition,treatment=treatment,
@@ -499,7 +501,7 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_TMM_MINUS_FULL, 
 ########################################################
 
 dba.contrast <- function(DBA, group1, group2=!group1, name1="group1", name2="group2",
-                         minMembers=3, block,
+                         minMembers=3, block, bNot = FALSE,
                          categories=c(DBA_TISSUE,DBA_FACTOR,DBA_CONDITION,DBA_TREATMENT))
 {
    if(minMembers < 2) {
@@ -509,7 +511,7 @@ dba.contrast <- function(DBA, group1, group2=!group1, name1="group1", name2="gro
    DBA <- pv.check(DBA,TRUE)
    
    res <- pv.contrast(DBA, group1=group1, group2=group2, name1=name1, name2=name2,
-                      minMembers=minMembers, categories=categories,block=block)
+                      minMembers=minMembers, categories=categories,block=block, bNot=bNot)
    
    if(class(res)!="DBA") {
       class(res) <- "DBA"
@@ -876,7 +878,7 @@ dba.plotVenn <- function(DBA, mask, overlaps, label1, label2, label3, label4, ma
                          contrast, method=DBA$config$AnalysisMethod, 
                          th=DBA$config$th, bUsePval=DBA$config$bUsePval,
                          bDB=TRUE, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
-                         labelAttributes, bReturnPeaksets=FALSE, DataType=DBA$config$DataType)
+                         labelAttributes, DataType=DBA$config$DataType)
 {
    DBA <- pv.check(DBA,bCheckEmpty=TRUE)
    
@@ -1027,17 +1029,15 @@ dba.plotVenn <- function(DBA, mask, overlaps, label1, label2, label3, label4, ma
    
    pv.plotVenn(overlaps,label1=label1,label2=label2,label3=label3,label4=label4,main,sub)
    
-   if(bReturnPeaksets) {
-      if(DataType == DBA_DATA_DBAOBJECT) {
-         if(!is.null(newDBA)) {
-            return(newDBA)
-         } else {
-            warning('No DBA object to return.')
-         }
+   if(DataType == DBA_DATA_DBAOBJECT) {
+      if(!is.null(newDBA)) {
+         return(newDBA)
       } else {
-         overlaps <- lapply(overlaps, pv.peaks2DataType, DataType)
-         return(overlaps)
-      }   
+         warning('No DBA object to return.')
+      }
+   } else {
+      overlaps <- lapply(overlaps, pv.peaks2DataType, DataType)
+      invisible(overlaps)
    }   
 }
 

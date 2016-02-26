@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.17.14}{
+\itemize{
+   \item{Add bNot parameter to dba.contrast}
+   \item{Remove bReturnPeaksets parameter from dba.plotVenn}
+ }
+}
+
 \section{Version 1.17.9}{
 \itemize{
    \item{Fix bug in retrieving SummarizedExperiment}
