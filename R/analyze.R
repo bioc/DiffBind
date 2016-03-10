@@ -448,7 +448,7 @@ pv.DESeq <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
       res$de           <- cbind(1:length(res$de),res$de,p.adjust(res$de,method="BH"))
       colnames(res$de) <- c('id','pval','padj')
       res$de           <- data.frame(res$de)
-      fdebug(sprintf('pv.DESeq blocking analysis: %d db (%s/%s)',sum(res$de$padj<.1),label1,label2))
+      fdebug(sprintf('pv.DESeq blocking analysis: %d db (%s/%s)',sum(res$de$padj<0.05),label1,label2))
    } else {
       res$de <- DESeq::nbinomTest(res$DEdata,label1,label2)[,c(1,7:8)]
    }
@@ -501,7 +501,7 @@ pv.DESeq2 <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
          warning('Unsupported blocking attribute: ',attr,call.=FALSE)
          return(NULL)  
       }
-      fdebug(sprintf('pv.DESeq blocking analysis: %d db (%s/%s)',sum(res$de$padj<.1),label1,label2))
+      fdebug(sprintf('pv.DESeq blocking analysis: %d db (%s/%s)',sum(res$de$padj<0.05),label1,label2))
    } 
    
    if(!bFullLibrarySize) {
@@ -658,7 +658,7 @@ pv.allDESeq <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bGL
          bres <-  dba.parallel.lapply(pv$config,params,blist,pv.DESeq_parallel,pv,TRUE, 
                                       bSubControl,bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM)
          for(i in 1:length(blist)) {
-            fdebug(sprintf('pv.allDESeq: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<.1)))
+            fdebug(sprintf('pv.allDESeq: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<0.05)))
             reslist[[blist[i]]]$block <- bres[[i]]
          }    
       }     
@@ -730,7 +730,7 @@ pv.allDESeq2 <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bG
          bres <-  dba.parallel.lapply(pv$config,params,blist,pv.DESeq2_parallel,pv,TRUE, 
                                       bSubControl,bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM)
          for(i in 1:length(blist)) {
-            fdebug(sprintf('pv.allDESeq2: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<.1)))
+            fdebug(sprintf('pv.allDESeq2: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<0.05)))
             reslist[[blist[i]]]$block <- bres[[i]]
          }    
       }     
@@ -806,7 +806,7 @@ pv.blockFactors <- function(pv,group1,group2,label1,label2,blockList) {
 
 
 
-pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F,
+pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled=F,
                          bCounts=F,bCalledDetail=F,
                          file,initString='reports/DBA',bNormalized=T,ext="csv",minFold=0,bSupressWarning=F) {
    
@@ -987,6 +987,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F
    }
    
    if(bCounts) {
+      counts <- round(counts,2)
       colnames(counts) <- c(pv$class[PV_ID,con$group1],pv$class[PV_ID,con$group2])
       if(length(sites)>1){
          data <- cbind(data,counts)
@@ -1012,6 +1013,9 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=.1,bUsePval=F,bCalled=F
    
    data <- data[order(data$'p-value'),]
    
+   data[,4:7] <- round(data[,4:7],2)
+   data[,8:9] <- signif(data[,8:9],3)
+   
    if(!missing(file)) {
       if(is.null(file)) {
          file=sprintf("%s_%s_vs_%s_%s.%s",initString,con$name1,con$name2,method,ext)
@@ -1035,7 +1039,7 @@ pv.getsites <- function(pv,sites){
    return(sites)
 }
 
-pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.1,bUsePval=F,fold=0,facname="",bNormalized=T,
+pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,bUsePval=F,fold=0,facname="",bNormalized=T,
                          cex=.15,bSignificant=T, bSmooth=T,...) {
    
    if(missing(contrast)){

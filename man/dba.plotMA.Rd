@@ -31,12 +31,10 @@ number of contrast to report on. See  \code{\link{dba.show}(DBA, bContrast=T)} t
 \item{method}{
  method or vector of methods to plot results for:
 \itemize{ 
-\item \link{DBA_EDGER}
-\item \link{DBA_DESEQ}
 \item \link{DBA_DESEQ2}
-\item \link{DBA_EDGER_BLOCK}
-\item \link{DBA_DESEQ_BLOCK}
 \item \link{DBA_DESEQ2_BLOCK}
+\item \link{DBA_EDGER}
+\item \link{DBA_EDGER_BLOCK}
 }
 }
 

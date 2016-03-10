@@ -78,8 +78,9 @@ pv.DataType2Peaks <- function(RDpeaks){
    return(res)
 }
 
-pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_EDGER,th=.1,bUsePval=FALSE,bNormalized=T,report,
-                          bPCA=F,bLog=T,minval,maxval,mask,fold=0) {
+pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,th=0.05,
+                           bUsePval=FALSE,bNormalized=T,report,
+                           bPCA=F,bLog=T,minval,maxval,mask,fold=0) {
    
    if(contrast > length(pv$contrasts)) {
       stop('Specified contrast number is greater than number of contrasts')

@@ -83,7 +83,7 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
    }
    
    if(is.null(pv$config$th)){
-      pv$config$th <- 0.1
+      pv$config$th <- 0.05
    }
    if(is.null(pv$config$bUsePval)){
       pv$config$bUsePval <- FALSE
@@ -924,6 +924,9 @@ pv.merge <- function(allpeaks,peaks,classes,maxgap=-1,
    for(i in 1:length(peaks)) {
       peakset <- peaks[[i]][,1:4]
       peakset[,1] <- match(peakset[,1],chrmap)
+      if(is.unsorted(unique(peakset[,1]))) {
+         peakset <- pv.peaksort(peakset)
+      }
       res <- mergeScores(merged,def,peakset)
       result[,i+3] <- res$score
       included[,i] <- res$included

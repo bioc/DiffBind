@@ -77,8 +77,8 @@ DBA_DATA_DEFAULT                  <- DBA_DATA_GRANGES
 dba <- function(DBA,mask, minOverlap=2,
                 sampleSheet="dba_samples.csv", 
                 config=data.frame(RunParallel=TRUE, reportInit="DBA", DataType=DBA_DATA_GRANGES, 
-                                  AnalysisMethod=DBA_EDGER, minQCth=15, fragmentSize=125, 
-                                  bCorPlot=FALSE, th=.1, bUsePval=FALSE),
+                                  AnalysisMethod=DBA_DESEQ2, minQCth=15, fragmentSize=125, 
+                                  bCorPlot=FALSE, th=0.05, bUsePval=FALSE),
                 peakCaller="raw", peakFormat, scoreCol, bLowerScoreBetter, filter, skipLines=0, bAddCallerConsensus=FALSE, 
                 bRemoveM=TRUE, bRemoveRandom=TRUE, bSummarizedExperiment=FALSE,
                 bCorPlot, attributes) 
@@ -109,7 +109,7 @@ dba <- function(DBA,mask, minOverlap=2,
       res$config$RunParallel=TRUE
    }
    if(is.null(res$config$AnalysisMethod)){
-      res$config$AnalysisMethod=DBA_EDGER
+      res$config$AnalysisMethod=DBA_DESEQ2
    }
    if(is.null(res$config$bCorPlot)){
       if(missing(bCorPlot)){
@@ -119,7 +119,7 @@ dba <- function(DBA,mask, minOverlap=2,
       }
    }
    if(is.null(res$config$th)){
-      res$config$th=0.1
+      res$config$th=0.05
    }
    if(is.null(res$config$bUsePval)){
       res$config$bUsePval=FALSE
@@ -261,7 +261,7 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor, condition, trea
          res$config$RunParallel=TRUE
       }
       if(is.null(res$config$th)){
-         res$config$th=0.1
+         res$config$th=0.05
       }
       if(is.null(res$config$bUsePval)){
          res$config$bUsePval=FALSE
@@ -273,7 +273,7 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor, condition, trea
          res$config$reportInit=DBA$config$reportInit
       }
       if(is.null(res$config$AnalysisMethod)){
-         res$config$AnalysisMethod=DBA_EDGER
+         res$config$AnalysisMethod=DBA_DESEQ2
       }
       if(is.null(res$config$bCorPlot)){
          res$config$bCorPlot=FALSE
@@ -550,7 +550,7 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
    
    if(bCorPlot){
       warn <- T
-      rep <- pv.DBAreport(res,contrast=1,method=method[1],th=.1,bSupressWarning=T)
+      rep <- pv.DBAreport(res,contrast=1,method=method[1],th=0.05,bSupressWarning=T)
       if(!is.null(rep)) {
          if(!is.null(dim(rep))) {
             if(nrow(rep)>1) {
@@ -707,7 +707,7 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minva
                                RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
                                ColScheme=colScheme, distMeth=distMethod, 
                                margins=c(margin,margin), ...)
-         res <- DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)]
+         res <- data.frame(DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)])
          if(!is.character(res[1,1])) {
             res[,1] <- DBA$chrmap[res[,1]]
          }
@@ -723,7 +723,7 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minva
                                RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
                                minval=minval, maxval=maxval, ColScheme=colScheme, distMeth=distMethod, 
                                margins=c(margin,margin),...)
-         res <- DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)]
+         res <- data.frame(DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)])
          if(!is.character(res[1,1])) {
             res[,1] <- DBA$chrmap[res[,1]]
          }
@@ -1198,7 +1198,7 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
       res$config$saveDir <- "reports/DBA"
    }
    if(is.null(res$config$AnalysisMethod)){
-      res$config$AnalysisMethod=DBA_EDGER
+      res$config$AnalysisMethod=DBA_DESEQ2
    }
    
    if(is.null(res$bCorPlot)){
@@ -1206,7 +1206,7 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
    }
    
    if(is.null(res$config$th)){
-      res$config$th=0.1
+      res$config$th=0.05
    }
    if(is.null(res$config$bUsePval)){
       res$config$bUsePval=FALSE

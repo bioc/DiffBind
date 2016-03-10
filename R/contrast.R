@@ -394,7 +394,7 @@ pv.checkBlock <- function(contrast,bCheckBalanced=F,bCheckMultiple=T,bCheckCross
 
 EDGER_COL_PVAL <- 4
 EDGER_COL_FDR  <- 5
-pv.listContrasts <- function(pv,th=0.1,bUsePval=F) {
+pv.listContrasts <- function(pv,th=0.05,bUsePval=F) {
    if(is.null(pv$contrasts)) {
       return(NULL)
       clist <- pv.contrast(pv)   
@@ -621,7 +621,7 @@ pv.design <- function(DBA,categories=c(DBA_CONDITION,DBA_TREATMENT,DBA_TISSUE,DB
    return(design)   	
 }
 
-pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,th=0.1,bUsePval=F,fold=0,bDB=T,bNotDB=F,bUp=F,bDown=F,bAll=T) {
+pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,th=0.05,bUsePval=F,fold=0,bDB=T,bNotDB=F,bUp=F,bDown=F,bAll=T) {
    
    if(missing(contrasts)) {
       contrasts <- 1:length(DBA$contrasts)

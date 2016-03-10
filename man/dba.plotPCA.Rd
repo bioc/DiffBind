@@ -56,12 +56,10 @@ number of contrast to use for PCA; if present, plots a PCA based on a differenti
 \item{method}{
 method used for analysis (used in conjunction with contrast):
 \itemize{ 
-\item \link{DBA_EDGER}
-\item \link{DBA_DESEQ}
 \item \link{DBA_DESEQ2}
-\item \link{DBA_EDGER_BLOCK}
-\item \link{DBA_DESEQ_BLOCK}
 \item \link{DBA_DESEQ2_BLOCK}
+\item \link{DBA_EDGER}
+\item \link{DBA_EDGER_BLOCK}
 }
 }
 

@@ -60,12 +60,10 @@ number of contrast to report on; if present, draws a heatmap based on a differen
 \item{method}{
 analysis method (used in conjunction with contrast):
 \itemize{ 
-\item \link{DBA_EDGER}
-\item \link{DBA_DESEQ}
 \item \link{DBA_DESEQ2}
-\item \link{DBA_EDGER_BLOCK}
-\item \link{DBA_DESEQ_BLOCK}
 \item \link{DBA_DESEQ2_BLOCK}
+\item \link{DBA_EDGER}
+\item \link{DBA_EDGER_BLOCK}
 }
 }
 
@@ -167,7 +165,7 @@ dba.plotHeatmap(DBA, attributes=DBA$attributes, minval, maxval,
 MODE: Correlation Heatmap plot using statistics for significantly differentially bound sites:
 
 dba.plotHeatmap(DBA, attributes=DBA$attributes, minval, maxval,
-                      contrast, method=DBA_EDGER, th=.1, bUsePval=F, mask,
+                      contrast, method=DBA_DESEQ2, th=0.05, bUsePval=F, mask,
                       overlaps, olPlot=DBA_COR,
                       colScheme="Greens", distMethod="pearson", ...)
                       

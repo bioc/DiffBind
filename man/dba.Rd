@@ -11,8 +11,8 @@ Constructs a new DBA object from a sample sheet,  or based on an existing DBA ob
 dba(DBA,mask, minOverlap=2,
     sampleSheet="dba_samples.csv", 
     config=data.frame(RunParallel=TRUE, reportInit="DBA", DataType=DBA_DATA_GRANGES, 
-                      AnalysisMethod=DBA_EDGER, minQCth=15, fragmentSize=125, 
-                      bCorPlot=FALSE, th=.1, bUsePval=FALSE),
+                      AnalysisMethod=DBA_DESEQ2, minQCth=15, fragmentSize=125, 
+                      bCorPlot=FALSE, th=0.05, bUsePval=FALSE),
     peakCaller="raw", peakFormat, scoreCol, bLowerScoreBetter, 
     filter, skipLines=0, 
     bAddCallerConsensus=FALSE, 
@@ -71,7 +71,7 @@ data frame containing configuration options, or file name of config file to load
 \item {RunParallel:}	{logical indicating if counting and analysis operations should be run in parallel using multicore by default.}
 \item {DataType:}	{default class for peaks and reports (DBA_DATA_GRANGES, DBA_DATA_RANGEDDATA, or DBA_DATA_FRAME).}
 \item {ReportInit:}   {string to append to the beginning of saved report file names.}
-\item {AnalysisMethod:}	{either DBA_EDGER or DBA_DESEQ.}
+\item {AnalysisMethod:}	{either DBA_DESEQ2 or DBA_EDGER.}
 \item {bCorPlot:} {logical indicating that a correlation heatmap should be plotted automatically}
 \item {th:}   {default threshold for reporting and plotting analysis results.}
 \item {bUsePval:}   {logical, default indicating whether to use FDR (\code{FALSE}) or p-values (\code{TRUE}).}

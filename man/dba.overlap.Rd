@@ -45,12 +45,10 @@ contrast number to use. Only specified if contrast data is to be used when mode=
   \item{method}{
 if contrast is specified and mode=DBA_OLAP_ALL, use data from method used for analysis:
 \itemize{ 
-\item \link{DBA_EDGER}
-\item \link{DBA_DESEQ}
 \item \link{DBA_DESEQ2}
-\item \link{DBA_EDGER_BLOCK}
-\item \link{DBA_DESEQ_BLOCK}
 \item \link{DBA_DESEQ2_BLOCK}
+\item \link{DBA_EDGER}
+\item \link{DBA_EDGER_BLOCK}
 }
 }
 \item{th}{

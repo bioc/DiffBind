@@ -2,6 +2,15 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 1.99.15}{
+\itemize{
+   \item{Bump version number}
+   \item{Change default analysis method to DESeq2 (more conservative normalization)}
+   \item{Change default FDR threshold to 0.05}
+   \item{Update vignette}
+ }
+}
+
 \section{Version 1.17.14}{
 \itemize{
    \item{Add bNot parameter to dba.contrast}

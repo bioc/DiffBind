@@ -118,7 +118,7 @@ pv.model <- function(model,mask,minOverlap=2,
    }
    
    if(is.null(config$AnalysisMethod)){
-      config$AnalysisMethod <- DBA_EDGER
+      config$AnalysisMethod <- DBA_DESEQ2
    } else if(is.character(config$AnalysisMethod)){
       x <- strsplit(config$AnalysisMethod,',')
       if(length(x[[1]])==1) {
@@ -290,6 +290,10 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
                       maxGap=-1, bRecentered=FALSE) {
    
    pv <- pv.check(pv)
+   
+   if(sum(is.na(pv$class[PV_BAMREADS,]))) {
+      stop("Can't count: some peaksets are not associated with a .bam file.",call.=TRUE)
+   }
    
    if(minOverlap >0 && minOverlap <1) {
       minOverlap <- ceiling(length(pv$peaks) * minOverlap)	

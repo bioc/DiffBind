@@ -446,7 +446,7 @@ pv.deflist <- c(
    PV_REPLICATE,PV_CALLER,PV_INTERVALS,PV_SN_RATIO
 )
 pv.list <-
-   function(pv,mask,bContrasts = F,attributes = pv.deflist,th = 0.1,bUsePval =
+   function(pv,mask,bContrasts = F,attributes = pv.deflist,th = 0.05,bUsePval =
                F) {
       if (!missing(mask)) {
          if (!is.logical(mask)) {
@@ -1254,7 +1254,7 @@ pv.plotHeatmap <-
                warning("Unable to re-order returned correlation matrix as labels are non-unique")
             }
          }
-         
+         ocm <- signif(ocm,2) 
          return(ocm)
       }
       
@@ -1443,7 +1443,7 @@ pv.occupancy <-
 
 ## pv.plotBoxplot -- Boxplots
 pv.plotBoxplot <-
-   function(DBA, contrast, method=DBA_EDGER, th=0.1, bUsePval=F, bNormalized =
+   function(DBA, contrast, method=DBA_DESEQ2, th=0.05, bUsePval=F, bNormalized =
                T, attribute=DBA_GROUP,
             bAll, bAllIncreased, bAllDecreased, bDB, bDBIncreased, bDBDecreased,
             pvalMethod=wilcox.test,  bReversePos=FALSE, attribOrder, vColors, varwidth =
@@ -1682,6 +1682,7 @@ pv.plotBoxplot <-
       } else {
          pvals <- NULL
       }
+      pvals <- signif(pvals,3)
       return(pvals)
    }
 
