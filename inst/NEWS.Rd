@@ -2,74 +2,42 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 1.99.15}{
-\itemize{
-   \item{Bump version number}
-   \item{Change default analysis method to DESeq2 (more conservative normalization)}
-   \item{Change default FDR threshold to 0.05}
-   \item{Update vignette}
- }
-}
-
-\section{Version 1.17.14}{
-\itemize{
-   \item{Add bNot parameter to dba.contrast}
-   \item{Remove bReturnPeaksets parameter from dba.plotVenn}
- }
-}
-
-\section{Version 1.17.9}{
-\itemize{
-   \item{Fix bug in retrieving SummarizedExperiment}
- }
-}
-
-\section{Version 1.17.8}{
-\itemize{
-   \item{Fix bug when no peaks}
- }
-}
-
-\section{Version 1.17.5}{
-\itemize{
-   \item{Update: major overhaul of internals to minimize memory consumption}
-   \item{Update: upgrade peaksort to use inplace peakOrder}
-   \item{Update: optimize peak merging memory usage}
-   \item{Update: remove $allvectors and $vectors; 
-replace with $merged (without score matrix) and $binding}
-   \item{Update: designate DESeq method as obsolete (in favor of DESeq2); 
-alter documentaiton and vignette accordingly.}
-   \item{Update: change PCA method from princomp() to prcomp()}
-   \item{Update: change bCorPlot default to FALSE (no more automatic clustering heatmaps)}
-   }
-}
-
-\section{Version 1.17.4}{
-\itemize{
-   \item{Bug fix: ensure loading sample sheet doesn't treat hash as comment char.}
-   }
-}
-
-\section{Version 1.17.3}{
-\itemize{
-   \item{Bug fix: tildes in file paths now accepted.}
-   \item{Bug fix: spaces trimmed from entries in sample sheets (with warning).}
-   \item{Feature: maxGap implemented in merge.}
-   \item{Bug fix: functions added to importFrom stats to satisfy BiocCheck.}
-   }
-}
-
-\section{Version 1.17.2}{
-\itemize{
-   \item{Added a space-efficient merge, with "mergePeaks" and "mergeScores" functions.}
-   }
-}
-
-\section{Version 1.17.1}{
-\itemize{
-   \item{Include a C++ peakOrder function for ordering peaks quickly without using much space.}
-   \item{Include the beginnings of some unit tests using the testthat package.}
-   }
+\section{Version 2.0.0}{
+  DiffBind has had substantial internal changes since the last release. 
+  These are focused on improving memory efficiency for large experiments. 
+  \itemize{
+     \item{Feature changes} 
+        \itemize{
+           \item{Change default analysis method to DESeq2 for its more conservative normalization}
+           \item{Designate DESeq method as obsolete (in favor of DESeq2); alter documentation and vignette accordingly.}
+           \item{Change default FDR threshold to 0.05}
+           \item{Add bNot paramater to dba.contrast to remove ! contrasts by default}
+           \item{Remove bReturnPeaksets parameter from dba.plotVenn (does this by default)}
+           \item{Change bCorPlot default to FALSE (no more automatic clustering heatmaps)}
+        }
+     \item{Internal changes}
+       \itemize{
+          \item{Bump version number to 2.0}
+          \item{Update vignette}
+          \item{Remove $allvectors and $vectors; replace with $merged (without score matrix) and $binding}
+          \item{Upgrade peaksort to use inplace peakOrder}
+          \item{Optimize peak merging memory usage}
+          \item{Change PCA method from princomp() to prcomp()}
+          \item{maxGap implemented in merge}
+          \item{Include the beginnings of some unit tests using the testthat package.}
+      }
+     \item{Bug fixes}
+       \itemize{
+          \item{Fix bug in retrieving SummarizedExperiment}
+          \item{Fix bug when no peaks}   
+          \item{Fix bugs in non-standard chromosome names and chromsome order}
+          \item{Fix bugs in Called logical vectors}
+          \item{Ensure loading sample sheet doesn't treat hash as comment char.}
+          \item{Tildes in file paths now accepted.}
+          \item{Spaces trimmed from entries in sample sheets (with warning).}
+          \item{Functions added to importFrom stats to satisfy BiocCheck.}
+       }       
+  }
 }
 
 \section{Version 1.16.0}{
