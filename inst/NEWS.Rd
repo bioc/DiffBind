@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.0.1}{
+  \itemize{
+     \item{Bugfix: add empty peakset (peaks=NA)}
+     \item{Bugfix: fix warnings regarding no visible definitions}
+   }
+}
+
 \section{Version 2.0.0}{
   DiffBind has had substantial internal changes since the last release. 
   These are focused on improving memory efficiency for large experiments. 

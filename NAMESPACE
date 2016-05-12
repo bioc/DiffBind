@@ -83,27 +83,34 @@ useDynLib(DiffBind)
 
 importFrom(amap, Dist)
 
-import(edgeR)
-
 importFrom(gplots, heatmap.2)
 
-import(IRanges)
+importFrom(edgeR,   
+           estimateCommonDisp, estimateGLMCommonDisp, estimateGLMTagwiseDisp,
+           estimateTagwiseDisp, exactTest, glmFit, glmLRT,
+           topTags,calcNormFactors, DGEList)
 
-import(GenomicRanges)
+importFrom(IRanges, IRanges)
 
-import(SummarizedExperiment)
+importFrom(GenomicRanges, GRanges, seqnames, width)
 
-importFrom(graphics, abline, boxplot, plot, points, smoothScatter)
+importFrom(SummarizedExperiment, SummarizedExperiment, assay)
+
+importFrom(graphics, abline, boxplot, plot, points, smoothScatter,
+           "axis", "hist", "image", "layout", "lines",
+           "mtext", "par", "plot.new", "rect", "text", "title")
 
 importFrom(grDevices, colorRampPalette)
 
 importFrom(RColorBrewer, brewer.pal)
 
-importFrom(stats, model.matrix, p.adjust, princomp, t.test,
+importFrom(stats, model.matrix, p.adjust, t.test,
            wilcox.test, dist, hclust, order.dendrogram,
-           as.dendrogram, reorder)
+           as.dendrogram, reorder,
+           "as.formula", "density", "formula", "prcomp",
+           "weighted.mean", "cor", "median", "princomp", "sd", "update")
 
-importFrom(utils, read.table, write.csv, write.table)
+importFrom(utils, read.table, write.csv, write.table, packageVersion,"read.csv")
 
 importFrom(limma,nonEstimable)
 
@@ -120,3 +127,11 @@ importFrom(tools,file_ext)
 importFrom(Rcpp, evalCpp)
 
 importFrom(dplyr,bind_rows)
+
+importFrom(BiocParallel, bplapply)
+
+importFrom(parallel, mcparallel, mclapply, mccollect)
+
+importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-")
+
+importFrom(Rsamtools, BamFileList, ScanBamParam, scanBamFlag, countBam)
