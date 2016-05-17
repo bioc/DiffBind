@@ -130,7 +130,7 @@ importFrom(dplyr,bind_rows)
 
 importFrom(BiocParallel, bplapply)
 
-importFrom(parallel, mcparallel, mclapply, mccollect)
+importFrom(parallel, mclapply)
 
 importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-")
 
