@@ -32,7 +32,7 @@ Gord Brown \\ \Rcode{gdbzork@gmail.com}
 \and University of Cambridge\\Cancer Research UK - Cambridge Institute
 }
 
-\date{Edited: March 10, 2016; Compiled: \today}
+\date{Edited: May 17, 2016; Compiled: \today}
 
 \maketitle
 
@@ -965,9 +965,9 @@ This follows the \Rcode{DBA\_DESEQ\_GLM} case detailed above, except a more comp
 \section{Vignette Data}
 Due to space limitations, the aligned reads associated with the cell line data used in this vignette are not included as part of the \DiffBind package. 
 
-If you would like to get access to the reads, you can email \Rcode{rory.stark@cruk.cam.ac.uk} and ask to be added to the Dropbox containing the vignette data.
+Data for the vignette are available for download at \url{http://DiffBind.starkhome.com}.
 
-The full data for all chreomosomes are also available in the Short Read Archive
+The full data for all chromosomes are also available in the Short Read Archive
 (GEO scession number GSE32222).
 Email for detailed instructions on how to retrieve them in the appropriate form.
 

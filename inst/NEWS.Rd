@@ -6,6 +6,7 @@
   \itemize{
      \item{Bugfix: add empty peakset (peaks=NA)}
      \item{Bugfix: fix warnings regarding no visible definitions}
+     \item{Vignette: add link to vignette data}
    }
 }
 
