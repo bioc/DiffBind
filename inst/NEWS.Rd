@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.0.2}{
+  \itemize{
+     \item{Add link to data in Vignette}
+     \item{Fix import problem on Windows}
+   }
+}
+
 \section{Version 2.0.1}{
   \itemize{
      \item{Bugfix: add empty peakset (peaks=NA)}
