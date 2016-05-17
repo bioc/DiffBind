@@ -32,6 +32,8 @@ When adding a specified peakset: set of peaks, either a GRanges or RangedData ob
 
 When adding a consensus peakset: a sample mask or vector of peakset numbers to include in the consensus. If missing or NULL, a consensus is derived from all peaksets present in the model. See  \code{\link{dba.mask}}, or \code{\link{dba.show}} to get peakset numbers.
 
+When adding and empty peakset (zero peaks), set \code{peaks=NA}.
+
 When adding a set of consensus peaksets: a sample mask or vector of peakset numbers. Sample sets will  be derived only from subsets of these peaksets.
 
 When adding all the peaks from one DBA object to another: a DBA object. In this case, the only other parameter to have an effect is minOverlap.

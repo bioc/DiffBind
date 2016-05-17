@@ -354,12 +354,18 @@ pv.vectors <-
       if (!bAllSame) {
          if (sum(sapply(peaks,nrow)) > 0) {
             if (merge) {
-               allpeaks <- bind_rows(lapply(peaks,
-                                            function(x) {
-                                               y <- x[,1:3]
-                                               colnames(y) <- c("chr","start","end")
-                                               y})
-               )
+               allp <-lapply(peaks,
+                             function(x) {
+                                y <- x[,1:3]
+                                colnames(y) <- c("chr","start","end")
+                                y})
+               allpeaks <- NULL
+               for(el in allp) { # check for empty peaksets
+                  if(nrow(el)>0) { 
+                     allpeaks <- pv.listadd(allpeaks,el)
+                  }
+               }
+               allpeaks <- bind_rows(allpeaks)
             } else {
                allpeaks <- data.frame(pv$merged)
                allpeaks[,1] <- pv$chrmap[allpeaks[,1]]

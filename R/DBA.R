@@ -350,7 +350,7 @@ dba.overlap <- function(DBA, mask, mode=DBA_OLAP_PEAKS,
          
          res <- pv.occupancy(DBA, mask=mask, byAttribute=byAttribute, 
                              Sort='cor', CorMethod=CorMethod,
-                             minVal=minVal, bCorOnly=bCorOnly)
+                             bCorOnly=bCorOnly)
       } 
       
    }  else if(mode == DBA_OLAP_RATE) {
