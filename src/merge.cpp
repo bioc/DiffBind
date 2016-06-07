@@ -12,7 +12,6 @@ typedef struct PeakSet {
 int mergeSet(PeakSet dest,PeakSet src,int maxGap) {
   int vLen = src.chr.size();
   int di = 0;
-  bool wasMerge = false;
 
   dest.chr[0] = src.chr[0];
   dest.left[0] = src.left[0];
@@ -33,8 +32,6 @@ int mergeSet(PeakSet dest,PeakSet src,int maxGap) {
 }
 
 bool validData(Rcpp::DataFrame peaks,bool score=false) {
-  bool okay = true;
-
   return false;
 }
 

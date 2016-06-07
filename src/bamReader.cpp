@@ -11,10 +11,9 @@
 bool bode::BamReader::isBam(std::string const &filename) {
   gzFile fd;
   char buf[5];
-  int rd;
 
   fd = gzopen(filename.c_str(),"r");
-  rd = gzread(fd,buf,4);
+  gzread(fd,buf,4);
   gzclose(fd);
   return (buf[0] == 'B' && buf[1] == 'A' && buf[2] == 'M' && buf[3] == '\1');
 }
