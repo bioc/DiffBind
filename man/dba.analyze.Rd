@@ -10,8 +10,9 @@ Performs differential binding affinity analysis
 \usage{
 dba.analyze(DBA, method=DBA$config$AnalysisMethod, 
             bSubControl=TRUE, bFullLibrarySize=TRUE, bTagwise=TRUE,
+            filter=0, filterFun=max,
             bCorPlot=DBA$config$bCorPlot,  
-            bReduceObjects=T, 
+            bReduceObjects=TRUE, 
             bParallel=DBA$config$RunParallel)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -44,6 +45,15 @@ logical indicating if the full library size (total number of reads in BAM/SAM/BE
 }
 \item{bTagwise}{
 logical indicating if dispersion should be calculated on a tagwise (or per-condition) basis. If there are only a very few members of each group in a contrast (e.g. no replicates), this should be set to FALSE.
+}
+\item{filter}{
+value to use for filtering intervals with low read counts. 
+Each contrast will be filtered separately.
+The \code{filterFun} will be applied t each interval, and any scores below the \code{filter}
+value will be removed prior to analysis.
+}
+\item{filterFun}{
+function that will be invoked for each interval with a vector of scores for each sample. Returns a score that will be evaluated against the \code{filter} value (only intervals with a score at least as high as \code{filter} will be kept). Default is \code{max}, indicating that at least one sample should have a score of at least \code{filter}; other useful values include \code{sum} (indicating that all the scores added together should be at least \code{filter}) and \code{mean} (setting a minimum mean normalized count level). Users can supply their own function as well.
 }
 \item{bCorPlot}{
 logical indicating whether to plot a correlation heatmap for the analyzed data (first contrast only). 

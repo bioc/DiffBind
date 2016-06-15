@@ -10,7 +10,7 @@ Generates a report for a differential binding affinity analysis
 \usage{
 dba.report(DBA, contrast, method=DBA$config$AnalysisMethod, 
            th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
-           fold=0, bNormalized=TRUE,
+           fold=0, bNormalized=TRUE, bFlip=FALSE,
            bCalled=FALSE, bCounts=FALSE, bCalledDetail=FALSE,
            bDB, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
            file,initString=DBA$config$reportInit,ext='csv',DataType=DBA$config$DataType) 
@@ -55,6 +55,10 @@ only sites with an absolute Fold value greater than equal to this will be includ
 \item{bNormalized}{
 logical indicating that normalized data (using normalization factors computed by differential analysis method) should be reported. FALSE uses raw count data.
 }
+ \item{bFlip}{
+logical indicating that order to groups in contrast should be "flipped".
+}
+
 \item{bCalled}{
 logical indicating that peak caller status should be included (if available from a previous call to  \code{\link{dba.count}(bCalledMasks=TRUE)}). This will add a column for each group, each indicating the number of samples in the group identified as a peak in the original peaksets.
 }

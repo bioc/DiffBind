@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.1.3}{
+  \itemize{
+     \item{Feature: can filter each contrast at analysis time (filter and filterFun paramters added to dba.analyze)}
+     \item{Feature: can "flip" order of groups in dba.report (bFlip parameter)}
+     \item{Feature: can "flip" order of groups in dba.plotMA (bFlip parameter)}
+   }
+}
+
 \section{Version 2.1.1}{
   \itemize{
      \item{Bugfix: add empty peakset (peaks=NA)}
