@@ -1547,9 +1547,9 @@ pv.plotBoxplot <-
             neggroup <- DBA$contrasts[[contrast]]$name1
          }
          if (bUsePval) {
-            DB <- report$p < th
+            DB <- report$p <= th
          } else {
-            DB <- report$FDR < th
+            DB <- report$FDR <= th
          }
       } else {
          report <- NULL

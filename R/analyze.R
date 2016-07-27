@@ -929,7 +929,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
       data[x,fdrCol] <- 1
    }
    
-   keep <-  data[,thCol]<th
+   keep <-  data[,thCol] <= th
    sites <- as.numeric(data[keep,siteCol])
    if(sum(keep)==0) {
       if(!bSupressWarning) {
@@ -1065,10 +1065,10 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,bUsePval
          res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=T,th=100,bNormalized=bNormalized)
          if(!is.null(res)) {
             if(bUsePval) {
-               idx <- res$"p-value" < th
+               idx <- res$"p-value" <= th
                tstr <- "p"
             } else {
-               idx <- res$FDR < th
+               idx <- res$FDR <= th
                tstr <- "FDR"
             }
             idx <- idx & (abs(res$Fold) >= fold)

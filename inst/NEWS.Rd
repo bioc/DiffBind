@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+
+\section{Version 2.0.2}{
+  \itemize{
+     \item{Fix to have threhsold parameter (th) consistently be <=}
+   }
+}
+
 \section{Version 2.0.2}{
   \itemize{
      \item{Add link to data in Vignette}
