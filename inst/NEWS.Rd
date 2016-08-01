@@ -2,10 +2,15 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-
-\section{Version 2.0.2}{
+\section{Version 2.0.4}{
   \itemize{
-     \item{Fix to have threhsold parameter (th) consistently be <=}
+     \item{Fix to dba.peakset when peakset is given without scores}
+   }
+}
+
+\section{Version 2.0.3}{
+  \itemize{
+     \item{Fix to have threshold parameter (th) consistently be <=}
    }
 }
 
