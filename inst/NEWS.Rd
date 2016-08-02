@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.0.5}{
+  \itemize{
+     \item{Fix to dba.count when some samples have controls and other don't}
+   }
+}
+
 \section{Version 2.0.4}{
   \itemize{
      \item{Fix to dba.peakset when peakset is given without scores}

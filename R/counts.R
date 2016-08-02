@@ -295,6 +295,8 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
       stop("Can't count: some peaksets are not associated with a .bam file.",call.=TRUE)
    }
    
+   pv$class[PV_BAMCONTROL,pv$class[PV_BAMCONTROL,]==""]=NA
+   
    if(minOverlap >0 && minOverlap <1) {
       minOverlap <- ceiling(length(pv$peaks) * minOverlap)	
    }
