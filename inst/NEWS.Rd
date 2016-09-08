@@ -2,6 +2,19 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.0.7}{
+  \itemize{
+     \item{Fix bug in dba.count when peaks are in file}
+   }
+}
+
+
+\section{Version 2.0.6}{
+  \itemize{
+     \item{Fix man page typos}
+   }
+}
+
 \section{Version 2.0.5}{
   \itemize{
      \item{Fix to dba.count when some samples have controls and other don't}

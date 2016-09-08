@@ -322,6 +322,9 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
             tmp <- pv.peakset(NULL,peaks)
             pv$chrmap <- tmp$chrmap
             peaks <- tmp$peaks[[1]]
+            if(is.character(peaks[1,1])){
+               peaks[,1] <- factor(peaks[,1],pv$chrmap)
+            }
          } else { # peaks based on mask
             tmp <- dba(pv,mask=peaks,minOverlap=minOverlap,bCorPlot=FALSE)
             pv$chrmap <- tmp$chrmap
