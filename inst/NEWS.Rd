@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.1.4}{
+  \itemize{
+     \item{Sync bug fixes from release version}
+   }
+}
+
 \section{Version 2.1.3}{
   \itemize{
      \item{Feature: can filter each contrast at analysis time (filter and filterFun paramters added to dba.analyze)}

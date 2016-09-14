@@ -73,8 +73,7 @@ Note that if \code{summits} is greater than zero, the counting procedure will ta
 }
 \item{filter}{
 value to use for filtering intervals with low read counts. 
-The \code{filterFun} will be applied t each interval, and any scores below the \code{filter}
-value will be removed.
+Only intervals where at least one sample has a \code{score} at least this high will be included. 
 If \code{peaks} is NULL, will remove sites from existing DBA object without recounting. 
 If filter is a vector of values, \code{dba.count} will return a vector of the same length, indicating how many intervals will be retained for each specified \code{filter} level.
 }

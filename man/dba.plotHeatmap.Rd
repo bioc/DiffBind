@@ -189,7 +189,7 @@ if  correlations is not \code{FALSE}, the overlap/correlation matrix is returned
 if correlations is \code{FALSE}, the sites used in the heatmap are returned in a
 \code{\link{GRanges}} object,
 in the row order they appear (top to bottom). The metadata contains a column for 
-each sample (also int he order they are appear int he lcusteruing plot), with
+each sample (also in the order they are appear in the clustering plot), with
 the values being the actual plotted values.
 }
 %\references{

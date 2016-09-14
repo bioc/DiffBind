@@ -62,7 +62,7 @@ pv.peakset <-
             minOverlap = 2,bFast = F,bMakeMasks = T,skipLines =
                1, filter = NULL, counts = NULL) {
       zeroVal <- -1
-      bLog = F
+      bLog <- F
       
       if (missing(peaks)) {
          peaks <- NULL
@@ -73,25 +73,24 @@ pv.peakset <-
       }
       
       if (missing(counts))
-         counts = NULL
+         counts <- NULL
       if (!is.null(counts)) {
          res <- pv.peaksetCounts(
             pv = pv,peaks = peaks,counts = counts,
-            sampID = sampID,tissue = tissue,factor = factor,condition =
-               condition,
-            treatment = treatment,replicate = replicate
+            sampID = sampID,tissue = tissue,factor = factor,
+            condition = condition, treatment = treatment,replicate = replicate
          )
          return(res)
       }
       
       if (missing(peak.format))
-         peak.format = NULL
+         peak.format <- NULL
       if (missing(scoreCol))
-         scoreCol = NULL
+         scoreCol <- NULL
       if (missing(bLowerScoreBetter))
-         bLowerScoreBetter = NULL
+         bLowerScoreBetter <- NULL
       if (missing(filter))
-         filter = NULL
+         filter <- NULL
       
       bConsensus <- F
       if (is.numeric(consensus)) {
@@ -114,29 +113,29 @@ pv.peakset <-
             if (!is.null(minOverlap)) {
                nset <- length(pv$peaks)
                if (!missing(sampID)) {
-                  pv$class[PV_ID,nset] = sampID
-                  colnames(pv$class)[nset] = sampID
+                  pv$class[PV_ID,nset] <- sampID
+                  colnames(pv$class)[nset] <- sampID
                }
             }
             
             if (!missing(tissue))
-               pv$class[PV_TISSUE,nset] = tissue
+               pv$class[PV_TISSUE,nset] <- tissue
             if (!missing(factor))
-               pv$class[PV_FACTOR,nset] = factor
+               pv$class[PV_FACTOR,nset] <- factor
             if (!missing(condition))
-               pv$class[PV_CONDITION,nset] = condition
+               pv$class[PV_CONDITION,nset] <- condition
             if (!missing(treatment))
-               pv$class[PV_TREATMENT,nset] = treatment
+               pv$class[PV_TREATMENT,nset] <- treatment
             if (!missing(replicate))
-               pv$class[PV_REPLICATE,nset] = replicate
+               pv$class[PV_REPLICATE,nset] <- replicate
             if (!missing(control))
-               pv$class[PV_CONTROL,nset] = control
+               pv$class[PV_CONTROL,nset] <- control
             if (!missing(peak.caller))
-               pv$class[PV_CALLER,nset] = peak.caller
+               pv$class[PV_CALLER,nset] <- peak.caller
             if (!missing(readBam))
-               pv$class[PV_BAMREADS,nset] = readBam
+               pv$class[PV_BAMREADS,nset] <- readBam
             if (!missing(controlBam))
-               pv$class[PV_BAMCONTROL,nset] = controlBam
+               pv$class[PV_BAMCONTROL,nset] <- controlBam
          }
       }
       if (bConsensus) {
@@ -147,27 +146,27 @@ pv.peakset <-
       }
       
       if (missing(tissue))
-         tissue = ''
+         tissue <- ''
       if (missing(factor))
-         factor = ''
+         factor <- ''
       if (missing(condition))
-         condition = ''
+         condition <- ''
       if (missing(treatment))
-         treatment = ''
+         treatment <- ''
       if (missing(replicate))
-         replicate = ''
+         replicate <- ''
       if (missing(control))
-         control = ''
+         control <- ''
       if (missing(peak.caller))
-         peak.caller = ''
+         peak.caller <- ''
       if (missing(readBam))
-         readBam = NA
+         readBam <- NA
       if (length(readBam) == 0)
-         readBam = NA
+         readBam <- NA
       if (missing(controlBam))
-         controlBam = NA
+         controlBam <- NA
       if (length(controlBam) == 0)
-         controlBam = NA
+         controlBam <- NA
       
       if (!is.null(peaks) && length(peaks) <= 1) {
          if (is.na(peaks)) {
@@ -194,14 +193,15 @@ pv.peakset <-
             peaks <- pv.readPeaks(peaks,peak.format,skipLines)
          } else {
             if (is.null(scoreCol))
-               scoreCol = 0
+               scoreCol <- 0
             if (is.null(bLowerScoreBetter))
                bLowerScoreBetter <- FALSE
          }
          
          scoreSave <- scoreCol
-         if (ncol(peaks) < scoreSave) {
+         if ( (ncol(peaks) < scoreSave) | (ncol(peaks) == 3) ){
             peaks <- cbind(peaks[,1:3],1)
+            colnames(peaks)[ncol(peaks)] <- "score"
             scoreCol <- 0
          }
          
@@ -265,9 +265,9 @@ pv.peakset <-
       
       if (missing(sampID)) {
          if (is.null(pv)) {
-            sampID = 1
+            sampID <- 1
          } else if (is.null(pv$peaks)) {
-            sampID = 1
+            sampID <- 1
          } else {
             sampID <- length(pv$peaks)
          }
@@ -348,7 +348,7 @@ pv.vectors <-
          minOverlap <- ceiling(numvecs * minOverlap)
       }
       
-      npeaks = 0
+      npeaks <- 0
       defval <- -1
       
       if (!bAllSame) {
@@ -477,7 +477,7 @@ pv.list <-
       if (!is.logical(mask)) {
          newm <- rep(F,length(pv$peaks))
          for (ps in mask) {
-            newm[ps] = T
+            newm[ps] <- T
          }
          mask <- newm
       }
@@ -507,13 +507,13 @@ pv.list <-
             }
          }
          res <- cbind(res,intervals)
-         colnames(res)[ncol(res)] = 'Intervals'
+         colnames(res)[ncol(res)] <- 'Intervals'
       }
       
       if (bSN) {
          if (!is.null(pv$SN)) {
             res <- cbind(res,pv$SN)
-            colnames(res)[ncol(res)] = 'FRiP'
+            colnames(res)[ncol(res)] <- 'FRiP'
          }
       }
       
@@ -604,7 +604,7 @@ pv.consensus <-
          sampID <- pv.catstr(pv$class[PV_ID, sampvec])
       }
       pv <- pv.peakset(
-         pv,peaks = tmp$binding,
+         pv, peaks = tmp$binding,
          sampID       =  sampID,
          tissue       =  pv.catstr(pv$class[PV_TISSUE, sampvec]),
          factor       =  pv.catstr(pv$class[PV_FACTOR, sampvec]),
@@ -714,7 +714,7 @@ pv.consensusSets <- function(pv,peaks = NULL,minOverlap,attributes,
             pv.consensus(pv,samples,sampID = sampid,minOverlap = minOverlap)
          sampnum <- ncol(pv$class)
          if (pv$class[PV_ID,sampnum] == "")
-            pv$class[PV_ID,sampnum] = "ALL"
+            pv$class[PV_ID,sampnum] <- "ALL"
          if (!missing(tissue))
             pv$class[PV_TISSUE,sampnum]     <- tissue
          if (!missing(factor))
@@ -886,9 +886,8 @@ pv.plotClust <-
 ## pv.plotPCA -- 3D plot of PCA
 pv.plotPCA <-
    function(pv,attributes = PV_ID,second,third,fourth,size,mask,
-            numSites,sites,cor = F,startComp = 1,b3D = T,vColors,label =
-               NULL,
-            bLog = T,labelSize = .8,labelCols = "black",...) {
+            numSites,sites,cor = F,startComp = 1,b3D = T,vColors,
+            label = NULL,bLog = T,labelSize = .8,labelCols = "black",...) {
       pv <- pv.check(pv)
       
       class  <- attributes[1]
@@ -945,7 +944,7 @@ pv.plotPCA <-
       }
       
       if (b3D) {
-         startComp = 1
+         startComp <- 1
          pvar <- sum(vr[startComp:(startComp + 2)]) / sum(vr) * 100
       } else {
          pvar <- sum(vr[startComp:(startComp + 1)]) / sum(vr) * 100
@@ -1012,8 +1011,8 @@ pv.plotPCA <-
       if (b3D) {
          if (requireNamespace("rgl",quietly = TRUE)) {
             rgl::plot3d(
-               pc$rotation[,c(startComp,startComp + 2,startComp + 1)],col = pv.colorv(classvec,vColors),type =
-                  's',size = sval,
+               pc$rotation[,c(startComp,startComp + 2,startComp + 1)],
+               col = pv.colorv(classvec,vColors),type = 's',size = sval,
                xlab = sprintf('PC #%d [%2.0f%%]',startComp,c1p),
                ylab = sprintf('PC #%d [%2.0f%%]',startComp + 2,c3p),
                zlab = sprintf('PC #%d [%2.0f%%]',startComp + 1,c2p),
@@ -1025,11 +1024,11 @@ pv.plotPCA <-
             colnames(p) <- "Legend"
             for (i in 1:nrow(p)) {
                if (p[i] == crukBlue)
-                  p[i] = "crukBlue"
+                  p[i] <- "crukBlue"
                if (p[i] == crukMagenta)
-                  p[i] = "crukMagenta"
+                  p[i] <- "crukMagenta"
                if (p[i] == crukCyan)
-                  p[i] = "crukCyan"
+                  p[i] <- "crukCyan"
             }
             print(p)
          } else {
@@ -1056,19 +1055,15 @@ pv.doPCAplot <-
       p <- xyplot(
          PC2 ~ PC1,
          #groups=classvec,
-         data = as.data.frame(pc$rotation[,startComp:(startComp +
-                                                         1)]),
+         data = as.data.frame(pc$rotation[,startComp:(startComp + 1)]),
          pch = 16, cex = sval,aspect = 1,
          col = pv.colorv(classvec,vColors),
          xlab = sprintf('Principal Component #%d [%2.0f%%]',startComp,c1p),
-         ylab = sprintf('Principal Component #%d [%2.0f%%]',startComp +
-                           1,c2p),
+         ylab = sprintf('Principal Component #%d [%2.0f%%]',startComp +1,c2p),
          main = thetitle,
          key = list(
             space = "right",
-            rect = list(col = unique(pv.colorv(
-               classvec,vColors
-            ))[1:length(unique(classvec))]),
+            rect = list(col = unique(pv.colorv(classvec,vColors))[1:length(unique(classvec))]),
             text = list(unique(classvec)),
             rep = FALSE
          ),
@@ -1157,7 +1152,7 @@ pv.plotHeatmap <-
             tsites <- length(sites)
             sites <- sites[(tsites - numSites + 1):tsites]
          }
-         colnames = NULL
+         colnames <- NULL
          for (i in 1:ncol(pv$class)) {
             colnames <-
                c(colnames,pv.namestrings(pv$class[attributes,i])$tstring)
@@ -1171,10 +1166,10 @@ pv.plotHeatmap <-
       }
       
       if (!missing(minval)) {
-         domap[domap < minval] = minval
+         domap[domap < minval] <- minval
       }
       if (!missing(maxval)) {
-         domap[domap > maxval] = maxval
+         domap[domap > maxval] <- maxval
       }
       
       if (missing(overlaps)) {
@@ -1245,8 +1240,8 @@ pv.plotHeatmap <-
       } else {
          res <-
             heatmap.3(
-               domap,labCol = collab,col = cols,trace = "none",labRow = rowlab, KeyValueName =
-                  "Correlation",
+               domap,labCol = collab,col = cols,trace = "none",labRow = rowlab, 
+               KeyValueName ="Correlation",
                distfun = function(x)
                   Dist(x,method = distMeth),symm = T,revC = T,Colv = T,
                RowSideColors = rowatts,ColSideColors = colatts,NumRowSideColors =
@@ -1307,7 +1302,7 @@ pv.overlap <- function(pv,mask,bFast = F,minVal = 0) {
    if (pv$totalMerged != nrow(pv$binding)) {
       pv <- pv.vectors(pv,mask = peaksets,minOverlap=1)
       peaksets <- 1:length(peaksets)
-      A = 1; B = 2; C = 3; D = 4
+      A <- 1; B <- 2; C <- 3; D <- 4
    }
    if (is.null(pv$called)) {
       stop("Called masks not present; re-run dba.count",call.=FALSE)
@@ -1377,7 +1372,7 @@ pv.occupancy <-
             bNonZeroCors = F,chrmask) {
       pv <- pv.check(pv)
       
-      vecs = pv$binding
+      vecs <- pv$binding
       
       if (missing(mask)) {
          mask <- rep(T,ncol(pv$class))
@@ -1394,7 +1389,7 @@ pv.occupancy <-
          sites <- 1:nrow(vecs)
       }
       
-      res = NULL
+      res <- NULL
       if (missing(byAttribute)) {
          if (length(sites) < nrow(vecs)) {
             pv$binding <- vecs[sites,]
@@ -1547,9 +1542,9 @@ pv.plotBoxplot <-
             neggroup <- DBA$contrasts[[contrast]]$name1
          }
          if (bUsePval) {
-            DB <- report$p < th
+            DB <- report$p <= th
          } else {
-            DB <- report$FDR < th
+            DB <- report$FDR <= th
          }
       } else {
          report <- NULL

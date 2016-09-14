@@ -11,7 +11,7 @@ Generates MA and scatter plots of differential binding analysis results.
 dba.plotMA(DBA, contrast=1, method=DBA$config$AnalysisMethod, 
            th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
            fold=0, bNormalized=TRUE,
-           factor="", bFlip=FALSE, bXY=FALSE, dotSize=.45, 
+           factor="", bXY=FALSE, dotSize=.45, 
            bSignificant=TRUE, bSmooth=TRUE, ...)
 }
 
@@ -53,9 +53,6 @@ logical indicating whether to plot normalized data using normalization factors c
 }
  \item{factor}{
 string to be prepended to plot main title; e.g. factor name.
-}
- \item{bFlip}{
-logical indicating that order to groups in contrast should be "flipped".
 }
 \item{bXY}{
 logical indicating whether to draw MA plot (FALSE) or XY scatter plot (TRUE).

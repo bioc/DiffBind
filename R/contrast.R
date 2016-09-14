@@ -462,18 +462,18 @@ pv.listContrasts <- function(pv,th=0.05,bUsePval=F) {
             if(is.null(crec$edgeR$LRT)) {  
                if(bUsePval) {
                   eres <- c(eres,sum(topTags(crec$edgeR$db,
-                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_PVAL]<th,na.rm=T))
+                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_PVAL] <= th,na.rm=T))
                } else {
                   eres <- c(eres,sum(topTags(crec$edgeR$db,
-                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR]<th,na.rm=T))
+                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR] <= th,na.rm=T))
                } 
             } else {
                if(bUsePval) {
                   eres <- c(eres,sum(topTags(crec$edgeR$LRT,
-                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_PVAL+1]<th,na.rm=T))
+                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_PVAL+1] <= th,na.rm=T))
                } else {
                   eres <- c(eres,sum(topTags(crec$edgeR$LRT,
-                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR+1]<th,na.rm=T))
+                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR+1] <= th,na.rm=T))
                } 
             }
          } else {
@@ -490,10 +490,10 @@ pv.listContrasts <- function(pv,th=0.05,bUsePval=F) {
          if(!is.null(names(crec$edgeR$block))){
             if(bUsePval) {
                eres <- c(eres,sum(topTags(crec$edgeR$block$LRT,
-                                          nrow(crec$edgeR$block$counts))$table[,EDGER_COL_PVAL+1]<th,na.rm=T))
+                                          nrow(crec$edgeR$block$counts))$table[,EDGER_COL_PVAL+1] <= th,na.rm=T))
             } else {
                eres <- c(eres,sum(topTags(crec$edgeR$block$LRT,
-                                          nrow(crec$edgeR$block$counts))$table[,EDGER_COL_FDR+1]<th,na.rm=T))
+                                          nrow(crec$edgeR$block$counts))$table[,EDGER_COL_FDR+1] <= th,na.rm=T))
             }
          } else {
             eres <- c(eres,"-")   
@@ -508,9 +508,9 @@ pv.listContrasts <- function(pv,th=0.05,bUsePval=F) {
       for(crec in clist) {
          if(!is.null(names(crec$DESeq1)) && (class(crec$DESeq1) != "try-error") ){
             if(bUsePval) {
-               eres <- c(eres,sum(crec$DESeq1$de$pval<th,na.rm=T))
+               eres <- c(eres,sum(crec$DESeq1$de$pval <= th,na.rm=T))
             } else {
-               eres <- c(eres,sum(crec$DESeq1$de$padj<th,na.rm=T))
+               eres <- c(eres,sum(crec$DESeq1$de$padj <= th,na.rm=T))
             }
          } else {
             eres <- c(eres,"-")   
@@ -525,9 +525,9 @@ pv.listContrasts <- function(pv,th=0.05,bUsePval=F) {
       for(crec in clist) {
          if(!is.null(names(crec$DESeq1$block)) && (class(crec$DESeq1) != "try-error") ){
             if(bUsePval) {
-               eres <- c(eres,sum(crec$DESeq1$block$de$pval<th,na.rm=T))
+               eres <- c(eres,sum(crec$DESeq1$block$de$pval <= th,na.rm=T))
             } else {
-               eres <- c(eres,sum(crec$DESeq1$block$de$padj<th,na.rm=T))
+               eres <- c(eres,sum(crec$DESeq1$block$de$padj <= th,na.rm=T))
             }
          } else {
             eres <- c(eres,"-")   
@@ -542,9 +542,9 @@ pv.listContrasts <- function(pv,th=0.05,bUsePval=F) {
       for(crec in clist) {
          if(!is.null(names(crec$DESeq2)) && (class(crec$DESeq2) != "try-error") ){
             if(bUsePval) {
-               eres <- c(eres,sum(crec$DESeq2$de$pval<th,na.rm=T))
+               eres <- c(eres,sum(crec$DESeq2$de$pval <= th,na.rm=T))
             } else {
-               eres <- c(eres,sum(crec$DESeq2$de$padj<th,na.rm=T))
+               eres <- c(eres,sum(crec$DESeq2$de$padj <= th,na.rm=T))
             }
          } else {
             eres <- c(eres,"-")   
@@ -559,9 +559,9 @@ pv.listContrasts <- function(pv,th=0.05,bUsePval=F) {
       for(crec in clist) {
          if(!is.null(names(crec$DESeq2$block)) && (class(crec$DESeq2) != "try-error") ){
             if(bUsePval) {
-               eres <- c(eres,sum(crec$DESeq2$block$de$pval<th,na.rm=T))
+               eres <- c(eres,sum(crec$DESeq2$block$de$pval <= th,na.rm=T))
             } else {
-               eres <- c(eres,sum(crec$DESeq2$block$de$padj<th,na.rm=T))
+               eres <- c(eres,sum(crec$DESeq2$block$de$padj <= th,na.rm=T))
             }
          } else {
             eres <- c(eres,"-")   
@@ -621,10 +621,7 @@ pv.design <- function(DBA,categories=c(DBA_CONDITION,DBA_TREATMENT,DBA_TISSUE,DB
    return(design)   	
 }
 
-pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
-                          th=0.05,bUsePval=F,fold=0,
-                          bDB=T,bNotDB=F,bUp=F,bDown=F,bAll=T,
-                          bFlip=FALSE) {
+pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,th=0.05,bUsePval=F,fold=0,bDB=T,bNotDB=F,bUp=F,bDown=F,bAll=T) {
    
    if(missing(contrasts)) {
       contrasts <- 1:length(DBA$contrasts)
@@ -633,9 +630,7 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
    res <- NULL
    for(contrast in contrasts) {
       for(method in methods) {
-         res <- pv.doResults(res,DBA,contrast,method,th,bUsePval,fold,
-                             bDB=bDB,bNotDB=bNotDB,bUp=bUp,bDown=bDown,bAll=bAll,
-                             bFlip=bFlip)		
+         res <- pv.doResults(res,DBA,contrast,method,th,bUsePval,fold,bDB=bDB,bNotDB=bNotDB,bUp=bUp,bDown=bDown,bAll=bAll)		
       }
    }
    
@@ -647,9 +642,7 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
    
 }
 
-pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
-                         fold=0,bDB=T,bNotDB=F,bAll=F,bUp=F,bDown=F,
-                         bFlip=FALSE) {
+pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,fold=0,bDB=T,bNotDB=F,bAll=F,bUp=F,bDown=F) {
    
    if(method=='edgeR' || method=="edgeRGLM") {
       if(is.null(DBA$contrasts[[contrast]]$edgeR)) {
@@ -700,10 +693,7 @@ pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
       useth <- th
    }
    
-   rep <- suppressWarnings(dba.report(DBA,contrast=contrast,method=method,
-                                      th=useth,bUsePval=bUsePval,fold=0,
-                                      bFlip=bFlip,
-                                      DataType=DBA_DATA_FRAME))
+   rep <- suppressWarnings(dba.report(DBA,contrast=contrast,method=method,th=useth,bUsePval=bUsePval,fold=0,DataType=DBA_DATA_FRAME))
    
    if(is.null(rep)) {
       return(res)	
@@ -719,7 +709,7 @@ pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
       scores <- rep$FDR
    }    
    
-   db <- (scores < th) & (abs(rep$Fold) >= fold)
+   db <- (scores <= th) & (abs(rep$Fold) >= fold)
    up <- rep$Fold >= 0
    peaks <- cbind(rep[,1:3],abs(rep$Fold))
    

@@ -27,7 +27,7 @@ class IntervalTree {
     void leftRotate(IntervalNode *node);
     void rightRotate(IntervalNode *node);
     int i_coverage(IntervalNode *n,int point);
-    int i_countIntervals(IntervalNode *n,int left,int right,int withoutDupes);
+    virtual int i_countIntervals(IntervalNode *n,int left,int right,int withoutDupes);
     int i_realCount(IntervalNode *n);
 };
 

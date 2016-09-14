@@ -348,9 +348,10 @@ SEXP mo_mergeTwo(SEXP aexp,SEXP bexp,SEXP keep_s,SEXP overlap_s,SEXP zero_s) {
   int i,j,rowsT,colsT;
   SEXP target_s,t_names,src_names;
   ipsetp alpha,bravo,targetA,targetB;
-  int minOverlap;
+  int keepAll,minOverlap;
   double zero;
 
+  keepAll = INTEGER(keep_s)[0];
   minOverlap = INTEGER(overlap_s)[0];
   zero = REAL(zero_s)[0];
 
