@@ -1427,7 +1427,7 @@ pv.DBA2SummarizedExperiment <- function(DBA, bAssays=T, report) {
    if (!missing(report)) {
       peaks <- report[,1:9]
    } else {
-      peaks <- pv.writePeakset(DBA, peaks=DBA$merged, numCols=3)
+      peaks <- pv.writePeakset(DBA, peaks=DBA$binding, numCols=3)
    }
    rnames <- rownames(peaks)
    peaks <- pv.peaks2DataType(peaks,DBA_DATA_GRANGES)
