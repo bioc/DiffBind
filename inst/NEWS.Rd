@@ -4,6 +4,12 @@
 
 \section{Version 2.0.7}{
   \itemize{
+     \item{Fix bug when converting DBA object to SummarizedExperiment}
+   }
+}
+
+\section{Version 2.0.7}{
+  \itemize{
      \item{Fix bug in dba.count when peaks are in file}
    }
 }

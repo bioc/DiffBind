@@ -1332,8 +1332,13 @@ pv.peaksetCounts <- function(pv=NULL,peaks,counts,
    froms <- NULL
    tos   <- NULL
    if(is.null(dim(counts)) && length(counts)==1) { # filename
-      counts <- read.table(counts,as.is=T)
+      counts <- read.table(counts,as.is=TRUE,fill=TRUE)
       counts <- counts[!is.na(counts[,2]),]
+      if(ncol(counts) == 3) {
+         if(sum(is.na(counts[,3]))==nrow(counts)) {
+            counts <- counts[,1:2]
+         }
+      }
       #annotation <- as.character(counts[,1])
       #counts[,1] <- 1:nrow(counts)
    }
@@ -1422,7 +1427,7 @@ pv.DBA2SummarizedExperiment <- function(DBA, bAssays=T, report) {
    if (!missing(report)) {
       peaks <- report[,1:9]
    } else {
-      peaks <- pv.writePeakset(DBA, peaks=DBA$merged, numCols=3)
+      peaks <- pv.writePeakset(DBA, peaks=DBA$binding, numCols=3)
    }
    rnames <- rownames(peaks)
    peaks <- pv.peaks2DataType(peaks,DBA_DATA_GRANGES)
