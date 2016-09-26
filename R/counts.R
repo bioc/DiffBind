@@ -36,6 +36,7 @@ pv.model <- function(model,mask,minOverlap=2,
                           attributes=attributes,bAllSame=allsame)
       model$config <- as.list(config)
       model$ChIPQCobj <- ChIPQCobj
+      model$class[DBA_REPLICATE,is.na(model$class[DBA_REPLICATE,])]=""
       return(model)
    }
    
@@ -234,6 +235,7 @@ pv.model <- function(model,mask,minOverlap=2,
    
    model$config <- as.list(model$config)
    model$ChIPQCobj <- ChIPQCobj
+   model$class[DBA_REPLICATE,is.na(model$class[DBA_REPLICATE,])]=""
    return(model)
 }
 

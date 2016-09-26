@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.0.9}{
+  \itemize{
+  \item{Bug fixes related to interaction with ChIPC}
+   }
+}
+
 \section{Version 2.0.7}{
   \itemize{
      \item{Fix bug when converting DBA object to SummarizedExperiment}
