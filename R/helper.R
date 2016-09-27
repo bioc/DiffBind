@@ -1491,6 +1491,7 @@ pv.assaysFromPeaks <- function(DBA) {
 }
 
 stripSpaces <- function(data) {
+   data[is.na(data)]=""
    cnames <- names(data)
    for (cname in cnames) {
       stripped <- trimws(data[,cname])
