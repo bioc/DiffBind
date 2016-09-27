@@ -46,10 +46,10 @@ DBA_SCORE_TMM_READS_FULL \tab TMM normalized (using edgeR), using ChIP read coun
 DBA_SCORE_TMM_READS_EFFECTIVE \tab TMM normalized (using edgeR), using ChIP read counts and Effective Library size\cr
 DBA_SCORE_TMM_MINUS_FULL \tab TMM normalized (using edgeR), using ChIP read counts minus Control read counts and Full Library size\cr
 DBA_SCORE_TMM_MINUS_EFFECTIVE \tab TMM normalized (using edgeR), using ChIP read counts minus Control read counts and Effective Library size\cr
-DBA_SCORE_TMM_READS_FULL_CPM \tab same as \code{DBA_SCORE_TMM_READS_FULL}, but reporrted in counts-per-million.\cr
-DBA_SCORE_TMM_READS_EFFECTIVE_CPM \tab same as \code{DBA_SCORE_TMM_READS_EFFECTIVE}, but reporrted in counts-per-million.\cr
-DBA_SCORE_TMM_MINUS_FULL_CPM \tab same as \code{DBA_SCORE_TMM_MINUS_FULL}, but reporrted in counts-per-million.\cr
-DBA_SCORE_TMM_MINUS_EFFECTIVE_CPM \tab Tsame as \code{DBA_SCORE_TMM_MINUS_EFFECTIVE}, but reporrted in counts-per-million.\cr
+DBA_SCORE_TMM_READS_FULL_CPM \tab same as \code{DBA_SCORE_TMM_READS_FULL}, but reported in counts-per-million.\cr
+DBA_SCORE_TMM_READS_EFFECTIVE_CPM \tab same as \code{DBA_SCORE_TMM_READS_EFFECTIVE}, but reported in counts-per-million.\cr
+DBA_SCORE_TMM_MINUS_FULL_CPM \tab same as \code{DBA_SCORE_TMM_MINUS_FULL}, but reported in counts-per-million.\cr
+DBA_SCORE_TMM_MINUS_EFFECTIVE_CPM \tab same as \code{DBA_SCORE_TMM_MINUS_EFFECTIVE}, but reported in counts-per-million.\cr
 DBA_SCORE_SUMMIT \tab summit height (maximum read pileup value)\cr
 DBA_SCORE_SUMMIT_ADJ \tab summit height (maximum read pileup value), normalized to relative library size\cr
 DBA_SCORE_SUMMIT_POS \tab summit position (location of maximum read pileup)\cr
@@ -73,20 +73,21 @@ Note that if \code{summits} is greater than zero, the counting procedure will ta
 }
 \item{filter}{
 value to use for filtering intervals with low read counts. 
-Only intervals where at least one sample has a \code{score} at least this high will be included. 
+The \code{filterFun} will be applied to the scores for each interval, and if it returns a value below the \code{filter}
+value, the interval will be removed from further analysis.
 If \code{peaks} is NULL, will remove sites from existing DBA object without recounting. 
 If filter is a vector of values, \code{dba.count} will return a vector of the same length, indicating how many intervals will be retained for each specified \code{filter} level.
 }
 \item{bRemoveDuplicates}{
 logical indicating if duplicate reads (ones that map to exactly the same genomic position) should be removed. If TRUE, any location where multiple reads map will  be counted as a single read. Note that if \code{bLowMem} is set, duplicates needs to have been already marked in all of the BAM files.
-The built-in counting code may not correctly handle certain cases when the \code{bRemoveDuplicates} paramter is set to \code{TRUE}. These cases include paried-end data and datasets where the read length may differ within a single BAM file. In these cases, see the \code{bUseSummarizeOverlaps} parameter.
+The built-in counting code may not correctly handle certain cases when the \code{bRemoveDuplicates} parameter is set to \code{TRUE}. These cases include paired-end data and datasets where the read length may differ within a single BAM file. In these cases, see the \code{bUseSummarizeOverlaps} parameter.
 }
 \item{bScaleControl}{
 logical indicating if the Control reads should be scaled based on relative library sizes. If TRUE, and there are more reads in the Control library than in the ChIP library, the number of Control reads for each peak will be multiplied by a scaling factor determined by dividing the total number of reads in the ChIP library by the total number of reads in the Control library. If this value is not an integer, the number of Control reads for each peak  will be the next highest integer.
 }
 
 \item{mapQCth}{
-for filtering by mapping quality (mapqc). Only alignments with mappig scores of at least this value will be included. Only applicable for bam files when \code{bUseSummarizeOverlaps=FALSE} (setting \code{DBA$config$scanbamparam} appropriately to filter on quality scores when using \code{\link{summarizeOverlaps}}.)
+for filtering by mapping quality (mapqc). Only alignments with mapping scores of at least this value will be included. Only applicable for bam files when \code{bUseSummarizeOverlaps=FALSE} (setting \code{DBA$config$scanbamparam} appropriately to filter on quality scores when using \code{\link{summarizeOverlaps}}.)
 }
 
 \item{filterFun}{

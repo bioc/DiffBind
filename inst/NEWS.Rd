@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.1.8}{
+  \itemize{
+     \item{Restore bFlip and filtering features}
+   }
+}
+
+
 \section{Version 2.1.4}{
   \itemize{
      \item{Sync bug fixes from release version}

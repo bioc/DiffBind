@@ -530,7 +530,9 @@ dba.contrast <- function(DBA, group1, group2=!group1, name1="group1", name2="gro
 
 dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, 
                         bSubControl=TRUE, bFullLibrarySize=TRUE, bTagwise=TRUE,
-                        bCorPlot=DBA$config$bCorPlot, bReduceObjects=T, bParallel=DBA$config$RunParallel)
+                        filter=0, filterFun=max,
+                        bCorPlot=DBA$config$bCorPlot, bReduceObjects=TRUE, 
+                        bParallel=DBA$config$RunParallel)
 {
    
    #if(bParallel && DBA$config$parallelPackage==DBA_PARALLEL_MULTICORE) {
@@ -540,7 +542,9 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
    
    DBA <- pv.check(DBA,bCheckEmpty=TRUE)
    
-   res <- pv.DBA(DBA, method ,bSubControl,bFullLibrarySize,bTagwise=bTagwise,minMembers=3,bParallel)
+   res <- pv.DBA(DBA, method ,bSubControl,bFullLibrarySize,bTagwise=bTagwise,
+                 minMembers=3,bParallel,
+                 filter=filter, filterFun=filterFun)
    
    if(bReduceObjects) {
       if(!is.null(res$contrasts)) {
@@ -580,7 +584,7 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
 ###########################################################
 
 dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod, th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
-                       fold=0, bNormalized=TRUE,
+                       fold=0, bNormalized=TRUE, bFlip=FALSE,
                        bCalled=FALSE, bCounts=FALSE, bCalledDetail=FALSE,
                        bDB, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
                        file,initString=DBA$config$reportInit,ext='csv',DataType=DBA$config$DataType) 
@@ -600,8 +604,10 @@ dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod, th=DBA$c
       if(missing(bNotDB)) {
          bNotDB=FALSE
       }
-      res <- pv.resultsDBA(DBA,contrasts=contrast,methods=method,th=th,bUsePval=bUsePval,fold=fold,
-                           bDB=bDB,bNotDB=bNotDB,bUp=bGain,bDown=bLoss,bAll=bAll)
+      res <- pv.resultsDBA(DBA,contrasts=contrast,methods=method,
+                           th=th,bUsePval=bUsePval,fold=fold,
+                           bDB=bDB,bNotDB=bNotDB,bUp=bGain,bDown=bLoss,bAll=bAll,
+                           bFlip=bFlip)
       
       res <- dba(res,minOverlap=1)
       res$resultObject <- TRUE
@@ -614,11 +620,14 @@ dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod, th=DBA$c
    
    res <- pv.DBAreport(pv=DBA,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
                        bCalled=bCalled,bCounts=bCounts,bCalledDetail=bCalledDetail,
-                       file=file,initString=initString,bNormalized=bNormalized,ext=ext,minFold=fold) 
+                       file=file,initString=initString,bNormalized=bNormalized,
+                       ext=ext,minFold=fold,
+                       bFlip=bFlip) 
    
    if(DataType==DBA_DATA_SUMMARIZED_EXPERIMENT) {
       DBA <- pv.getPlotData(DBA,contrast=contrast,report=res,
-                            method=method,th=th,bUsePval=bUsePval,bNormalized=T)
+                            method=method,th=th,bUsePval=bUsePval,bNormalized=T,
+                            bFlip=bFlip)
       res <- pv.DBA2SummarizedExperiment(DBA,report=res)
       return(res)
    }
@@ -836,14 +845,17 @@ dba.plotBox <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
 dba.plotMA <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod, 
                        th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
                        fold=0, bNormalized=TRUE,
-                       factor="", bXY=FALSE, dotSize=.45, bSignificant=TRUE, bSmooth=TRUE, ...)
+                       factor="", bFlip=FALSE, bXY=FALSE, dotSize=.45, 
+                       bSignificant=TRUE, bSmooth=TRUE, ...)
    
 {
    DBA <- pv.check(DBA,bCheckEmpty=TRUE)
    
-   res <- pv.DBAplotMA(DBA, contrast=contrast, method=method, bMA=!bXY, bXY=bXY, th=th, bUsePval=bUsePval, fold=fold,
+   res <- pv.DBAplotMA(DBA, contrast=contrast, method=method, bMA=!bXY, bXY=bXY,
+                       th=th, bUsePval=bUsePval, fold=fold,
                        facname=factor, bNormalized=bNormalized, cex=dotSize, 
-                       bSignificant=bSignificant, bSmooth=bSmooth,  ...)
+                       bSignificant=bSignificant, bSmooth=bSmooth,bFlip=bFlip,
+                       ...)
    
    invisible(res)
 }

@@ -10,7 +10,7 @@ Generates a report for a differential binding affinity analysis
 \usage{
 dba.report(DBA, contrast, method=DBA$config$AnalysisMethod, 
            th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
-           fold=0, bNormalized=TRUE,
+           fold=0, bNormalized=TRUE, bFlip=FALSE,
            bCalled=FALSE, bCounts=FALSE, bCalledDetail=FALSE,
            bDB, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
            file,initString=DBA$config$reportInit,ext='csv',DataType=DBA$config$DataType) 
@@ -44,7 +44,7 @@ When generating a report-based DBA object (see \code{bDB} and \code{bNotDB} para
 }
 }
 \item{th}{
-significance threshold; all sites with FDR (or p-values, see bUsePval) less than or equal to this value will be included in the report. A value of 1 will include all binding sites in the report.
+significance threshold; all sites with FDR (or p-values, see \code{bUsePval}) less than or equal to this value will be included in the report. A value of 1 will include all binding sites in the report.
 }
 \item{bUsePval}{
 logical indicating whether to use FDR (FALSE) or p-value (TRUE) for thresholding.
@@ -55,6 +55,11 @@ only sites with an absolute Fold value greater than equal to this will be includ
 \item{bNormalized}{
 logical indicating that normalized data (using normalization factors computed by differential analysis method) should be reported. FALSE uses raw count data.
 }
+ \item{bFlip}{
+logical indicating that order of groups in contrast should be "flipped", allowing control of which sample group
+will have positive and which will have negative fold changes.
+}
+
 \item{bCalled}{
 logical indicating that peak caller status should be included (if available from a previous call to  \code{\link{dba.count}(bCalledMasks=TRUE)}). This will add a column for each group, each indicating the number of samples in the group identified as a peak in the original peaksets.
 }
@@ -114,15 +119,15 @@ if neither \code{bDB} or \code{bNotDB} is set to \code{TRUE}, a report dataframe
 \item{p-value}{p-value calculation -- statistic indicating significance of difference (likelihood difference is not attributable to chance)}
 \item{FDR}{adjusted p-value calculation -- p-value subjected to multiple-testing correction}
 
-If bCalled is TRUE and caller status is available, two more columns will follow:
+If \code{bCalled} is TRUE and caller status is available, two more columns will follow:
 \item{Called1}{Number of samples in group 1 that identified this binding site as a peak}
 \item{Called2}{Number of samples in group 2 that identified this binding site as a peak}
 
-If bCounts is TRUE, a column will be present for each sample in group 1, followed by each sample in group 2. The Sample ID will be used as the column header. This column contains the read counts for the sample.
+If \code{bCounts} is TRUE, a column will be present for each sample in group 1, followed by each sample in group 2. The Sample ID will be used as the column header. This column contains the read counts for the sample.
 
-If bCalledDetail is TRUE, a column will be present for each sample in group 1, followed by each sample in group 2. The Sample ID will be used as the column header. This column contains a "+" to indicate for which sites the sample was called as a peak, and a "-" if it was not so identified.
+If \code{bCalledDetail} is TRUE, a column will be present for each sample in group 1, followed by each sample in group 2. The Sample ID will be used as the column header. This column contains a "+" to indicate for which sites the sample was called as a peak, and a "-" if it was not so identified.
 
-If  \code{bDB} or \code{bNotDB} is set to \code{TRUE}, a special \code{DBA object} is returned,containing peaksets based on sites determined to be differentiall bound (or not) as spcified using the \code{bDB}, \code{bNotDB}, \code{bGain}, \code{bLoss}, and \code{bAll} parameters. In this \code{DBA object}, the \code{Tissue} value will specify the direction of the change (\code{Gain} for positive fold changes, \code{Loss} for negative fold changes, and \code{All} for any fold change). The \code{Factor} value specifies if the peaks are differnetially bound (\code{DB}) or not (\code{!DB}). The \code{Condition} value specifies the analysis method (e.g. \code{edgeR}), and the \code{Treatment} value is blank for unblocked analyses and set to \code{block} for blocked analyses.
+If  \code{bDB} or \code{bNotDB} is set to \code{TRUE}, a special \code{DBA object} is returned,containing peaksets based on sites determined to be differentially bound (or not) as specified using the \code{bDB}, \code{bNotDB}, \code{bGain}, \code{bLoss}, and \code{bAll} parameters. In this \code{DBA object}, the \code{Tissue} value will specify the direction of the change (\code{Gain} for positive fold changes, \code{Loss} for negative fold changes, and \code{All} for any fold change). The \code{Factor} value specifies if the peaks are differentially bound (\code{DB}) or not (\code{!DB}). The \code{Condition} value specifies the analysis method (e.g. \code{edgeR}), and the \code{Treatment} value is blank for unblocked analyses and set to \code{block} for blocked analyses.
 }
 %\references{
 %% ~put references to the literature/web site here ~

@@ -40,7 +40,8 @@ indicates which results should be returned (see MODES below). One of:
 }
 
   \item{contrast}{
-contrast number to use. Only specified if contrast data is to be used when mode=DBA_OLAP_ALL. See  \code{\link{dba.show}(DBA, bContrast=T)} to get contrast numbers. 
+contrast number to use. Only specified if contrast data is to be used when mode=DBA_OLAP_ALL. 
+See \code{\link{dba.show}(DBA, bContrast=T)} to get contrast numbers. 
 }
   \item{method}{
 if contrast is specified and mode=DBA_OLAP_ALL, use data from method used for analysis:
@@ -52,13 +53,20 @@ if contrast is specified and mode=DBA_OLAP_ALL, use data from method used for an
 }
 }
 \item{th}{
-if contrast is specified and mode=DBA_OLAP_ALL, significance threshold; all sites with FDR (or p-values, see bUsePval) less than or equal to this value will be included. A value of 1 will include all binding sites, but only the samples included in the contrast.
+if contrast is specified and mode=DBA_OLAP_ALL, significance threshold; all sites with FDR (or p-values, see \code{bUsePval}) 
+less than or equal to this value will be included. 
+A value of 1 will include all binding sites, but only the samples included in the contrast.
 }
 \item{bUsePval}{
 if contrast is specified and mode=DBA_OLAP_ALL, logical indicating whether to use FDR (FALSE) or p-value (TRUE) for thresholding.
 }
 \item{report}{
-if contrast is specified and mode=DBA_OLAP_ALL, a report (obtained from  \code{\link{dba.report}}) specifying the data to be used. If counts are included in the report (and a contrast is specified), the count data from the report will be used to compute correlations, rather than the scores in the global binding affinity matrix.  If report is present, the method, th, and bUsePval parameters are ignored.
+if contrast is specified and mode=DBA_OLAP_ALL, a report (obtained from \code{\link{dba.report}}) 
+specifying the data to be used. 
+If counts are included in the report (and a contrast is specified), 
+the count data from the report will be used to compute correlations, 
+rather than the scores in the global binding affinity matrix. 
+If report is present, the \code{method}, \code{th}, and \code{bUsePval} parameters are ignored.
 }
 \item{byAttribute}{
 when computing co-occupancy statistics (DBA_OLAP_ALL), limit comparisons to peaksets with the same value for a specific attribute, one of:
@@ -75,7 +83,8 @@ when computing co-occupancy statistics (DBA_OLAP_ALL), limit comparisons to peak
 }
 
 \item{bCorOnly}{
-when computing co-occupancy statistics (DBA_OLAP_ALL), logical indicating that only correlations, and not overlaps, should be computed. This is much faster if only correlations are desired (e.g. to plot the correlations using  \code{\link{dba.plotHeatmap}}).
+when computing co-occupancy statistics (DBA_OLAP_ALL), logical indicating that only correlations, and not overlaps, should be computed. 
+This is much faster if only correlations are desired (e.g. to plot the correlations using  \code{\link{dba.plotHeatmap}}).
 }
 
 \item{CorMethod}{
@@ -89,7 +98,7 @@ if mode==DBA_OLAP_PEAKS, the class of object that peaksets should be returned as
 \item \link{DBA_DATA_RANGEDDATA}
 \item \link{DBA_DATA_FRAME}
 }
-Can be set as default behavior by setting DBA$config$DataType.
+Can be set as default behavior by setting \code{DBA$config$DataType}.
 }
 
 }

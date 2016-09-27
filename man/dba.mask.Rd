@@ -53,7 +53,7 @@ when deriving a peakset/sample mask, if value is a vector, OR when deriving a si
 when deriving a peakset/sample mask, this specifies an existing mask to merge with; if missing, create new mask
 }
   \item{merge}{
-when deriving a peakset/sample mask, and an existing mask is supplied, this speficies the method for combining new mask with supplied mask:
+when deriving a peakset/sample mask, and an existing mask is supplied, this specifies the method for combining new mask with supplied mask:
 \itemize{ 
 \item \dQuote{or}
 \item \dQuote{and}

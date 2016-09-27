@@ -11,7 +11,7 @@ Generates MA and scatter plots of differential binding analysis results.
 dba.plotMA(DBA, contrast=1, method=DBA$config$AnalysisMethod, 
            th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
            fold=0, bNormalized=TRUE,
-           factor="", bXY=FALSE, dotSize=.45, 
+           factor="", bFlip=FALSE, bXY=FALSE, dotSize=.45, 
            bSignificant=TRUE, bSmooth=TRUE, ...)
 }
 
@@ -26,7 +26,7 @@ DBA object, on which  \code{\link{dba.analyze}} should have been successfully ru
 }
 %\subsection{Optional/defaulted arguments}{}
   \item{contrast}{
-number of contrast to report on. See  \code{\link{dba.show}(DBA, bContrast=T)} to get contrast numbers.
+number of contrast to report on. See  \code{\link{dba.show}(DBA, bContrast=TRUE)} to get contrast numbers.
 }
 \item{method}{
  method or vector of methods to plot results for:
@@ -40,7 +40,7 @@ number of contrast to report on. See  \code{\link{dba.show}(DBA, bContrast=T)} t
 
 
 \item{th}{
-significance threshold; all sites with FDR (or p-values, see bUsePval) less than or equal to this value will be colored red in the plot
+significance threshold; all sites with FDR (or p-values, see \code{bUsePval}) less than or equal to this value will be colored red in the plot
 }
   \item{bUsePval}{
 logical indicating whether to use FDR (FALSE) or p-value (TRUE) for thresholding.
@@ -54,6 +54,10 @@ logical indicating whether to plot normalized data using normalization factors c
  \item{factor}{
 string to be prepended to plot main title; e.g. factor name.
 }
+ \item{bFlip}{
+logical indicating that order of groups in contrast should be "flipped", allowing control of which sample group
+will have positive and which will have negative fold changes.
+}
 \item{bXY}{
 logical indicating whether to draw MA plot (FALSE) or XY scatter plot (TRUE).
 }
@@ -62,10 +66,11 @@ logical indicating whether to draw MA plot (FALSE) or XY scatter plot (TRUE).
 size of points on plot (cex).
 }
   \item{bSignificant}{
-Logical indicating if points corresponding to significantly differentially bound sites (based on contrast, th, bUsePval, and fold parameters) should be overlaid in red.
+Logical indicating if points corresponding to significantly differentially bound sites 
+(based on \code{contrast}, \code{th}, \code{bUsePval}, and \code{fold} parameters) should be overlaid in red.
 }
   \item{bSmooth}{
-logical indicating that basic plot should be plotted using smoothScatter. Note that overlaid significant sites will be not plotted using a smoothing function.
+logical indicating that basic plot should be plotted using \code{smooth Scatter}. Note that overlaid significant sites will be not plotted using a smoothing function.
 }
   \item{\dots}{
 passed to plot.

@@ -32,7 +32,7 @@ pv.peaks2DataType <- function(peaks,datatype=DBA_DATA_DEFAULT) {
          res <- suppressWarnings(as(peaks,"GRanges"))
       } else if (class(peaks) != "GRanges") {
          res <- GRanges(Rle(peaks[,1]),IRanges(peaks[,2],width=peaks[,3]-peaks[,2]+1,names=rownames(peaks)),
-                       strand <- Rle("*", length(seqnames)))
+                        strand <- Rle("*", length(seqnames)))
          if(ncol(peaks)>3) {
             mdata <- data.frame(peaks[,4:ncol(peaks)])
             colnames(mdata)  <- colnames(peaks)[4:ncol(peaks)]
@@ -80,7 +80,8 @@ pv.DataType2Peaks <- function(RDpeaks){
 
 pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,th=0.05,
                            bUsePval=FALSE,bNormalized=T,report,
-                           bPCA=F,bLog=T,minval,maxval,mask,fold=0) {
+                           bPCA=F,bLog=T,minval,maxval,mask,fold=0,
+                           bFlip=FALSE) {
    
    if(contrast > length(pv$contrasts)) {
       stop('Specified contrast number is greater than number of contrasts')
@@ -91,8 +92,8 @@ pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,t
    
    if(missing(report)) {
       report <- pv.DBAreport(pv,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
-                            bNormalized=bNormalized,bCounts=T,bSupressWarning=T,
-                            minFold=fold)
+                             bNormalized=bNormalized,bCounts=T,bSupressWarning=T,
+                             minFold=fold,bFlip=bFlip)
       if(is.null(report)) {
          stop('Unable to plot -- no sites within threshold')	
       }
@@ -109,9 +110,14 @@ pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,t
          temp[mask] <- T
          mask <- temp
       }
+      if(!bFlip) {
+         group1 <- con$group1 & mask
+         group2 <- con$group2 & mask
+      } else {
+         group1 <- con$group2 & mask
+         group2 <- con$group1 & mask
+      }
       sites <- as.numeric(rownames(report))
-      group1 <- con$group1 & mask
-      group2 <- con$group2 & mask
       extra <- mask & !(group1 | group2)
       allsamps <- c(which(group1), which(group2), which(extra))
       numsamps <- length(allsamps)
@@ -133,18 +139,25 @@ pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,t
       for(i in 1:length(peaks)){
          peaks[[i]] <- peaks[[i]][sites,]
       }  
-   } else {   
-      allsamps <- c(which(con$group1),which(con$group2))
+   } else {
+      if(!bFlip) {
+         group1 <- con$group1 
+         group2 <- con$group2 
+      } else {
+         group1 <- con$group2 
+         group2 <- con$group1 
+      }
+      allsamps <- c(which(group1),which(group2))
       extra <- rep(F,ncol(pv$class)) 
       repcols <- colnames(report)
-      numsamps <- sum(con$group1)+sum(con$group2)
+      numsamps <- sum(group1)+sum(group2)
       if(length(repcols) < (numsamps+9)) {
-         stop('Report does not have count data, re-run dba.report with bCounts=T')
+         stop('Report does not have count data, re-run dba.report with bCounts=TRUE')
       }
       first <- 10
       if(repcols[10]=="Called1") {
          if(length(repcols) < (numsamps+11)) {
-            stop('Report does not have count data, re-run dba.report with bCounts=T')
+            stop('Report does not have count data, re-run dba.report with bCounts=TRUE')
          }
          first <- 12	 
       }
@@ -465,7 +478,7 @@ pv.attributematrix <- function(pv,mask,contrast,attributes,cols,bReverse=F,bAddG
          vals <- NA
          if(!missing(contrast)) {
             if(sum(pv$contrasts[[contrast]]$group1) || 
-                  sum(pv$contrast[[contrast]]$group2)) {
+               sum(pv$contrasts[[contrast]]$group2)) {
                gps <- rep(3,length(pv$contrasts[[contrast]]$group1))
                gps[pv$contrasts[[contrast]]$group1]=1
                gps[pv$contrasts[[contrast]]$group2]=2

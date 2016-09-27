@@ -1,7 +1,8 @@
 
 
 pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T,
-                   minMembers=3,bParallel=F, block) {
+                   minMembers=3,bParallel=F, block,
+                   filter=0,filterFun=max) {
    
    if(bParallel) {
       setParallel <- TRUE
@@ -52,11 +53,13 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T
          jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,
                                                      pv.allDEedgeR,pv,
                                                      bFullLibrarySize=bFullLibrarySize,bParallel=T,
-                                                     bSubControl=bSubControl,bTagwise=bTagwise,bGLM=F))
+                                                     bSubControl=bSubControl,bTagwise=bTagwise,bGLM=F,
+                                                     filter=filter,filterFun=filterFun))
       } else {
          results <- pv.listadd(results, pv.allDEedgeR(pv,block=block,
                                                       bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                      bParallel=setParallel,bTagwise=bTagwise,bGLM=F))
+                                                      bParallel=setParallel,bTagwise=bTagwise,bGLM=F,
+                                                      filter=filter,filterFun=filterFun))
       }
    }
    if('edgeRGLM' %in% method) {
@@ -68,11 +71,13 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T
          jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,
                                                      pv.allDEedgeR,pv,
                                                      bFullLibrarySize=bFullLibrarySize,bParallel=T,
-                                                     bSubControl=bSubControl,bTagwise=bTagwise,bGLM=T))
+                                                     bSubControl=bSubControl,bTagwise=bTagwise,bGLM=T,
+                                                     filter=filter,filterFun=filterFun))
       } else {
          results <- pv.listadd(results, pv.allDEedgeR(pv,block=block,
                                                       bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                      bParallel=setParallel,bTagwise=bTagwise,bGLM=T))
+                                                      bParallel=setParallel,bTagwise=bTagwise,bGLM=T,
+                                                      filter=filter,filterFun=filterFun))
       }
    }
    
@@ -86,10 +91,12 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T
          jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq,pv,
                                                      bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
                                                      bTagwise=bTagwise,bGLM=F,
-                                                     bParallel=T))
+                                                     bParallel=T,
+                                                     filter=filter,filterFun=filterFun))
       } else {
          results <- pv.listadd(results,pv.allDESeq(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                   bTagwise=bTagwise,bGLM=F,bParallel=setParallel))
+                                                   bTagwise=bTagwise,bGLM=F,bParallel=setParallel,
+                                                   filter=filter,filterFun=filterFun))
       }
    }
    
@@ -103,10 +110,11 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T
          jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq,pv,
                                                      bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
                                                      bTagwise=bTagwise,bGLM=T,
-                                                     bParallel=T))
+                                                     bParallel=T,filter=filter,filterFun=filterFun))
       } else {
          results <- pv.listadd(results,pv.allDESeq(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                   bTagwise=bTagwise,bGLM=T,bParallel=setParallel))
+                                                   bTagwise=bTagwise,bGLM=T,bParallel=setParallel,
+                                                   filter=filter,filterFun=filterFun))
       }
    }
    
@@ -120,10 +128,11 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T
          jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq2,pv,
                                                      bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
                                                      bTagwise=bTagwise,bGLM=F,
-                                                     bParallel=T))
+                                                     bParallel=T,filter=filter,filterFun=filterFun))
       } else {
          results <- pv.listadd(results,pv.allDESeq2(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                    bTagwise=bTagwise,bGLM=F,bParallel=setParallel))
+                                                    bTagwise=bTagwise,bGLM=F,bParallel=setParallel,
+                                                    filter=filter,filterFun=filterFun))
       }
    }
    
@@ -156,14 +165,17 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T
       jnum <- jnum+1
    } 
    
+   pv$filter    <- filter
+   pv$filterFun <- filterFun
+   
    fdebug(sprintf('Exit pv.DBA: %f',pv$contrasts[[1]]$edgeR$counts[7,1]))
    return(pv)
 }
 
-
-
-pv.DEinit <- function(pv,mask1,mask2,group1=1,group2=2,method='edgeR',meanTH=0,
-                      bSubControl=F,bFullLibrarySize=F,removeComps=0,bRawCounts=F,targets=NULL) {
+pv.DEinit <- function(pv,mask1,mask2,group1=1,group2=2,method='edgeR',
+                      bSubControl=F,bFullLibrarySize=F,removeComps=0,
+                      bRawCounts=F,targets=NULL,
+                      filter=0,filterFun=max) {
    
    fdebug('enter pv.DEinit')
    
@@ -195,27 +207,21 @@ pv.DEinit <- function(pv,mask1,mask2,group1=1,group2=2,method='edgeR',meanTH=0,
                   group1,sum(mask1),group2,sum(mask2),sum(srcmask)))
    g1 <- which(mask1 & srcmask)
    g2 <- which(mask2 & srcmask)
-   numfirst <- length(g1)
    
    s1 <- pv.get_reads(pv,g1,bSubControl=bSubControl)
    s2 <- pv.get_reads(pv,g2,bSubControl=bSubControl)
    
-   if(meanTH > 0){
-      mean1 <- apply(s1,1,mean)
-      mean2 <- apply(s2,1,mean)
-      idx1  <- mean1>meanTH
-      idx2  <- mean2>meanTH
-      keep  <- idx1 | idx2
-      s1    <- s1[keep,]
-      s2    <- s2[keep,]
-      mean1 <- mean1[keep]
-      mean2 <- mean2[keep]    	
-   } else {
-      keep <- rep(T,nrow(pv$peaks[[g1[1]]]))
-   }
    counts <- cbind(s1,s2)
    
-   rownames(counts) <- as.character(1:nrow(counts))
+   if(filter > 0){
+      scores <- apply(counts,1,filterFun)
+      keep   <- scores > filter
+      counts <- counts[keep,]
+      rownames(counts) <- which(keep)
+   } else {
+      rownames(counts) <- as.character(1:nrow(counts))
+   }
+   
    colnames(counts) <- c(pv$class[PV_ID,mask1],pv$class[PV_ID,mask2])
    
    if(bRawCounts) {
@@ -263,14 +269,15 @@ pv.DEinit <- function(pv,mask1,mask2,group1=1,group2=2,method='edgeR',meanTH=0,
 
 pv.DEedgeR <- function(pv,group1,group2,label1="Group 1",label2="Group 2",blockList=NULL,
                        bSubControl=F,bFullLibrarySize=F,bTagwise=T,bGLM=T,bNormOnly=F,
-                       bWeighting=FALSE) {
+                       bWeighting=FALSE, filter=0,filterFun=max) {
    
    fdebug('Enter pv.DEedgeR')
    
    #require(edgeR)
    
    res <- pv.DEinit(pv,group1,group2,label1,label2,method='edgeR',
-                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize)
+                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                    filter=filter, filterFun=filterFun)
    res <- calcNormFactors(res,method="TMM",doWeighting=bWeighting)
    fdebug(sprintf('calcNormFactors: %f',res$counts[7,1]))
    
@@ -361,7 +368,8 @@ pv.DEedgeR <- function(pv,group1,group2,label1="Group 1",label2="Group 2",blockL
 }
 
 pv.DESeq <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
-                     bSubControl=T,bFullLibrarySize=F,bTagwise=T,bGLM=T,blockList=NULL){
+                     bSubControl=T,bFullLibrarySize=F,bTagwise=T,bGLM=T,
+                     blockList=NULL,filter=0, filterFun=max){
    if (!requireNamespace("DESeq",quietly=TRUE)) {
       stop("Package DESeq not installed")
    }
@@ -374,8 +382,10 @@ pv.DESeq <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
          return(res)	
       }
    } 
-   res$DEdata <- pv.DEinit(pv,group1,group2,label1,label2,method='DESeq1',
-                           bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,targets=targets)
+   res$DEdata <- pv.DEinit(pv,group1,group2,label1,label2,method='DESeq1', 
+                           bSubControl=bSubControl,
+                           bFullLibrarySize=bFullLibrarySize,targets=targets,
+                           filter=filter, filterFun=filterFun)
    res$counts <- DESeq::counts(res$DEdata)
    if(!bFullLibrarySize) {
       res$DEdata <- DESeq::estimateSizeFactors(res$DEdata)
@@ -463,7 +473,8 @@ pv.DESeq <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
 }
 
 pv.DESeq2 <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
-                      bSubControl=T,bFullLibrarySize=F,bTagwise=T,bGLM=T,blockList=NULL){
+                      bSubControl=T,bFullLibrarySize=F,bTagwise=T,bGLM=T,
+                      blockList=NULL,filter=0, filterFun=max){
    if (!requireNamespace("DESeq2",quietly=TRUE)) {
       stop("Package DESeq2 not installed")
    }
@@ -477,7 +488,9 @@ pv.DESeq2 <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
       }
    } 
    res$DEdata <- pv.DEinit(pv,group1,group2,label1,label2,method='DESeq2',
-                           bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,targets=targets)
+                           bSubControl=bSubControl,
+                           bFullLibrarySize=bFullLibrarySize,targets=targets,
+                           filter=filter, filterFun=filterFun)
    res$counts <- DESeq2::counts(res$DEdata)
    
    if (!is.null(blockList)) {
@@ -528,13 +541,18 @@ pv.DESeq2 <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
    return(res)
    
 }
-pv.DEedgeR_parallel <- function(contrast,pv,blockList,bSubControl,bFullLibrarySize,bTagwise,bGLM) {
+pv.DEedgeR_parallel <- function(contrast,pv,blockList,bSubControl,
+                                bFullLibrarySize,bTagwise,bGLM,
+                                filter=0,filterFun=max) {
    crec <- pv$contrasts[[contrast]]
    if(!is.null(blockList)) {
       blockList <- crec$blocklist
    }
-   res <- pv.DEedgeR(pv,crec$group1,crec$group2,crec$name1,crec$name2,blockList=blockList,
-                     bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM)
+   res <- pv.DEedgeR(pv,crec$group1,crec$group2,crec$name1,crec$name2,
+                     blockList=blockList,
+                     bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                     bTagwise=bTagwise,bGLM=bGLM,
+                     filter=filter,filterFun=filterFun)
    
    fdebug(sprintf('Exit pv.DEedgeR_parallel: %f',res$counts[7,1]))
    pv.gc()
@@ -542,7 +560,8 @@ pv.DEedgeR_parallel <- function(contrast,pv,blockList,bSubControl,bFullLibrarySi
 }
 
 
-pv.allDEedgeR <- function(pv,block,bFullLibrarySize=F,bParallel=F,bSubControl=F,bTagwise=T,bGLM=F) {
+pv.allDEedgeR <- function(pv,block,bFullLibrarySize=F,bParallel=F,bSubControl=F,
+                          bTagwise=T,bGLM=F,filter=filter,filterFun=filterFun) {
    
    fdebug('ENTER pv.allDEedgeR')
    #require(edgeR)
@@ -571,7 +590,8 @@ pv.allDEedgeR <- function(pv,block,bFullLibrarySize=F,bParallel=F,bSubControl=F,
                                                 'exactTest','topTags',
                                                 'glmFit','glmLRT'))
       reslist <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),pv.DEedgeR_parallel,pv,
-                                     NULL,bSubControl,bFullLibrarySize,bTagwise,bGLM=bGLM)
+                                     NULL,bSubControl,bFullLibrarySize,bTagwise,bGLM=bGLM,
+                                     filter=filter,filterFun=filterFun)
       
       fdebug(sprintf('Return from parallel call to pv.DEedgeR_parallel: %f',reslist[[1]]$counts[7,1]))
       
@@ -583,7 +603,8 @@ pv.allDEedgeR <- function(pv,block,bFullLibrarySize=F,bParallel=F,bSubControl=F,
       }
       if(length(blist > 0)) {
          bres <-  dba.parallel.lapply(pv$config,params,blist,pv.DEedgeR_parallel,pv,
-                                      TRUE,bSubControl,bFullLibrarySize,bTagwise)
+                                      TRUE,bSubControl,bFullLibrarySize,bTagwise,
+                                      filter=filter,filterFun=filterFun)
          for(i in 1:length(blist)) {
             reslist[[blist[i]]]$block <- bres[[i]]
          }    
@@ -592,13 +613,17 @@ pv.allDEedgeR <- function(pv,block,bFullLibrarySize=F,bParallel=F,bSubControl=F,
       for(i in 1:length(pv$contrast)) { 	
          res <- pv.DEedgeR(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
                            pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                           bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM)
+                           bSubControl=bSubControl,
+                           bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
+                           bGLM=bGLM,filter=filter,filterFun=filterFun)
          
          if(!is.null(pv$contrasts[[i]]$blocklist)) {
             res$block <- pv.DEedgeR(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
                                     pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
                                     pv$contrasts[[i]]$blocklist,
-                                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise)   
+                                    bSubControl=bSubControl,
+                                    bFullLibrarySize=bFullLibrarySize,
+                                    bTagwise=bTagwise,filter=filter,filterFun=filterFun)   
          }
          reslist <- pv.listadd(reslist,res)   
       }
@@ -609,18 +634,22 @@ pv.allDEedgeR <- function(pv,block,bFullLibrarySize=F,bParallel=F,bSubControl=F,
 }
 
 
-pv.DESeq_parallel <- function(contrast,pv,blockList,bSubControl,bFullLibrarySize,bTagwise=T,bGLM=F) {
+pv.DESeq_parallel <- function(contrast,pv,blockList,bSubControl,bFullLibrarySize,
+                              bTagwise=T,bGLM=F,filter=0,filterFun=max) {
    crec <- pv$contrasts[[contrast]]
    if(!is.null(blockList)) {
       blockList <- crec$blocklist
    }
    res <- pv.DESeq(pv,crec$group1,crec$group2,crec$name1,crec$name2,
-                   bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM,blockList=blockList)
+                   bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                   bTagwise=bTagwise,bGLM=bGLM,blockList=blockList,
+                   filter=filter,filterFun=filterFun)
    pv.gc()
    return(res)
 }
 
-pv.allDESeq <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bGLM=F,bParallel=F) {
+pv.allDESeq <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,
+                        bGLM=F,bParallel=F, filter=0,filterFun=max) {
    
    if (!requireNamespace("DESeq",quietly=TRUE)) {
       stop("Package DESeq not installed")
@@ -646,8 +675,11 @@ pv.allDESeq <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bGL
    if(bParallel && (pv$config$parallelPackage > 0)) {   
       params <- dba.parallel.params(pv$config,c('pv.DESeq_parallel','pv.DESeq'))
       
-      reslist  <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),pv.DESeq_parallel,pv,NULL, 
-                                      bSubControl,bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM)
+      reslist  <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),
+                                      pv.DESeq_parallel,pv,NULL, 
+                                      bSubControl,bFullLibrarySize,
+                                      bTagwise=bTagwise,bGLM=bGLM,
+                                      filter=filter,filterFun=filterFun)
       blist <- NULL
       for(i in 1:length(pv$contrasts)) {
          if(!is.null(pv$contrasts[[i]]$blocklist)) {
@@ -655,8 +687,11 @@ pv.allDESeq <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bGL
          }
       }
       if(length(blist > 0)) {
-         bres <-  dba.parallel.lapply(pv$config,params,blist,pv.DESeq_parallel,pv,TRUE, 
-                                      bSubControl,bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM)
+         bres <-  dba.parallel.lapply(pv$config,params,blist,
+                                      pv.DESeq_parallel,pv,TRUE, 
+                                      bSubControl,bFullLibrarySize,
+                                      bTagwise=bTagwise,bGLM=bGLM,
+                                      filter=filter,filterFun=filterFun)
          for(i in 1:length(blist)) {
             fdebug(sprintf('pv.allDESeq: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<0.05)))
             reslist[[blist[i]]]$block <- bres[[i]]
@@ -666,13 +701,18 @@ pv.allDESeq <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bGL
       for(i in 1:length(pv$contrast)) { 	
          res <- pv.DESeq(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
                          pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                         bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM)
+                         bSubControl=bSubControl,
+                         bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
+                         bGLM=bGLM,filter=filter,filterFun=filterFun)
          
          if(!is.null(pv$contrasts[[i]]$blocklist)) {
             res$block <- pv.DESeq(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
                                   pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                                  bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
-                                  blockList=pv$contrasts[[i]]$blocklist)   
+                                  bSubControl=bSubControl,
+                                  bFullLibrarySize=bFullLibrarySize,
+                                  bTagwise=bTagwise,
+                                  blockList=pv$contrasts[[i]]$blocklist,
+                                  filter=filter,filterFun=filterFun)   
          }
          reslist <- pv.listadd(reslist,res)   
       }
@@ -681,18 +721,24 @@ pv.allDESeq <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bGL
    return(reslist)
 }
 
-pv.DESeq2_parallel <- function(contrast,pv,blockList,bSubControl,bFullLibrarySize,bTagwise=T,bGLM=F) {
+pv.DESeq2_parallel <- function(contrast,pv,blockList,bSubControl,
+                               bFullLibrarySize,bTagwise=T,bGLM=F,
+                               filter=0,filterFun=max) {
    crec <- pv$contrasts[[contrast]]
    if(!is.null(blockList)) {
       blockList <- crec$blocklist
    }
    res <- pv.DESeq2(pv,crec$group1,crec$group2,crec$name1,crec$name2,
-                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM,blockList=blockList)
+                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                    bTagwise=bTagwise,bGLM=bGLM,blockList=blockList,
+                    filter=filter,filterFun=filterFun)
    pv.gc()
    return(res)
 }
 
-pv.allDESeq2 <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bGLM=F,bParallel=F) {
+pv.allDESeq2 <- function(pv,block,bSubControl=F,bFullLibrarySize=F,
+                         bTagwise=T,bGLM=F,bParallel=F,
+                         filter=0,filterFun=max) {
    
    if (!requireNamespace("DESeq2",quietly=TRUE)) {
       stop("Package DESeq2 not installed")
@@ -718,8 +764,11 @@ pv.allDESeq2 <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bG
    if(bParallel && (pv$config$parallelPackage > 0)) {   
       params <- dba.parallel.params(pv$config,c('pv.DESeq2_parallel','pv.DESeq2'))
       
-      reslist  <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),pv.DESeq2_parallel,pv,NULL, 
-                                      bSubControl,bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM)
+      reslist  <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),
+                                      pv.DESeq2_parallel,pv,NULL, 
+                                      bSubControl,bFullLibrarySize,
+                                      bTagwise=bTagwise,bGLM=bGLM,
+                                      filter=filter,filterFun=filterFun)
       blist <- NULL
       for(i in 1:length(pv$contrasts)) {
          if(!is.null(pv$contrasts[[i]]$blocklist)) {
@@ -727,8 +776,11 @@ pv.allDESeq2 <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bG
          }
       }
       if(length(blist > 0)) {
-         bres <-  dba.parallel.lapply(pv$config,params,blist,pv.DESeq2_parallel,pv,TRUE, 
-                                      bSubControl,bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM)
+         bres <-  dba.parallel.lapply(pv$config,params,blist,
+                                      pv.DESeq2_parallel,pv,TRUE, 
+                                      bSubControl,bFullLibrarySize,
+                                      bTagwise=bTagwise,bGLM=bGLM,
+                                      filter=filter,filterFun=filterFun)
          for(i in 1:length(blist)) {
             fdebug(sprintf('pv.allDESeq2: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<0.05)))
             reslist[[blist[i]]]$block <- bres[[i]]
@@ -738,13 +790,17 @@ pv.allDESeq2 <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,bG
       for(i in 1:length(pv$contrast)) { 	
          res <- pv.DESeq2(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
                           pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                          bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,bGLM=bGLM)
+                          bSubControl=bSubControl,
+                          bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
+                          bGLM=bGLM, filter=filter,filterFun=filterFun)
          
          if(!is.null(pv$contrasts[[i]]$blocklist)) {
             res$block <- pv.DESeq2(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
                                    pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                                   bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
-                                   blockList=pv$contrasts[[i]]$blocklist)   
+                                   bSubControl=bSubControl,
+                                   bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
+                                   blockList=pv$contrasts[[i]]$blocklist,
+                                   filter=filter,filterFun=filterFun)   
          }
          reslist <- pv.listadd(reslist,res)   
       }
@@ -804,25 +860,52 @@ pv.blockFactors <- function(pv,group1,group2,label1,label2,blockList) {
    
 }
 
-
-
 pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled=F,
                          bCounts=F,bCalledDetail=F,
-                         file,initString='reports/DBA',bNormalized=T,ext="csv",minFold=0,bSupressWarning=F) {
+                         file,initString='reports/DBA',bNormalized=T,ext="csv",
+                         minFold=0,bSupressWarning=F,
+                         bFlip=FALSE) {
    
    if(contrast > length(pv$contrasts)) {
       stop('Specified contrast number is greater than number of contrasts')
       return(NULL)
    }
    con <- pv$contrasts[[contrast]]
+   
+   group1 <- con$group1
+   name1  <- con$name1
+   group2 <- con$group2
+   name2  <- con$name2
+   facs   <- 1:(sum(group1)+sum(group2))
+   if(bFlip) {
+      group1 <- con$group2
+      name1  <- con$name2
+      group2 <- con$group1
+      name2  <- con$name1
+      facs   <- (sum(group2)+1):length(facs)
+      facs   <- c(facs,1:sum(group2))
+   }
+   
+   if(is.null(pv$filter)) {
+      filter    <- 0
+      filterFun <- NULL
+   } else {
+      filter    <- pv$filter
+      filterFun <- pv$filterFun
+   }
+   
    if(method=='edgeR' || method=='edgeRGLM'){
       if(is.null(con$edgeR) || class(con$edgeR)=="try-error") {
          stop('edgeR analysis has not been run for this contrast')
          return(NULL)
       }
       if(is.null(con$edgeR$counts)) {
-         counts <- pv.DEinit(pv,con$group1,con$group2,con$label1,con$label2,method='edgeR',
-                             bSubControl=con$edgeR$bSubControl,bFullLibrarySize=con$edgeR$bFullLibrarySize,bRawCounts=TRUE)
+         counts <- pv.DEinit(pv,group1,group2,name1,name2,
+                             method='edgeR',
+                             bSubControl=con$edgeR$bSubControl,
+                             bFullLibrarySize=con$edgeR$bFullLibrarySize,
+                             bRawCounts=TRUE,
+                             filter=filter, filterFun=filterFun)
       } else {
          counts <- con$edgeR$counts	
       }
@@ -854,24 +937,31 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
       siteCol <- 1
       pvCol   <- 2
       fdrCol <-  3
-      counts <- pv.DEinit(pv,con$group1,con$group2,con$label1,con$label2,method='DESeq1',
-                          bSubControl=con$DESeq1$bSubControl,bFullLibrarySize=con$DESeq1$bFullLibrarySize,bRawCounts=T)
+      counts <- pv.DEinit(pv,group1,group2,name1,name2,
+                          method='DESeq1',
+                          bSubControl=con$DESeq1$bSubControl,
+                          bFullLibrarySize=con$DESeq1$bFullLibrarySize,
+                          bRawCounts=TRUE,
+                          filter=filter, filterFun=filterFun)
       if(method=='DESeq1Block') {
          data <- con$DESeq1$block$de
          if(bNormalized){
-            counts <- t(t(counts)/con$DESeq1$block$facs)
+            counts <- t(t(counts)/con$DESeq1$block$facs[facs])
          }      	
       } else {
          data <- con$DESeq1$de
          if(bNormalized){
-            counts <- t(t(counts)/con$DESeq1$facs)
+            counts <- t(t(counts)/con$DESeq1$facs[facs])
          }
       }   
    } else if(method=='edgeRlm'){
       if(is.null(con$edgeR$counts)) {
-         counts <- pv.DEinit(pv,con$group1,con$group2,con$label1,con$label2,method='edgeR',
-                             bSubControl=con$edgeR$block$bSubControl,bFullLibrarySize=con$edgeR$block$bFullLibrarySize,
-                             bRawCounts=TRUE)
+         counts <- pv.DEinit(pv,group1,group2,name1,name2,
+                             method='edgeR',
+                             bSubControl=con$edgeR$block$bSubControl,
+                             bFullLibrarySize=con$edgeR$block$bFullLibrarySize,
+                             bRawCounts=TRUE,
+                             filter=filter, filterFun=filterFun)
       } else {
          counts <- con$edgeR$counts	
       }
@@ -882,7 +972,8 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
       data <- topTags(con$edgeR$block$LRT,nrow(counts))$table
       
       if(bNormalized){
-         sizes <- con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors
+         sizes <- con$edgeR$samples$lib.size[facs] * 
+            con$edgeR$samples$norm.factors[facs]
          counts <- t(t(counts)/sizes)
          counts <- counts * con$edgeR$pseudo.lib.size
       } 
@@ -897,17 +988,21 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
       siteCol <- 1
       pvCol   <- 2
       fdrCol <-  3
-      counts <- pv.DEinit(pv,con$group1,con$group2,con$label1,con$label2,method='DESeq2',
-                          bSubControl=con$DESeq2$bSubControl,bFullLibrarySize=con$DESeq2$bFullLibrarySize,bRawCounts=T)
+      counts <- pv.DEinit(pv,group1,group2,name1,name2,
+                          method='DESeq2',
+                          bSubControl=con$DESeq2$bSubControl,
+                          bFullLibrarySize=con$DESeq2$bFullLibrarySize,
+                          bRawCounts=TRUE,
+                          filter=filter, filterFun=filterFun)
       if(method=='DESeq2Block') {
          data <- con$DESeq2$block$de
          if(bNormalized){
-            counts <- t(t(counts)/con$DESeq2$block$facs)
+            counts <- t(t(counts)/con$DESeq2$block$facs[facs])
          }      	
       } else {
          data <- con$DESeq2$de
          if(bNormalized){
-            counts <- t(t(counts)/con$DESeq2$facs)
+            counts <- t(t(counts)/con$DESeq2$facs[facs])
          }
       }   
    } else {
@@ -946,49 +1041,50 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
    
    if(length(sites)==1) {
       conc <- log2(mean(counts))
-      if(sum(con$group1)>1) {
-         con1 <- log2(mean(counts[,1:sum(con$group1)]))
+      if(sum(group1)>1) {
+         con1 <- log2(mean(counts[,1:sum(group1)]))
       } else {
          con1 <- log2(counts[,1])
       }
-      if(sum(con$group2)>1) {
-         con2 <- log2(mean(counts[,(sum(con$group1)+1):ncol(counts)]))
+      if(sum(group2)>1) {
+         con2 <- log2(mean(counts[,(sum(group1)+1):ncol(counts)]))
       } else {
-         con2 <- log2(counts[,sum(con$group1)+1])
+         con2 <- log2(counts[,sum(group1)+1])
       }        
    } else {
       conc <- log2(apply(counts,1,mean))
-      if(sum(con$group1)>1) {
-         con1 <- log2(apply(counts[,1:sum(con$group1)],1,mean))
+      if(sum(group1)>1) {
+         con1 <- log2(apply(counts[,1:sum(group1)],1,mean))
       } else {
          con1 <- log2(counts[,1])
       }
-      if(sum(con$group2)>1) {
-         con2 <- log2(apply(counts[,(sum(con$group1)+1):ncol(counts)],1,mean))
+      if(sum(group2)>1) {
+         con2 <- log2(apply(counts[,(sum(group1)+1):ncol(counts)],1,mean))
       } else {
-         con2 <- log2(counts[,sum(con$group1)+1])
+         con2 <- log2(counts[,sum(group1)+1])
       }
    }
    fold <- con1 - con2
    
    #sites <- apply(pv$peaks[[which(con$group1)[1]]][data[keep,siteCol],1:3],1,pv.dositename)
    
-   data <- cbind(pv.getsites(pv,sites),conc,con1,con2,fold,data[keep,c(pvCol,fdrCol)])
+   siteids <- as.numeric(rownames(counts))[1:length(sites)]
+   data <- cbind(pv.getsites(pv,siteids),conc,con1,con2,fold,data[keep,c(pvCol,fdrCol)])
    
-   conc1 <- sprintf('Conc_%s',con$name1)
-   conc2 <- sprintf('Conc_%s',con$name2)
+   conc1 <- sprintf('Conc_%s',name1)
+   conc2 <- sprintf('Conc_%s',name2)
    
    colnames(data) <- c('Chr','Start','End','Conc',conc1,conc2,'Fold','p-value','FDR')
    
    if(bCalled & !is.null(pv$called)) {
-      Called1 <- apply(pv$called[sites,con$group1],1,sum)
-      Called2 <- apply(pv$called[sites,con$group2],1,sum)
+      Called1 <- apply(pv$called[siteids,group1],1,sum)
+      Called2 <- apply(pv$called[siteids,group2],1,sum)
       data <- cbind(data,Called1,Called2)
    }
    
    if(bCounts) {
       counts <- round(counts,2)
-      colnames(counts) <- c(pv$class[PV_ID,con$group1],pv$class[PV_ID,con$group2])
+      colnames(counts) <- c(pv$class[PV_ID,group1],pv$class[PV_ID,group2])
       if(length(sites)>1){
          data <- cbind(data,counts)
       } else {
@@ -1000,10 +1096,10 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
    }
    
    if(bCalledDetail & !is.null(pv$called)) {
-      newd <- pv$called[sites,c(which(con$group1),which(con$group2))]
+      newd <- pv$called[siteids,c(which(group1),which(group2))]
       newd[newd==1] <- '+'
       newd[newd==0] <- '-'
-      colnames(newd) <- c(pv$class[PV_ID,con$group1],pv$class[PV_ID,con$group2])
+      colnames(newd) <- c(pv$class[PV_ID,group1],pv$class[PV_ID,group2])
       data <- cbind(data,newd)
    }   
    
@@ -1018,7 +1114,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
    
    if(!missing(file)) {
       if(is.null(file)) {
-         file=sprintf("%s_%s_vs_%s_%s.%s",initString,con$name1,con$name2,method,ext)
+         file=sprintf("%s_%s_vs_%s_%s.%s",initString,name1,name2,method,ext)
       } else {
          file=sprintf("%s_%s.%s",initString,file,ext)
       }
@@ -1040,7 +1136,7 @@ pv.getsites <- function(pv,sites){
 }
 
 pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,bUsePval=F,fold=0,facname="",bNormalized=T,
-                         cex=.15,bSignificant=T, bSmooth=T,...) {
+                         cex=.15,bSignificant=T, bSmooth=T, bFlip=FALSE, ...) {
    
    if(missing(contrast)){
       contrast <- 1:length(pv$contrasts)
@@ -1056,13 +1152,19 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,bUsePval
       plotfun <- smoothScatter
    }
    
-   
    numSites <- nrow(pv$binding)
    
    for(con in 1:length(contrast)) {
       conrec <- pv$contrasts[[contrast[con]]]
+      name1 <- conrec$name1
+      name2 <- conrec$name2
+      if(bFlip) {
+         name1 <- conrec$name2
+         name2 <- conrec$name1   
+      }
       for(meth in method) {
-         res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=T,th=100,bNormalized=bNormalized)
+         res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=T,
+                             th=100,bNormalized=bNormalized,bFlip=bFlip)
          if(!is.null(res)) {
             if(bUsePval) {
                idx <- res$"p-value" <= th
@@ -1083,18 +1185,18 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,bUsePval
                           xaxp=c(xmin,xmax,xmax-xmin),xlim=c(xmin,xmax),
                           xlab='log concentration',
                           yaxp=c(ymin,ymax,(ymax-ymin)),ylim=c(ymin,ymax),
-                          ylab=sprintf('log fold change: %s - %s',conrec$name1,conrec$name2),
+                          ylab=sprintf('log fold change: %s - %s',name1,name2),
                           main=sprintf('%s Binding Affinity: %s vs. %s (%s %s < %1.3f)',
-                                       facname, conrec$name1,conrec$name2,sum(idx),tstr,th),...)              	
+                                       facname, name1,name2,sum(idx),tstr,th),...)              	
                } else {
                   plotfun(res$Conc[!idx],res$Fold[!idx],pch=20,cex=cex, col=crukBlue,
                           #colramp <- colorRampPalette(c("white", crukBlue)),                          
                           xaxp=c(xmin,xmax,xmax-xmin),xlim=c(xmin,xmax),
                           xlab='log concentration',
                           yaxp=c(ymin,ymax,(ymax-ymin)),ylim=c(ymin,ymax),
-                          ylab=sprintf('log fold change: %s - %s',conrec$name1,conrec$name2),
+                          ylab=sprintf('log fold change: %s - %s',name1,name2),
                           main=sprintf('%s Binding Affinity: %s vs. %s (%s %s < %1.3f)',
-                                       facname, conrec$name1,conrec$name2,sum(idx),tstr,th),...)
+                                       facname, name1,name2,sum(idx),tstr,th),...)
                }
                if(bSignificant) {
                   points(res$Conc[idx],res$Fold[idx],pch=20,cex=cex,col=crukMagenta)
@@ -1111,11 +1213,11 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,bUsePval
                xymax <- max(xmax,ymax)
                plotfun(res[!idx,6],res[!idx,5],pch=20,cex=cex,col=crukBlue,
                        xaxp=c(xymin,xymax,xymax-xymin),xlim=c(xymin,xymax),
-                       xlab=sprintf('log concentration :%s',conrec$name2),
+                       xlab=sprintf('log concentration :%s',name2),
                        yaxp=c(xymin,xymax,(xymax-xymin)),ylim=c(xymin,xymax),
-                       ylab=sprintf('log concentration :%s',conrec$name1),
+                       ylab=sprintf('log concentration :%s',name1),
                        main=sprintf('%s Binding Affinity: %s vs. %s (%s %s < %1.3f)',
-                                    facname, conrec$name1,conrec$name2,sum(idx),tstr,th),...)
+                                    facname, name1,name2,sum(idx),tstr,th),...)
                points(res[idx,6],res[idx,5],pch=20,cex=cex,col=crukMagenta)
                abline(0,1,col='dodgerblue')
             }

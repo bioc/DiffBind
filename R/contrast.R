@@ -621,7 +621,10 @@ pv.design <- function(DBA,categories=c(DBA_CONDITION,DBA_TREATMENT,DBA_TISSUE,DB
    return(design)   	
 }
 
-pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,th=0.05,bUsePval=F,fold=0,bDB=T,bNotDB=F,bUp=F,bDown=F,bAll=T) {
+pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
+                          th=0.05,bUsePval=F,fold=0,
+                          bDB=T,bNotDB=F,bUp=F,bDown=F,bAll=T,
+                          bFlip=FALSE) {
    
    if(missing(contrasts)) {
       contrasts <- 1:length(DBA$contrasts)
@@ -630,7 +633,9 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,th=0.0
    res <- NULL
    for(contrast in contrasts) {
       for(method in methods) {
-         res <- pv.doResults(res,DBA,contrast,method,th,bUsePval,fold,bDB=bDB,bNotDB=bNotDB,bUp=bUp,bDown=bDown,bAll=bAll)		
+         res <- pv.doResults(res,DBA,contrast,method,th,bUsePval,fold,
+                             bDB=bDB,bNotDB=bNotDB,bUp=bUp,bDown=bDown,bAll=bAll,
+                             bFlip=bFlip)		
       }
    }
    
@@ -642,7 +647,9 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,th=0.0
    
 }
 
-pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,fold=0,bDB=T,bNotDB=F,bAll=F,bUp=F,bDown=F) {
+pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
+                         fold=0,bDB=T,bNotDB=F,bAll=F,bUp=F,bDown=F,
+                         bFlip=FALSE) {
    
    if(method=='edgeR' || method=="edgeRGLM") {
       if(is.null(DBA$contrasts[[contrast]]$edgeR)) {
@@ -693,7 +700,10 @@ pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,fold=0,bDB=T,bNotDB
       useth <- th
    }
    
-   rep <- suppressWarnings(dba.report(DBA,contrast=contrast,method=method,th=useth,bUsePval=bUsePval,fold=0,DataType=DBA_DATA_FRAME))
+   rep <- suppressWarnings(dba.report(DBA,contrast=contrast,method=method,
+                                      th=useth,bUsePval=bUsePval,fold=0,
+                                      bFlip=bFlip,
+                                      DataType=DBA_DATA_FRAME))
    
    if(is.null(rep)) {
       return(res)	
