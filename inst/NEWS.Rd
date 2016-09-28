@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.1.9}{
+  \itemize{
+     \item{Feature: add fromComp to dba.plotPCA}
+   }
+}
+
 \section{Version 2.1.8}{
   \itemize{
      \item{Restore bFlip and filtering features}

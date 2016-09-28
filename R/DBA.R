@@ -754,7 +754,8 @@ dba.plotPCA <- function(DBA, attributes, minval, maxval,
                         contrast, method=DBA$config$AnalysisMethod, 
                         th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
                         report, score, bLog=TRUE, mask, sites, label, cor=FALSE,
-                        b3D=FALSE, vColors, dotSize, labelSize, labelCols, ...)
+                        b3D=FALSE, vColors, dotSize, labelSize, labelCols, 
+                        fromComp=1, ...)
    
 {
    DBA <- pv.check(DBA,bCheckEmpty=TRUE)
@@ -796,7 +797,8 @@ dba.plotPCA <- function(DBA, attributes, minval, maxval,
       }
       res <- pv.plotPCA(DBA,attributes=attributes,size=dotSize,cor=cor,
                         b3D=b3D,vColors=vColors,label=label,bLog=bLog,
-                        labelSize=labelSize,labelCols=labelCols,...)
+                        labelSize=labelSize,labelCols=labelCols,
+                        startComp=fromComp,...)
    } else {
       if(missing(attributes)) {
          attributes <- pv.attributePCA(DBA)
@@ -804,7 +806,8 @@ dba.plotPCA <- function(DBA, attributes, minval, maxval,
       
       res <- pv.plotPCA(DBA, attributes=attributes, size=dotSize, mask=mask, 
                         sites=sites, b3D=b3D, vColors=vColors, label=label,
-                        bLog=bLog,labelSize=labelSize,labelCols=labelCols,...)  
+                        bLog=bLog,labelSize=labelSize,labelCols=labelCols,
+                        startComp=fromComp,...)  
    }
    
    invisible(res)	

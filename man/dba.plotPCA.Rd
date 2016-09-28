@@ -12,7 +12,8 @@ dba.plotPCA(DBA, attributes, minval, maxval,
            contrast, method=DBA$config$AnalysisMethod, 
            th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
            report, score, bLog=TRUE, mask, sites, label, cor=FALSE,
-           b3D=FALSE, vColors, dotSize, labelSize, labelCols, ...)
+           b3D=FALSE, vColors, dotSize, labelSize, labelCols, 
+           fromComp=1, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -123,9 +124,13 @@ Scaling factor for labels if present. Default is 0.8.
 Vector of colors to use for labels. Default is "black".
 }
 
+\item{fromComp}{
+Number of first component to plot.
+}
 \item{\dots}{
 arguments passed to plot or plot3d (rgl).
 }
+
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~

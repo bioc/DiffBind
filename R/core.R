@@ -888,6 +888,7 @@ pv.plotPCA <-
    function(pv,attributes = PV_ID,second,third,fourth,size,mask,
             numSites,sites,cor = F,startComp = 1,b3D = T,vColors,
             label = NULL,bLog = T,labelSize = .8,labelCols = "black",...) {
+      
       pv <- pv.check(pv)
       
       class  <- attributes[1]
@@ -944,14 +945,14 @@ pv.plotPCA <-
       }
       
       if (b3D) {
-         startComp <- 1
+         #startComp <- 1
          pvar <- sum(vr[startComp:(startComp + 2)]) / sum(vr) * 100
       } else {
          pvar <- sum(vr[startComp:(startComp + 1)]) / sum(vr) * 100
       }
-      c1p <- vr[1] / sum(vr) * 100
-      c2p <- vr[2] / sum(vr) * 100
-      c3p <- vr[3] / sum(vr) * 100
+      c1p <- vr[startComp]   / sum(vr) * 100
+      c2p <- vr[startComp+1] / sum(vr) * 100
+      c3p <- vr[startComp+2] / sum(vr) * 100
       
       if (!missing(second)) {
          if (!missing(third)) {
@@ -1052,10 +1053,13 @@ pv.plotPCA <-
 pv.doPCAplot <-
    function(pc,classvec,startComp,sval,vColors,thetitle,c1p,c2p,
             addlabels = NULL,labelSize = .8,labelCols = "black",...) {
+      
+      plotData <- as.data.frame(pc$rotation[,startComp:(startComp + 1)])
+      colnames(plotData) <- c("PC1","PC2")
       p <- xyplot(
          PC2 ~ PC1,
          #groups=classvec,
-         data = as.data.frame(pc$rotation[,startComp:(startComp + 1)]),
+         data = plotData,
          pch = 16, cex = sval,aspect = 1,
          col = pv.colorv(classvec,vColors),
          xlab = sprintf('Principal Component #%d [%2.0f%%]',startComp,c1p),
