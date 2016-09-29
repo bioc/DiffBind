@@ -4,7 +4,8 @@
 
 \section{Version 2.1.9}{
   \itemize{
-     \item{Feature: add fromComp to dba.plotPCA}
+     \item{Feature: add components argument to dba.plotPCA}
+     \item{Feature: add xrange and yrange arguments to dba.plotMA}
    }
 }
 

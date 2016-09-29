@@ -755,7 +755,7 @@ dba.plotPCA <- function(DBA, attributes, minval, maxval,
                         th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
                         report, score, bLog=TRUE, mask, sites, label, cor=FALSE,
                         b3D=FALSE, vColors, dotSize, labelSize, labelCols, 
-                        fromComp=1, ...)
+                        components=1:3, ...)
    
 {
    DBA <- pv.check(DBA,bCheckEmpty=TRUE)
@@ -798,7 +798,7 @@ dba.plotPCA <- function(DBA, attributes, minval, maxval,
       res <- pv.plotPCA(DBA,attributes=attributes,size=dotSize,cor=cor,
                         b3D=b3D,vColors=vColors,label=label,bLog=bLog,
                         labelSize=labelSize,labelCols=labelCols,
-                        startComp=fromComp,...)
+                        comps=components,...)
    } else {
       if(missing(attributes)) {
          attributes <- pv.attributePCA(DBA)
@@ -807,7 +807,7 @@ dba.plotPCA <- function(DBA, attributes, minval, maxval,
       res <- pv.plotPCA(DBA, attributes=attributes, size=dotSize, mask=mask, 
                         sites=sites, b3D=b3D, vColors=vColors, label=label,
                         bLog=bLog,labelSize=labelSize,labelCols=labelCols,
-                        startComp=fromComp,...)  
+                        comps=components,...)  
    }
    
    invisible(res)	
@@ -849,7 +849,8 @@ dba.plotMA <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                        th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
                        fold=0, bNormalized=TRUE,
                        factor="", bFlip=FALSE, bXY=FALSE, dotSize=.45, 
-                       bSignificant=TRUE, bSmooth=TRUE, ...)
+                       bSignificant=TRUE, bSmooth=TRUE, 
+                       xrange, yrange, ...)
    
 {
    DBA <- pv.check(DBA,bCheckEmpty=TRUE)
@@ -858,7 +859,7 @@ dba.plotMA <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                        th=th, bUsePval=bUsePval, fold=fold,
                        facname=factor, bNormalized=bNormalized, cex=dotSize, 
                        bSignificant=bSignificant, bSmooth=bSmooth,bFlip=bFlip,
-                       ...)
+                       xrange=xrange, yrange=yrange,...)
    
    invisible(res)
 }

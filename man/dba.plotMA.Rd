@@ -12,7 +12,8 @@ dba.plotMA(DBA, contrast=1, method=DBA$config$AnalysisMethod,
            th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
            fold=0, bNormalized=TRUE,
            factor="", bFlip=FALSE, bXY=FALSE, dotSize=.45, 
-           bSignificant=TRUE, bSmooth=TRUE, ...)
+           bSignificant=TRUE, bSmooth=TRUE, 
+           xrange, yrange, ...)
 }
 
 %- maybe also 'usage' for other objects documented here.
@@ -72,6 +73,15 @@ Logical indicating if points corresponding to significantly differentially bound
   \item{bSmooth}{
 logical indicating that basic plot should be plotted using \code{smooth Scatter}. Note that overlaid significant sites will be not plotted using a smoothing function.
 }
+
+  \item{xrange}{
+vector of length 2 containing the desired minimum and maximum concentrations to plot.
+}
+
+  \item{yrange}{
+vector of length 2 containing the desired minimum and maximum fold changes to plot.
+}
+
   \item{\dots}{
 passed to plot.
 }

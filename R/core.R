@@ -886,10 +886,25 @@ pv.plotClust <-
 ## pv.plotPCA -- 3D plot of PCA
 pv.plotPCA <-
    function(pv,attributes = PV_ID,second,third,fourth,size,mask,
-            numSites,sites,cor = F,startComp = 1,b3D = T,vColors,
+            numSites,sites,cor = F,comps=1:3, b3D = T,vColors,
             label = NULL,bLog = T,labelSize = .8,labelCols = "black",...) {
       
       pv <- pv.check(pv)
+      
+      if(length(comps)==1) {
+         c1 <- comps
+         c2 <- comps+1
+         c3 <- comps+2
+      } else{
+         c1 <- comps[1]
+         c2 <- comps[2]         
+         if(length(comps)==2) {
+            c3 <- comps[2]+1
+         } else {
+            c3 <- comps[3]
+         }
+      }
+      compnums <- c(c1,c2,c3)
       
       class  <- attributes[1]
       if (length(attributes) > 1) {
@@ -922,10 +937,8 @@ pv.plotPCA <-
       pc <- pv$pc
       
       if (is.null(pc)) {
-         warning(
-            "Unable to perform PCA. Make sure there aren't fewer sites than there are samples.",call. =
-               F
-         )
+         warning("Unable to perform PCA. Make sure there aren't fewer sites than there are samples.",
+                 call. = FALSE)
          return(NULL)
       }
       
@@ -946,13 +959,13 @@ pv.plotPCA <-
       
       if (b3D) {
          #startComp <- 1
-         pvar <- sum(vr[startComp:(startComp + 2)]) / sum(vr) * 100
+         pvar <- sum(vr[compnums[1:3]]) / sum(vr) * 100
       } else {
-         pvar <- sum(vr[startComp:(startComp + 1)]) / sum(vr) * 100
+         pvar <- sum(vr[compnums[1:2]]) / sum(vr) * 100
       }
-      c1p <- vr[startComp]   / sum(vr) * 100
-      c2p <- vr[startComp+1] / sum(vr) * 100
-      c3p <- vr[startComp+2] / sum(vr) * 100
+      c1p <- vr[c1] / sum(vr) * 100
+      c2p <- vr[c2] / sum(vr) * 100
+      c3p <- vr[c3] / sum(vr) * 100
       
       if (!missing(second)) {
          if (!missing(third)) {
@@ -1012,11 +1025,11 @@ pv.plotPCA <-
       if (b3D) {
          if (requireNamespace("rgl",quietly = TRUE)) {
             rgl::plot3d(
-               pc$rotation[,c(startComp,startComp + 2,startComp + 1)],
+               pc$rotation[,compnums],
                col = pv.colorv(classvec,vColors),type = 's',size = sval,
-               xlab = sprintf('PC #%d [%2.0f%%]',startComp,c1p),
-               ylab = sprintf('PC #%d [%2.0f%%]',startComp + 2,c3p),
-               zlab = sprintf('PC #%d [%2.0f%%]',startComp + 1,c2p),
+               xlab = sprintf('PC #%d [%2.0f%%]',c1,c1p),
+               ylab = sprintf('PC #%d [%2.0f%%]',c3,c3p),
+               zlab = sprintf('PC #%d [%2.0f%%]',c2,c2p),
                aspect = c(1,1,1),main = thetitle,...
             )
             uclass <- unique(classvec)
@@ -1035,7 +1048,7 @@ pv.plotPCA <-
          } else {
             warning("Package rgl not installed")
             p <-
-               pv.doPCAplot(pc,classvec,startComp,sval,vColors,thetitle,c1p,c2p,addlabels,...)
+               pv.doPCAplot(pc,classvec,c1,c2,sval,vColors,thetitle,c1p,c2p,addlabels,...)
          }
       } else {
          if (!missing(size)) {
@@ -1043,7 +1056,7 @@ pv.plotPCA <-
          }
          p <-
             pv.doPCAplot(
-               pc,classvec,startComp,sval,vColors,thetitle,c1p,c2p,
+               pc,classvec,c1,c2,sval,vColors,thetitle,c1p,c2p,
                addlabels,labelSize,labelCols,...
             )
       }
@@ -1051,10 +1064,10 @@ pv.plotPCA <-
    }
 
 pv.doPCAplot <-
-   function(pc,classvec,startComp,sval,vColors,thetitle,c1p,c2p,
+   function(pc,classvec,c1,c2,sval,vColors,thetitle,c1p,c2p,
             addlabels = NULL,labelSize = .8,labelCols = "black",...) {
       
-      plotData <- as.data.frame(pc$rotation[,startComp:(startComp + 1)])
+      plotData <- as.data.frame(pc$rotation[,c(c1,c2)])
       colnames(plotData) <- c("PC1","PC2")
       p <- xyplot(
          PC2 ~ PC1,
@@ -1062,8 +1075,8 @@ pv.doPCAplot <-
          data = plotData,
          pch = 16, cex = sval,aspect = 1,
          col = pv.colorv(classvec,vColors),
-         xlab = sprintf('Principal Component #%d [%2.0f%%]',startComp,c1p),
-         ylab = sprintf('Principal Component #%d [%2.0f%%]',startComp +1,c2p),
+         xlab = sprintf('Principal Component #%d [%2.0f%%]',c1,c1p),
+         ylab = sprintf('Principal Component #%d [%2.0f%%]',c2,c2p),
          main = thetitle,
          key = list(
             space = "right",

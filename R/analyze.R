@@ -1135,8 +1135,10 @@ pv.getsites <- function(pv,sites){
    return(sites)
 }
 
-pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,bUsePval=F,fold=0,facname="",bNormalized=T,
-                         cex=.15,bSignificant=T, bSmooth=T, bFlip=FALSE, ...) {
+pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
+                         bUsePval=F,fold=0,facname="",bNormalized=T,
+                         cex=.15,bSignificant=T, bSmooth=T, bFlip=FALSE,
+                         xrange, yrange, ...) {
    
    if(missing(contrast)){
       contrast <- 1:length(pv$contrasts)
@@ -1175,10 +1177,26 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,bUsePval
             }
             idx <- idx & (abs(res$Fold) >= fold)
             if(bMA){
-               xmin  <- floor(min(res$Conc))
-               xmax  <- ceiling(max(res$Conc))
-               ymin  <- floor(min(res$Fold))
-               ymax  <- ceiling(max(res$Fold))
+               if(missing(xrange)) {
+                  xmin  <- floor(min(res$Conc))
+                  xmax  <- ceiling(max(res$Conc))
+               } else {
+                  if (length(xrange) != 2) {
+                     stop("xrange must be vector of two numbers")
+                  }
+                  xmin <- xrange[1]
+                  xmax <- xrange[2]
+               }
+               if(missing(yrange)) {
+                  ymin  <- floor(min(res$Fold))
+                  ymax  <- ceiling(max(res$Fold))
+               } else {
+                  if (length(yrange) != 2) {
+                     stop("yrange must be vector of two numbers")
+                  }
+                  ymin <- yrange[1]
+                  ymax <- yrange[2]
+               }
                if(bSmooth | !bSignificant) {
                   plotfun(res$Conc,res$Fold,pch=20,cex=cex,col=crukBlue,
                           #colramp <- colorRampPalette(c("white", crukBlue)),
@@ -1204,10 +1222,26 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,bUsePval
                abline(h=0,col='dodgerblue')
             }
             if(bXY){
-               xmin  <- floor(min(res[,5]))
-               xmax  <- ceiling(max(res[,5]))
-               ymin  <- floor(min(res[,6]))
-               ymax  <- ceiling(max(res[,6]))
+               if(missing(xrange)) {
+                  xmin  <- floor(min(res[,5]))
+                  xmax  <- ceiling(max(res[,5]))
+               } else {
+                  if (length(xrange) != 2) {
+                     stop("xrange must be vector of two numbers")
+                  }
+                  xmin <- xrange[1]
+                  xmax <- xrange[2]
+               }
+               if(missing(yrange)) {
+                  ymin  <- floor(min(res[,6]))
+                  ymax  <- ceiling(max(res[,6]))
+               } else {
+                  if (length(yrange) != 2) {
+                     stop("yrange must be vector of two numbers")
+                  }
+                  ymin <- yrange[1]
+                  ymax <- yrange[2]
+               }
                xymin <- min(xmin,ymin)
                xymin <- max(xymin,0)
                xymax <- max(xmax,ymax)
