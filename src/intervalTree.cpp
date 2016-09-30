@@ -15,13 +15,11 @@ bode::IntervalTree::IntervalTree(void) {
   count = 0;
 }
 
-/*
 bode::IntervalTree::~IntervalTree(void) {
   if (root != NULL) {
     delete root;
   }
 }
-*/
 
 bode::IntervalNode *bode::IntervalTree::raw_insert(IntervalNode *node) {
   bode::IntervalNode *x,*y;
