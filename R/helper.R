@@ -1347,8 +1347,9 @@ pv.peaksetCounts <- function(pv=NULL,peaks,counts,
       if(numcols>1) {
          if(numcols == 2) {
             numcounts <- nrow(counts)
-            if(counts[numcounts,1]=="__alignment_not_unique") {
-               numcounts <- numcounts - 5	
+            footer <- match("Assigned",counts[,1])
+            if(!is.na(footer)) {
+               numcounts <- footer-1
             }
             IDs <- counts[1:numcounts,1]
             counts <- counts[1:numcounts,2]
