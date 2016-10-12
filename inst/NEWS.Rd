@@ -2,39 +2,16 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.1.9}{
-  \itemize{
-     \item{Feature: add components argument to dba.plotPCA}
-     \item{Feature: add xrange and yrange arguments to dba.plotMA}
-   }
-}
+\section{Version 2.2.0}{
 
-\section{Version 2.1.8}{
-  \itemize{
-     \item{Restore bFlip and filtering features}
-   }
-}
+Changes since least release include bug fixes and some new features:
 
-
-\section{Version 2.1.4}{
   \itemize{
-     \item{Sync bug fixes from release version}
-   }
-}
-
-\section{Version 2.1.3}{
-  \itemize{
-     \item{Feature: can filter each contrast at analysis time (filter and filterFun paramters added to dba.analyze)}
-     \item{Feature: can "flip" order of groups in dba.report (bFlip parameter)}
-     \item{Feature: can "flip" order of groups in dba.plotMA (bFlip parameter)}
-   }
-}
-
-\section{Version 2.1.1}{
-  \itemize{
-     \item{Bugfix: add empty peakset (peaks=NA)}
-     \item{Bugfix: fix warnings regarding no visible definitions}
-     \item{Vignette: add link to vignette data}
+     \item{Feature: Control which principal components are plotted using components parameter in dba.plotPCA}
+     \item{Feature: Control axis range using xrange and yrange parameters in dba.plotMA}
+     \item{Feature: Filtering per-contrast using filter and filterFun parameters in dba.analyze)}
+     \item{Feature: Flip which group in contrast shows gain/loss (sign of fold change) using bFlip parameter in dba.report}
+     \item{Feature: Flip which group in contrast shows gain/loss (sign of fold change) using bFlip parameter in dba.plotMA}
    }
 }
 
@@ -47,7 +24,7 @@
            \item{Change default analysis method to DESeq2 for its more conservative normalization}
            \item{Designate DESeq method as obsolete (in favor of DESeq2); alter documentation and vignette accordingly.}
            \item{Change default FDR threshold to 0.05}
-           \item{Add bNot paramater to dba.contrast to remove ! contrasts by default}
+           \item{Add bNot parameter to dba.contrast to remove ! contrasts by default}
            \item{Remove bReturnPeaksets parameter from dba.plotVenn (does this by default)}
            \item{Change bCorPlot default to FALSE (no more automatic clustering heatmaps)}
         }
@@ -66,7 +43,7 @@
        \itemize{
           \item{Fix bug in retrieving SummarizedExperiment}
           \item{Fix bug when no peaks}   
-          \item{Fix bugs in non-standard chromosome names and chromsome order}
+          \item{Fix bugs in non-standard chromosome names and chromosome order}
           \item{Fix bugs in Called logical vectors}
           \item{Ensure loading sample sheet doesn't treat hash as comment char.}
           \item{Tildes in file paths now accepted.}
@@ -93,7 +70,7 @@
    \item{Replace 'require' with 'requireNamespace' to eliminate NOTEs regarding misuse of 'require'}
    \item{Remove non-ASCII characters from a couple of comments}
    \item{Change Gord's email address}
-   \item{New: color vector lists for dba.plotHeatmap and colos for dba.plotPCA labels}
+   \item{New: color vector lists for dba.plotHeatmap and colors for dba.plotPCA labels}
    \item{Fix: bug causing two plots when changing score in dba.plotHeatmap and dba.plotPCA}
  }
 }
@@ -300,7 +277,7 @@ Changes since last release:
 
    \item{Blocking factors (for two-factor analysis) can be specified flexibly such that arbitrary blocking factors can be used. }
 
-   \item{Section added to vignette showing an an analysis using a blocking factor.}
+   \item{Section added to vignette showing an analysis using a blocking factor.}
 
    \item{Added new metadata type, DBA_TREATMENT.}
 
@@ -320,3 +297,4 @@ and ability to change scoring method on the fly in dba.plotHeatmap and dba.plotP
      \item{Initial release}
   }
 }
+
