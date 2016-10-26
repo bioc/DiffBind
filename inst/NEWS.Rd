@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.2.3}{
+
+  \itemize{
+     \item{Fix bug in dba.count}
+     \item{Update tamoxifen.csv and peak files to match downloadable dataset}
+   }
+}
+
 \section{Version 2.2.0}{
 
 Changes since least release include bug fixes and some new features:
