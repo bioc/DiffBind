@@ -44,8 +44,8 @@ struct chromComp {
 class IntervalSet {
   public:
     IntervalSet();
-//    virtual ~IntervalSet();
-    virtual void insert(Interval const *inter,bode::NodeGroup* ng);
+    ~IntervalSet();
+    void insert(Interval const *inter,bode::NodeGroup* ng);
     void clear(void);
     int coverage(std::string const &chrom,int point) const;
     int overlapping(Interval const *inter,int withoutDupes) const;

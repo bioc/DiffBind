@@ -130,7 +130,10 @@ importFrom(dplyr,bind_rows)
 
 importFrom(BiocParallel, bplapply)
 
-importFrom(parallel, mclapply, mcparallel, mccollect)
+importFrom(parallel, mclapply)
+if (tools:::.OStype() == "unix") {
+  importFrom(parallel, mcparallel, mccollect)
+}
 
 importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-")
 

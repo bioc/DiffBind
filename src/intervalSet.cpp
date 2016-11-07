@@ -8,16 +8,14 @@ bode::IntervalSet::IntervalSet() {
   chroms = new map<string,IntervalTree *,chromComp>();
 }
 
-/*
 bode::IntervalSet::~IntervalSet() {
-  map<string,IntervalTree *,chromComp>::iterator it;
-  for (it=chroms->begin();it!=chroms->end();it++) {
-    delete it->second;
-  }
+//  map<string,IntervalTree *,chromComp>::iterator it;
+//  for (it=chroms->begin();it!=chroms->end();it++) {
+//    delete it->second;
+//  }
 
   delete chroms;
 }
-*/
 
 void bode::IntervalSet::insert(Interval const *inter,bode::NodeGroup* ng) {
   const string chrom = inter->chrom();

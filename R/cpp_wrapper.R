@@ -10,8 +10,6 @@
 ################################################
 
 ## cpp_count_reads -- count reads on intervals
-## cpp_mergeOne -- merge overlapping intervals into extended intervals
-## cpp_mergeTwo -- merge two sets of intervals, calculating the union of them
 
 cpp_count_reads <- function(bamfile,insertLength,fileType,bufferSize,
                             intervals,bWithoutDupes,summits,minMappingQual=0) {
@@ -52,18 +50,4 @@ cpp_count_reads <- function(bamfile,insertLength,fileType,bufferSize,
     result$heights <- heights.vec;
   }
   return(result)
-}
-
-
-cpp_mergeOne <- function(peaks,bKeepAll,minOverlap) {
-  return(.Call("mo_mergeOne",peaks,bKeepAll,minOverlap))
-}
-
-
-cpp_mergeTwo <- function(peaksA,peaksB,bKeepAll,minOverlap,zero) {
-  return(.Call("mo_mergeTwo",peaksA,peaksB,bKeepAll,minOverlap,zero))
-}
-
-cpp_peakOrder <- function(peaks) {
-  return(peakOrder(peaks[,1],peaks[,2],peaks[,3]))
 }
