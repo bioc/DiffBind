@@ -369,7 +369,7 @@ fdebug <- function(str,file='debug.txt'){
    PV_DEBUG=FALSE
    
    if(PV_DEBUG == FALSE){
-      return
+      return()
    }
    
    #write(sprintf('%s\n',str),file=file,append=T)

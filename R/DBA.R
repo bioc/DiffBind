@@ -1284,7 +1284,7 @@ print.DBA <- function(x,...){
 summary.DBA <- function(object,...) {
    if(is.null(object$binding)) {
       cat('Run dba first\n')
-      return
+      return()
    }
    res <- sprintf("%d Samples, %d sites in matrix",
                   length(object$peaks),nrow(object$binding))
