@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.2.5}{
+
+  \itemize{
+     \item{Fix bug using bFlip option with method=DBA_EDGER}
+   }
+}
+
 \section{Version 2.2.3}{
 
   \itemize{

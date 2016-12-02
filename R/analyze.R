@@ -922,7 +922,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
       }
       
       if(bNormalized){
-         sizes <- con$edgeR$samples$lib.size * con$edgeR$samples$norm.factors
+         sizes <- con$edgeR$samples$lib.size[facs] * con$edgeR$samples$norm.factors[facs]
          counts <- t(t(counts)/sizes)
          counts <- counts * con$edgeR$pseudo.lib.size
       } 
