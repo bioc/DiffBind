@@ -628,25 +628,33 @@ The same can be done for each of the replicated cell line experiments, and rathe
 A separate consensus peakset for each of the replicated sample types can be added to the DBA object using \Rcode{dba.peakset}:
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
-tamoxifen <- dba.peakset(tamoxifen, consensus=c(DBA_TISSUE,DBA_CONDITION), 
-            minOverlap=0.66)
-tamoxifen
+tamoxifen_consensus <- dba.peakset(tamoxifen, consensus=c(DBA_TISSUE,DBA_CONDITION),
+                                   minOverlap=0.66)
 @
 
-This adds a new consensus peakset for each set of samples that share the same Tissue and Condition values. The exact effect could be obtained by calling    
-\Rcode{tamoxifen <- dba.peakset(tamoxifen, consensus=-DBA\_REPLICATE)} on the original set of peaks; this tells \DiffBind to generate a consensus peakset for every set of samples that have identical metadata values \emph{except} the Replicate number.
+This adds a new consensus peakset for each set of samples that share the same Tissue and Condition values. The exact effect could be obtained by calling
+\Rcode{tamoxifen\_consensus <- dba.peakset(tamoxifen, consensus=-DBA\_REPLICATE)} on the original set of peaks; this tells \DiffBind to generate a consensus peakset for every set of samples that have identical metadata values \emph{except} the Replicate number.
 
 From this, a new \Rclass{DBA} object can be generated consisting of only the five consensus peaksets (the \$Consensus mask filters peaksets previously formed using \Rcode{dba.peakset}) :
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
-tamoxifen_consensus <- dba(tamoxifen, mask=tamoxifen$masks$Consensus)
+tamoxifen_consensus <- dba(tamoxifen_consensus, mask=tamoxifen_consensus$masks$Consensus,
+                           minOverlap=1)
 tamoxifen_consensus
 @
 
-Alternatively, a master consensus peakset could be generated, and reads counted, directly using \Rcode{dba.count}:
-\Rcode{tamoxifen <- dba.count(tamoxifen, peaks=tamoxifen\$masks\$Consensus)}
+and an overall consensus peakset, that includes peaks identified in at least two replicates of at least one sample group, can be identified:
 
-Finally, consider an analysis where we wished to treat all five MCF7 samples together to look for binding sites specific to that cell line irrespective of tamoxifen resistant/responsive status. We can create consensus peaksets for each cell type, and look at how the resultant peaks overlap (shown in Figure~\ref{DiffBind-tamox_lines_venn}):
+<<eval=TRUE,echo=TRUE,results=verbatim>>=
+consensus_peaks <- dba.peakset(tamoxifen_consensus, bRetrieve=TRUE)
+@
+
+This consensus peakset could then be used as the basis for the binding matrix used in \Rcode{dba.count}:
+
+\Rcode{tamoxifen <- dba.count(tamoxifen, peaks=consensus\_peaks)}
+
+Finally, consider an analysis where we wished to treat all five MCF7 samples together to look for binding sites specific to that cell line irrespective of tamoxifen resistant/responsive status.
+We can create consensus peaksets for each cell type, and look at how the resultant peaks overlap (shown in Figure~\ref{DiffBind-tamox_lines_venn}):
 
 <<tamox_lines_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
 data(tamoxifen_peaks)
