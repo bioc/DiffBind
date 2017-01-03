@@ -732,7 +732,8 @@ pv.Recenter <- function(pv,summits,peakrange,called=NULL) {
    }
    
    positions <- sapply(peaklist,function(x)x$Summits)
-   heights   <- sapply(peaklist,function(x)max(1,x$Heights))
+   heights   <- sapply(peaklist,function(x) pmax.int(1,x$Heights))
+   
    if(!is.null(called)) {
       called <- split(called,rep(1:ncol(called),each=nrow(called)))
       heights <- heights * sapply(called,function(x)x)
@@ -756,7 +757,7 @@ pv.Recenter <- function(pv,summits,peakrange,called=NULL) {
       pv$called <- res$merged[,4:ncol(res$merged)]
       pv$chrmap <- res$chrmap
    } else {
-      pv$merged <- mergePeaks(bed,-1)
+      pv$merged <- pv.merge(bed)
       pv$chrmap <- pv$chrmap
    }
    pv$merged <- data.frame(pv$merged)
