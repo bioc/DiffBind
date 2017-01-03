@@ -898,7 +898,7 @@ pv.addstr <- function(s1,a1) {
    return(s1)	
 }
 
-pv.merge <- function(allpeaks,peaks,classes,maxgap=-1,
+pv.merge <- function(allpeaks,peaks=NULL,classes,maxgap=-1,
                      useExternal=TRUE,useC=TRUE, defVal=0){
    
    if(!useC) {
@@ -921,15 +921,17 @@ pv.merge <- function(allpeaks,peaks,classes,maxgap=-1,
    result       <- matrix(defVal,nrow(merged),length(peaks)+3)
    result[,1:3] <- as.matrix(merged[,1:3])
    def <- rep(defVal,nrow(merged))
-   for(i in 1:length(peaks)) {
-      peakset <- peaks[[i]][,1:4]
-      peakset[,1] <- match(peakset[,1],chrmap)
-      if(is.unsorted(unique(peakset[,1]))) {
-         peakset <- pv.peaksort(peakset)
+   if(length(peaks)>0) {
+      for(i in 1:length(peaks)) {
+         peakset <- peaks[[i]][,1:4]
+         peakset[,1] <- match(peakset[,1],chrmap)
+         if(is.unsorted(unique(peakset[,1]))) {
+            peakset <- pv.peaksort(peakset)
+         }
+         res <- mergeScores(merged,def,peakset)
+         result[,i+3] <- res$score
+         included[,i] <- res$included
       }
-      res <- mergeScores(merged,def,peakset)
-      result[,i+3] <- res$score
-      included[,i] <- res$included
    }
    
    colnames(result) <- rep("",ncol(result))

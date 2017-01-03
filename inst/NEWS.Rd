@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.2.7}{
+  \itemize{
+     \item{Fix calculation of summits to actually use weighted means. 
+     Same fix adresses issue when calculating summits using user-supplied consensus peakset.}
+   }
+}
+
+
 \section{Version 2.2.5}{
 
   \itemize{
