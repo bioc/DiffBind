@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.3.8}{
+  \itemize{
+     \item{Fix bug in re-centering code to honor mapping quality filter}
+   }
+}
+
 \section{Version 2.3.7}{
   \itemize{
      \item{Fix calculation of summits to actually use weighted means. 
