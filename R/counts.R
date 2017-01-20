@@ -569,7 +569,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
                           bOnlyCounts=T,bCalledMasks=T,minMaxval=minMaxval,filterFun=filterFun,
                           bParallel=bParallel,bWithoutDupes=bWithoutDupes,bScaleControl=bScaleControl,
                           bSignal2Noise=bSignal2Noise,bLowMem=FALSE,readFormat=readFormat,summits=0,
-                          bRecentered=TRUE)
+                          bRecentered=TRUE,minMappingQuality=minMappingQuality)
          pv.gc()
          return(res)
       } else {
@@ -679,6 +679,10 @@ pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=F,
       res <- pv.getCountsLowMem(bamfile,intervals,bWithoutDupes,mode,yieldSize,singleEnd,fragments,
                                 scanbamparam)
       return(res)
+   }
+   
+   if(missing(summits)) {
+      summits=0
    }
    
    fdebug("Starting croi_count_reads...")
