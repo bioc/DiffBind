@@ -926,7 +926,7 @@ pv.plotPCA <-
       
       config <- pv$config
       
-      if (!missing(mask) || !missing(numSites)) {
+      if (!missing(mask) || !missing(numSites) || is.null(pv$pc)) {
          if (missing(mask)) {
             mask <- rep(T,ncol(pv$class))
          }
@@ -1025,7 +1025,7 @@ pv.plotPCA <-
       if (b3D) {
          if (requireNamespace("rgl",quietly = TRUE)) {
             rgl::plot3d(
-               pc$rotation[,compnums],
+               pc$rotation[,compnums[c(1,3,2)]],
                col = pv.colorv(classvec,vColors),type = 's',size = sval,
                xlab = sprintf('PC #%d [%2.0f%%]',c1,c1p),
                ylab = sprintf('PC #%d [%2.0f%%]',c3,c3p),

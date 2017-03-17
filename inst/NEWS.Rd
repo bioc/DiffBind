@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.2.9}{
+  \itemize{
+     \item{Fix bug in 3D PCA plots (y-x axis reversal)}
+   }
+}
+
+
 \section{Version 2.2.8}{
   \itemize{
      \item{Fix bug in re-centering code to honor mapping quality filter}
