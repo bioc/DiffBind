@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.3.10}{
+  \itemize{
+     \item{Fix spruiour warning when checking blocking factors}
+   }
+}
+
+
 \section{Version 2.3.9}{
   \itemize{
      \item{Fix bug in 3D PCA plots (y-z axis swap)}

@@ -378,7 +378,7 @@ pv.checkBlock <- function(contrast,bCheckBalanced=F,bCheckMultiple=T,bCheckCross
    }
    
    if(bCheckUnique) {
-      unique <- rep(0,sum(contrast$group1)+sum(contrast$group2)) 	
+      unique <- rep(0,length(contrast$group1)) 	
       for(att in contrast$blocklist) {
          unique <- unique + (contrast$group1 & att$samples)
          unique <- unique + (contrast$group2 & att$samples)	
