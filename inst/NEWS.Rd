@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.2.10}{
+  \itemize{
+     \item{Fix erroneous warning when checking blocking factors}
+   }
+}
+
+
 \section{Version 2.2.9}{
   \itemize{
      \item{Fix bug in 3D PCA plots (y-x axis reversal)}

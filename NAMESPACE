@@ -135,3 +135,5 @@ importFrom(parallel, mclapply)
 importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-")
 
 importFrom(Rsamtools, BamFileList, ScanBamParam, scanBamFlag, countBam)
+
+importFrom("methods", "as")
