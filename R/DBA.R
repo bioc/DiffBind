@@ -832,10 +832,14 @@ dba.plotBox <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
       stop('Supplied contrast greater than number of contrasts')	
    }
    
-   res <- pv.plotBoxplot(DBA, contrast=contrast, method=method, th=th, bUsePval=bUsePval, bNormalized=bNormalized,
-                         attribute=attribute,bAll=bAll, bAllIncreased=bAllIncreased, bAllDecreased=bAllDecreased, 
-                         bDB=bDB, bDBIncreased=bDBIncreased, bDBDecreased=bDBDecreased,
-                         pvalMethod=pvalMethod,  bReversePos=bReversePos, attribOrder=attribOrder, vColors=vColors, 
+   res <- pv.plotBoxplot(DBA, contrast=contrast, method=method, th=th, 
+                         bUsePval=bUsePval, bNormalized=bNormalized,
+                         attribute=attribute,bAll=bAll, 
+                         bAllIncreased=bAllIncreased, bAllDecreased=bAllDecreased, 
+                         bDB=bDB, bDBIncreased=bDBIncreased, 
+                         bDBDecreased=bDBDecreased,
+                         pvalMethod=pvalMethod,  bReversePos=bReversePos, 
+                         attribOrder=attribOrder, vColors=vColors, 
                          varwidth=varwidth, notch=notch, ...)
    
    invisible(res)	
@@ -860,6 +864,25 @@ dba.plotMA <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                        facname=factor, bNormalized=bNormalized, cex=dotSize, 
                        bSignificant=bSignificant, bSmooth=bSmooth,bFlip=bFlip,
                        xrange=xrange, yrange=yrange,...)
+   
+   invisible(res)
+}
+
+#####################################
+## dba.plotVolcano -- Volcano plot ##
+#####################################
+
+dba.plotVolcano <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod, 
+                            th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
+                            fold=0, factor="", bFlip=FALSE, dotSize=1)
+   
+{
+   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
+   
+   res <- pv.DBAplotVolcano(DBA, contrast=contrast, method=method, 
+                           th=th, bUsePval=bUsePval, fold=fold,
+                           facname=factor, dotSize=dotSize,
+                           bFlip=bFlip)
    
    invisible(res)
 }

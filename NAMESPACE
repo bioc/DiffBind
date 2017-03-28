@@ -10,6 +10,7 @@ export(dba,
        dba.plotHeatmap,
        dba.plotPCA,
        dba.plotMA,
+       dba.plotVolcano,
        dba.plotVenn,
        dba.plotBox,
        dba.show,
@@ -126,7 +127,7 @@ importFrom(tools,file_ext)
 
 importFrom(Rcpp, evalCpp)
 
-importFrom(dplyr,bind_rows)
+importFrom(dplyr,bind_rows, mutate)
 
 importFrom(BiocParallel, bplapply)
 
@@ -140,3 +141,5 @@ importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-")
 importFrom(Rsamtools, BamFileList, ScanBamParam, scanBamFlag, countBam)
 
 importFrom(methods,as)
+
+importFrom(ggplot2, ggplot, aes, geom_point, scale_color_manual, labs)

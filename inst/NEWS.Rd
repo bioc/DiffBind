@@ -2,9 +2,16 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.3.11}{
+  \itemize{
+     \item{Added new plot: dba.plotVolcano}
+   }
+}
+
+
 \section{Version 2.3.10}{
   \itemize{
-     \item{Fix spruiour warning when checking blocking factors}
+     \item{Fix warning when checking blocking factors}
    }
 }
 

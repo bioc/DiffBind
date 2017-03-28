@@ -1260,6 +1260,97 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
    }	
 }
 
+pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
+                              bUsePval=F,fold=0,facname="",
+                              dotSize=1,bSignificant=T, bFlip=FALSE,
+                              xrange,yrange) {
+   
+   if(missing(contrast)){
+      contrast <- 1:length(pv$contrasts)
+   } else {
+      if(contrast > length(pv$contrasts)) {
+         stop('Specified contrast number is greater than number of contrasts')
+         return(NULL)
+      }
+   }
+   
+   for(con in 1:length(contrast)) {
+      conrec <- pv$contrasts[[contrast[con]]]
+      name1 <- conrec$name1
+      name2 <- conrec$name2
+      if(bFlip) {
+         name1 <- conrec$name2
+         name2 <- conrec$name1   
+      }
+      for(meth in method) {
+         res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=T,
+                             th=100,bNormalized=TRUE,bFlip=bFlip)
+         
+         if(!is.null(res)) {
+            if(bUsePval) {
+               vals <- res$"p-value" 
+               idx  <- vals <= th
+               tstr <- "p"
+               res = mutate(res,
+                            Legend=ifelse(res$"p-value"<=th,
+                                          sprintf(" p-val<=%1.2f",th),
+                                          sprintf(" p-val >%1.2f",th)))
+            } else {
+               vals <- res$FDR 
+               idx  <- vals <= th
+               tstr <- "FDR"
+               res = mutate(res,
+                            Legend=ifelse(res$FDR<th,
+                                          sprintf(" FDR<=%1.2f",th),
+                                          sprintf(" FDR >%1.2f",th)))
+            }
+            
+            res$Legend[idx & abs(res$Fold) < fold] <- 
+               sprintf("abs(Fold)<%1.2f",2^fold)
+            idx <- idx & abs(res$Fold) >= fold 
+            
+            if(missing(xrange)) {
+               xmin  <- floor(min(res$Fold))
+               xmax  <- ceiling(max(res$Fold))
+            } else {
+               if (length(xrange) != 2) {
+                  stop("xrange must be vector of two numbers")
+               }
+               xmin <- xrange[1]
+               xmax <- xrange[2]
+            }
+            if(missing(yrange)) {
+               ymin  <- floor(min(vals))
+               ymax  <- ceiling(max(vals))
+            } else {
+               if (length(yrange) != 2) {
+                  stop("yrange must be vector of two numbers")
+               }
+               ymin <- yrange[1]
+               ymax <- yrange[2]
+            }
+            
+            plotTitle <- sprintf('%s Contrast: %s vs. %s [%s %s<=%1.3f',
+                                 facname, name1,name2,sum(idx),tstr,th)
+            if(fold>0) {
+               plotTitle <- sprintf("%s & abs(Fold)>=%1.2f]",
+                                    plotTitle, 2^fold)
+            } else {
+               plotTitle <- sprintf("%s]",plotTitle)
+            }
+            xLabel <- sprintf('log2(%s) - log2(%s)',name1,name2)
+            yLabel <- sprintf("-log10(%s)",tstr)
+            
+            p <- ggplot(res,aes(Fold,-log10(vals))) +
+               geom_point(aes(col=Legend),size=dotSize) +
+               scale_color_manual(values=c(crukMagenta,crukBlue,crukGrey)) + 
+               labs(title=plotTitle,x=xLabel,y=yLabel)
+            plot(p)
+         }
+      }
+   }	
+}
+
 pv.normTMM <- function(pv,bMinus=TRUE,bFullLib=FALSE,bCPM=FALSE){
    
    if(length(pv$peaks)<2) {
