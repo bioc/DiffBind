@@ -58,6 +58,7 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
       }
       if(bDoVectors) {
          contrasts <- pv$contrasts
+         called    <- pv$called
          for(i in 1:length(pv$peaks)) {
             if(is.factor(pv$peaks[[i]][,1])) {
                pv$peaks[[i]][,1] <- as.character(pv$peaks[[i]][,1])
@@ -66,6 +67,7 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
          pv <- pv.vectors(pv,minOverlap=minOverlap,bAllSame=pv.allSame(pv),
                           merge=is.null(pv$merged))
          pv$contrasts <- contrasts
+         pv$called    <- called
       }
    }
    
