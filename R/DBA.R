@@ -1202,6 +1202,7 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
          minOverlap <- res$minOverlap
       }
       contrasts <- res$contrasts
+      called    <- res$called
       for(i in 1:length(res$peaks)) {
          if(is.factor(res$peaks[[i]][,1])) {
             res$peaks[[i]][,1] <- as.character(res$peaks[[i]][,1])
@@ -1210,6 +1211,7 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
       res <- pv.vectors(res,minOverlap=minOverlap,bAllSame=pv.allSame(res),
                         merge=is.null(res$merged))
       res$contrasts <- contrasts
+      res$called    <- called
    }
    
    if(is.null(res$config$DataType)) {

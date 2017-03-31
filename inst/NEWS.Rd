@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.3.12}{
+  \itemize{
+     \item{Fix restoring called peaks in dba.save}
+   }
+}
+
 \section{Version 2.3.11}{
   \itemize{
      \item{Added new plot: dba.plotVolcano}
