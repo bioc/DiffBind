@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.3.13}{
+  \itemize{
+     \item{Added labels and return of top peaks in dba.plotVolcano}
+     \item{Reversed colors in dba.plotVolcano}     
+   }
+}
+
 \section{Version 2.3.12}{
   \itemize{
      \item{Fix restoring called peaks in dba.save}

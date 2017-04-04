@@ -1262,6 +1262,7 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
 
 pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
                               bUsePval=F,fold=0,facname="",
+                              bLabels=FALSE,maxLabels=50,
                               dotSize=1,bSignificant=T, bFlip=FALSE,
                               xrange,yrange) {
    
@@ -1309,26 +1310,33 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
                sprintf("abs(Fold)<%1.2f",2^fold)
             idx <- idx & abs(res$Fold) >= fold 
             
-            if(missing(xrange)) {
-               xmin  <- floor(min(res$Fold))
-               xmax  <- ceiling(max(res$Fold))
-            } else {
-               if (length(xrange) != 2) {
-                  stop("xrange must be vector of two numbers")
-               }
-               xmin <- xrange[1]
-               xmax <- xrange[2]
-            }
-            if(missing(yrange)) {
-               ymin  <- floor(min(vals))
-               ymax  <- ceiling(max(vals))
-            } else {
-               if (length(yrange) != 2) {
-                  stop("yrange must be vector of two numbers")
-               }
-               ymin <- yrange[1]
-               ymax <- yrange[2]
-            }
+            # if(missing(xrange)) {
+            #    xmin  <- floor(min(res$Fold))
+            #    xmax  <- ceiling(max(res$Fold))
+            # } else {
+            #    if (length(xrange) != 2) {
+            #       stop("xrange must be vector of two numbers")
+            #    }
+            #    xmin <- xrange[1]
+            #    xmax <- xrange[2]
+            # }
+            # if(missing(yrange)) {
+            #    ymin  <- floor(min(vals))
+            #    ymax  <- ceiling(max(vals))
+            # } else {
+            #    if (length(yrange) != 2) {
+            #       stop("yrange must be vector of two numbers")
+            #    }
+            #    ymin <- yrange[1]
+            #    ymax <- yrange[2]
+            # }
+            
+            sigSites <- res[idx,]
+            rownames(sigSites) <- 1:sum(idx)
+            
+            res <- cbind(0,res)
+            colnames(res)[1] <- "SiteNum"
+            res[idx,1] <- 1:sum(idx)
             
             plotTitle <- sprintf('%s Contrast: %s vs. %s [%s %s<=%1.3f',
                                  facname, name1,name2,sum(idx),tstr,th)
@@ -1343,12 +1351,24 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
             
             p <- ggplot(res,aes(Fold,-log10(vals))) +
                geom_point(aes(col=Legend),size=dotSize) +
-               scale_color_manual(values=c(crukMagenta,crukBlue,crukGrey)) + 
+               scale_color_manual(values=c(crukBlue,crukMagenta,crukGrey)) + 
                labs(title=plotTitle,x=xLabel,y=yLabel)
+            
+            if(bLabels) {
+               maxLabels <- min(sum(idx),maxLabels)
+               if(maxLabels > 0) {
+                  xx <-  which(idx)[1:maxLabels]
+                  p <- p + geom_text_repel(data=sigSites[1:maxLabels,],
+                                      aes(x=Fold, 
+                                          y = -log10(vals[xx]),
+                                          label=rownames(sigSites)[1:maxLabels]))
+               }
+            }
             plot(p)
          }
       }
-   }	
+   }
+   return(sigSites[,-10])
 }
 
 pv.normTMM <- function(pv,bMinus=TRUE,bFullLib=FALSE,bCPM=FALSE){

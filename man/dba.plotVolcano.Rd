@@ -10,7 +10,8 @@ Generates volcano plots of differential binding analysis results.
 \usage{
 dba.plotVolcano(DBA, contrast=1, method=DBA$config$AnalysisMethod, 
                             th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
-                            fold=0, factor="", bFlip=FALSE, dotSize=1)
+                            fold=0, factor="", bFlip=FALSE, 
+                            bLabels=FALSE, maxLabels=50, dotSize=1)
 }
 
 %- maybe also 'usage' for other objects documented here.
@@ -56,16 +57,29 @@ logical indicating that order of groups in contrast should be "flipped", allowin
 will have positive and which will have negative fold changes.
 }
 
+ \item{bLabels}{
+logical indicating that labels should be drawn on the plot.
+The labels are the site numbers, the row index in the (silently) returned set of
+significant sites. The maximim number of sites can be specified 
+using \code{maxLabels}.
+}
+
+ \item{maxLabels}{
+The maximum number of labels to use in the plot.
+Ignored if \code{bLabels=FALSE}.
+}
 
   \item{dotSize}{
 size of points on plot.
 }
 }
 
-%\details{
-%}
-%\value{
-%}
+\details{
+Makes a volcal plot.
+}
+\value{
+silently returns a \code{GRanges} object of the sites higlighted in red.
+}
 %\references{
 %% ~put references to the literature/web site here ~
 %}
@@ -89,7 +103,11 @@ data(tamoxifen_analysis)
 dba.plotVolcano(tamoxifen)
 
 # only highlight significant sites with at least 10x Fold Change
-dba.plotVolcano(tamoxifen, fold=log2(10))
+sigSites <- dba.plotVolcano(tamoxifen, fold=log2(10))
+
+# use labels to find outlier sites
+sigSites <- dba.plotVolcano(tamoxifen, fold=5,bLabels=TRUE)
+sigSites
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

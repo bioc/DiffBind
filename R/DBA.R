@@ -874,7 +874,8 @@ dba.plotMA <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
 
 dba.plotVolcano <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod, 
                             th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
-                            fold=0, factor="", bFlip=FALSE, dotSize=1)
+                            fold=0, factor="", bFlip=FALSE, 
+                            bLabels=FALSE, maxLabels=50, dotSize=1)
    
 {
    DBA <- pv.check(DBA,bCheckEmpty=TRUE)
@@ -882,9 +883,9 @@ dba.plotVolcano <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
    res <- pv.DBAplotVolcano(DBA, contrast=contrast, method=method, 
                            th=th, bUsePval=bUsePval, fold=fold,
                            facname=factor, dotSize=dotSize,
-                           bFlip=bFlip)
+                           bFlip=bFlip, bLabels=bLabels, maxLabels=maxLabels)
    
-   invisible(res)
+   invisible(as(res,"GRanges"))
 }
 
 ###########################################################
