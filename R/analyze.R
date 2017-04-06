@@ -1035,6 +1035,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
       cnames <- colnames(counts)
       counts <- matrix(counts[sites,],nrow=1,ncol=ncol(counts))
       colnames(counts) <- cnames
+      rownames(counts) <- 1
    } else {
       counts <- counts[sites,]
    }
@@ -1129,8 +1130,13 @@ pv.getsites <- function(pv,sites){
    if(is.logical(sites)) {
       sites <- which(sites)
    }
-   idx   <- match(as.integer(sites),rownames(pv$binding))
+   siteNum <- as.integer(sites)
+   idx   <- match(siteNum,rownames(pv$binding))
    sites <- data.frame(pv$binding[idx,1:3])
+   if(length(idx)==1) {
+      sites <- t(sites)
+      rownames(sites) <- siteNum
+   }
    sites[,1] <- pv$chrmap[sites[,1]]
    return(sites)
 }

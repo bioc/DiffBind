@@ -101,6 +101,10 @@ pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,t
       report <- report[abs(report$Fold)>=fold,]
    }
    
+   if(nrow(report)==1) {
+      stop("Only one site to plot -- need at least 2!")   
+   }
+   
    if(!missing(mask)){
       if (!is.logical(mask)) {
          if (max(mask) > length(pv$peaks)) {

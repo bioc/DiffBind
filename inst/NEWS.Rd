@@ -4,6 +4,13 @@
 
 \section{Version 2.3.13}{
   \itemize{
+     \item{Reset $attributes on load}
+     \item{Add error message in plots when only 1 DB site}
+   }
+}
+
+\section{Version 2.3.13}{
+  \itemize{
      \item{Added labels and return of top peaks in dba.plotVolcano}
      \item{Reversed colors in dba.plotVolcano}     
    }
