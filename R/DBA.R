@@ -1159,9 +1159,9 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
    
    if(!is.null(res$vectors)) {
       if(!is.null(res$allvectors)) {
-         res$binding    <- res$vectors
-         pv$totalMerged <- nrow(pv$allvectors)
-         res$merged     <- res$allvectors[,1:3]
+         res$binding     <- res$vectors
+         res$totalMerged <- nrow(res$allvectors)
+         res$merged      <- res$allvectors[,1:3]
       } else {
          res$binding     <- res$vectors
          res$merged      <- res$vectors[,1:3]

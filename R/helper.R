@@ -38,9 +38,9 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
    }
    if(!is.null(pv$vectors)) {
       if(!is.null(pv$allvectors)) {
-         pv$binding    <- pv$vectors
+         pv$binding     <- pv$vectors
          pv$totalMerged <- nrow(pv$allvectors)
-         pv$merged     <- pv$allvectors[,1:3]
+         pv$merged      <- pv$allvectors[,1:3]
       } else {
          pv$binding     <- pv$vectors
          pv$merged      <- pv$vectors[,1:3]
