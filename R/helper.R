@@ -57,8 +57,9 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
          minOverlap <- pv$minOverlap
       }
       if(bDoVectors) {
-         contrasts <- pv$contrasts
-         called    <- pv$called
+         contrasts  <- pv$contrasts
+         called     <- pv$called
+         attributes <- pv$attributes
          for(i in 1:length(pv$peaks)) {
             if(is.factor(pv$peaks[[i]][,1])) {
                pv$peaks[[i]][,1] <- as.character(pv$peaks[[i]][,1])
@@ -66,8 +67,9 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
          }
          pv <- pv.vectors(pv,minOverlap=minOverlap,bAllSame=pv.allSame(pv),
                           merge=is.null(pv$merged))
-         pv$contrasts <- contrasts
-         pv$called    <- called
+         pv$contrasts  <- contrasts
+         pv$called     <- called
+         pv$attributes <- attributes 
       }
    }
    
@@ -105,6 +107,10 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
    if (is.null(pv$config$fragmentSize)) {
       pv$config$fragmentSize <- 125
    }   
+   
+   if(class(pv$attributes) == "function") {
+      pv$attributes <- NULL
+   }
    
    if(bCheckSort && is.unsorted(pv$chrmap)) {
       message("Older version of DBA object. Recommend running DBA <- dba(DBA).")
