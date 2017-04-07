@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.3.14}{
+  \itemize{
+     \item{Correctly handle 0-length peak files}
+   }
+}
+
 \section{Version 2.3.13}{
   \itemize{
      \item{Reset $attributes on load}

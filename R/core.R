@@ -183,14 +183,19 @@ pv.peakset <-
       } else {
          if (is.character(peaks)) {
             # Read in peaks from a file
-            pcaller <- strtrim(peak.caller,6)
-            if (is.null(peak.format)) {
-               peak.format <- pcaller
+            if(file.info(peaks)$size > 0) {
+               pcaller <- strtrim(peak.caller,6)
+               if (is.null(peak.format)) {
+                  peak.format <- pcaller
+               }
+               if (is.null(scoreCol)) {
+                  scoreCol <- pv.defaultScoreCol(peak.format)
+               }
+               peaks <- pv.readPeaks(peaks,peak.format,skipLines)
+            } else {
+               peaks <- matrix(0,0,4)
+               scoreSave <- scoreCol <- 0
             }
-            if (is.null(scoreCol)) {
-               scoreCol <- pv.defaultScoreCol(peak.format)
-            }
-            peaks <- pv.readPeaks(peaks,peak.format,skipLines)
          } else {
             if (is.null(scoreCol))
                scoreCol <- 0
@@ -199,7 +204,8 @@ pv.peakset <-
          }
          
          scoreSave <- scoreCol
-         if ( (ncol(peaks) < scoreSave) | (ncol(peaks) == 3) ){
+         if ( (nrow(peaks) > 0) & 
+              ( (ncol(peaks) < scoreSave) | (ncol(peaks) == 3))){
             peaks <- cbind(peaks[,1:3],1)
             colnames(peaks)[ncol(peaks)] <- "score"
             scoreCol <- 0

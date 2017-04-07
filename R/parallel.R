@@ -19,19 +19,19 @@ dba.parallel <- function(DBA) {
       DBA$config$parallelInit <- TRUE
       return(DBA)
    }
-   
-   if(DBA$config$parallelPackage==DBA_PARALLEL_RLSF) {
-      DBA$config <-  dba.Rlsf.init(DBA$config)
-      DBA$config$parallelInit <- TRUE
-      return(DBA)
-   }
-   
-   if(DBA$config$parallelPackage==DBA_PARALLEL_LSFR) {
-      DBA$config <-  dba.lsfR.init(DBA$config)
-      DBA$config$parallelInit <- TRUE
-      return(DBA)
-   }
-   
+   # 
+   # if(DBA$config$parallelPackage==DBA_PARALLEL_RLSF) {
+   #    DBA$config <-  dba.Rlsf.init(DBA$config)
+   #    DBA$config$parallelInit <- TRUE
+   #    return(DBA)
+   # }
+   # 
+   # if(DBA$config$parallelPackage==DBA_PARALLEL_LSFR) {
+   #    DBA$config <-  dba.lsfR.init(DBA$config)
+   #    DBA$config$parallelInit <- TRUE
+   #    return(DBA)
+   # }
+   # 
    warning('UNKNOWN PARALLEL PACKAGE: ',DBA$config$parallelPackage)
    return(DBA)
 }
@@ -65,25 +65,25 @@ dba.parallel.wait4jobs <- function(config,joblist) {
    return(res)
 }
 
-dba.Rlsf.init <- function(config){
-   if (length(find.package(package="DiffBindCRI",quiet=T))>0) {
-      config <- dba.CRI.Rlsf.init(config)    
-   } else {
-      warning('Rlsf interface not supported in this version')
-   }
-   
-   return(config)
-}
-
-dba.lsfR.init <- function(config){
-   if (length(find.package(package="DiffBindCRI",quiet=T))>0) {
-      config <- dba.CRI.lsfR.init(config)    
-   } else {
-      warning('lsfR interface not supported in this version')
-   }
-   
-   return(config)
-}
+# dba.Rlsf.init <- function(config){
+#    if (length(find.package(package="DiffBindCRI",quiet=T))>0) {
+#       config <- dba.CRI.Rlsf.init(config)    
+#    } else {
+#       warning('Rlsf interface not supported in this version')
+#    }
+#    
+#    return(config)
+# }
+# 
+# dba.lsfR.init <- function(config){
+#    if (length(find.package(package="DiffBindCRI",quiet=T))>0) {
+#       config <- dba.CRI.lsfR.init(config)    
+#    } else {
+#       warning('lsfR interface not supported in this version')
+#    }
+#    
+#    return(config)
+# }
 
 ################# multicore INTERFACE #################
 
