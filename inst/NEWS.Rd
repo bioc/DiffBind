@@ -2,70 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.3.14}{
-  \itemize{
-     \item{Correctly handle 0-length peak files}
-   }
-}
+\section{Version 2.4.0}{
 
-\section{Version 2.3.13}{
-  \itemize{
-     \item{Reset $attributes on load}
-     \item{Add error message in plots when only 1 DB site}
-   }
-}
-
-\section{Version 2.3.13}{
-  \itemize{
-     \item{Added labels and return of top peaks in dba.plotVolcano}
-     \item{Reversed colors in dba.plotVolcano}     
-   }
-}
-
-\section{Version 2.3.12}{
-  \itemize{
-     \item{Fix restoring called peaks in dba.save}
-   }
-}
-
-\section{Version 2.3.11}{
-  \itemize{
-     \item{Added new plot: dba.plotVolcano}
-   }
-}
-
-
-\section{Version 2.3.10}{
-  \itemize{
-     \item{Fix warning when checking blocking factors}
-   }
-}
-
-
-\section{Version 2.3.9}{
-  \itemize{
-     \item{Fix bug in 3D PCA plots (y-z axis swap)}
-   }
-}
-
-\section{Version 2.3.8}{
-  \itemize{
-     \item{Fix bug in re-centering code to honor mapping quality filter}
-   }
-}
-
-\section{Version 2.3.7}{
-  \itemize{
-     \item{Fix calculation of summits to actually use weighted means. 
-     Same fix adresses issue when calculating summits using user-supplied consensus peakset.}
-   }
-}
-
-\section{Version 2.3.2}{
+Changes since least release include bug fixes and one new feature:
 
   \itemize{
-     \item{Fix bug in dba.count}
-     \item{Update tamoxifen.csv and peak files to match downloadable dataset}
+     \item{Feature: add new plot - dba.plotVolcano}
    }
 }
 
