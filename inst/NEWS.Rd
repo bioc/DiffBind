@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.4.1}{
+
+  \itemize{
+     \item{Bugfix when returing report as GRanges with only one site}
+   }
+}
+
+
 \section{Version 2.4.0}{
 
 Changes since least release include bug fixes and one new feature:
