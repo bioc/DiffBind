@@ -77,12 +77,14 @@ Rcpp::List mergeScores(Rcpp::DataFrame sMerged,Rcpp::NumericVector sScore, Rcpp:
   peaks.right = sPeaks[2];
   peaks.score = sPeaks[3];
   int vLen = merged.chr.size();
+  int peakLen = peaks.chr.size();
   Rcpp::NumericVector score(vLen);
   Rcpp::NumericVector included(vLen);
   int pi = 0;
 
   for (int mi=0;mi<vLen;mi++) {
-    while (merged.chr[mi] == peaks.chr[pi] &&
+    while (pi < peakLen &&
+           merged.chr[mi] == peaks.chr[pi] &&
            merged.left[mi] <= peaks.left[pi] &&
            merged.right[mi] >= peaks.right[pi]) {
       // peak is contained in region

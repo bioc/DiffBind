@@ -2,6 +2,18 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.5.1}{
+
+Changes since last release (so far just bug fixes):
+
+  \itemize{
+    \item{Bug Fixes}
+      \itemize{
+        \item{Fix buffer overrun causing segfault on MacOS}
+      }
+  }
+}
+
 \section{Version 2.4.0}{
 
 Changes since least release include bug fixes and one new feature:
