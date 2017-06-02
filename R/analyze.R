@@ -1134,7 +1134,7 @@ pv.getsites <- function(pv,sites){
    idx   <- match(siteNum,rownames(pv$binding))
    sites <- data.frame(pv$binding[idx,1:3])
    if(length(idx)==1) {
-      sites <- t(sites)
+      sites <- data.frame(t(sites))
       rownames(sites) <- siteNum
    }
    sites[,1] <- pv$chrmap[sites[,1]]

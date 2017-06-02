@@ -2,10 +2,17 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.5.2}{
+  \itemize{
+    \item{Bug Fixes}
+      \itemize{
+        \item{Bugfix when returing report as GRanges with only one site}
+        \item{Bugfix: plotting venns of consensus peaksets}
+      }
+  }
+}
+
 \section{Version 2.5.1}{
-
-Changes since last release (so far just bug fixes):
-
   \itemize{
     \item{Bug Fixes}
       \itemize{
