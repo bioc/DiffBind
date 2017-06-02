@@ -291,6 +291,15 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor, condition, trea
       }   
    }   
    
+   numpeaks <- length(res$peaks)
+   if(numpeaks > 1) {
+      if(is.null(res$called)) {
+         res <- dba(res)
+      } else 
+   if(numpeaks != ncol(res$called)) {
+      res <- dba(res)
+   }
+   }
    return(res)                       
    
 }                      

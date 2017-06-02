@@ -2,15 +2,19 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.4.2}{
+\section{Version 2.4.3}{
+  \itemize{
+     \item{Bugfix: plotting venns of consensus peaksets}
+   }
+}
 
+\section{Version 2.4.2}{
   \itemize{
      \item{Bugfix: fix buffer overrun causing segfault on MacOS}
    }
 }
 
 \section{Version 2.4.1}{
-
   \itemize{
      \item{Bugfix when returing report as GRanges with only one site}
    }
