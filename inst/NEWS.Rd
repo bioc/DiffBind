@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.4.4}{
+  \itemize{
+     \item{Bugfix: fix to bugfix for single-site reports}
+   }
+}
+
 \section{Version 2.4.3}{
   \itemize{
      \item{Bugfix: plotting venns of consensus peaksets}
