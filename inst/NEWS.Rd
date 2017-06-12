@@ -2,6 +2,16 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.5.3}{
+  \itemize{
+    \item{Bug Fixes}
+      \itemize{
+        \item{Bugfix for Bugfix when returning report as GRanges with only one site}
+      }
+  }
+}
+
+
 \section{Version 2.5.2}{
   \itemize{
     \item{Bug Fixes}

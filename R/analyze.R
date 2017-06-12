@@ -1035,7 +1035,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
       cnames <- colnames(counts)
       counts <- matrix(counts[sites,],nrow=1,ncol=ncol(counts))
       colnames(counts) <- cnames
-      rownames(counts) <- 1
+      rownames(counts) <- sites
    } else {
       counts <- counts[sites,]
    }
