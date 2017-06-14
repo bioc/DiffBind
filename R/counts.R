@@ -20,7 +20,7 @@ pv.model <- function(model,mask,minOverlap=2,
    
    if(!missing(model)){
       ChIPQCobj <- model$ChIPQCobj
-   } else ChIPQCobj=NULL
+   } else ChIPQCobj <- NULL
    
    if(!missing(model)) {
       if(missing(attributes)) {

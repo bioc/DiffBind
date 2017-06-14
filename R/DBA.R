@@ -151,7 +151,8 @@ dba <- function(DBA,mask, minOverlap=2,
          #          resQC@DBA <- res
          #          res <- resQC
          warning('Returning new DBA object (not ChIPQCexperiment object)')
-      }      
+      }
+      res$ChIPQCobj <- NULL   
    }
    
    return(res)                 
@@ -891,9 +892,9 @@ dba.plotVolcano <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
    DBA <- pv.check(DBA,bCheckEmpty=TRUE)
    
    res <- pv.DBAplotVolcano(DBA, contrast=contrast, method=method, 
-                           th=th, bUsePval=bUsePval, fold=fold,
-                           facname=factor, dotSize=dotSize,
-                           bFlip=bFlip, bLabels=bLabels, maxLabels=maxLabels)
+                            th=th, bUsePval=bUsePval, fold=fold,
+                            facname=factor, dotSize=dotSize,
+                            bFlip=bFlip, bLabels=bLabels, maxLabels=maxLabels)
    
    invisible(as(res,"GRanges"))
 }
