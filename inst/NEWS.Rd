@@ -5,6 +5,7 @@
 \section{Version 2.5.4}{
   \itemize{
      \item{Bugfix: subset config$fragmentSize when masking}
+     \item{Update example peaks to match data objects}
    }
 }
 
