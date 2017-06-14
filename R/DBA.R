@@ -151,7 +151,8 @@ dba <- function(DBA,mask, minOverlap=2,
          #          resQC@DBA <- res
          #          res <- resQC
          warning('Returning new DBA object (not ChIPQCexperiment object)')
-      }      
+      }   
+      res$ChIPQCobj <- NULL
    }
    
    return(res)                 
