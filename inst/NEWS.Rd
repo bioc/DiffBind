@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.5.4}{
+  \itemize{
+     \item{Bugfix: subset config$fragmentSize when masking}
+   }
+}
+
 \section{Version 2.5.3}{
   \itemize{
     \item{Bug Fixes}

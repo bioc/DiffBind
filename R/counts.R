@@ -37,6 +37,11 @@ pv.model <- function(model,mask,minOverlap=2,
       model$config <- as.list(config)
       model$ChIPQCobj <- ChIPQCobj
       model$class[DBA_REPLICATE,is.na(model$class[DBA_REPLICATE,])]=""
+      if(!missing(mask)) {
+         if(length(model$config$fragmentSize) > 1) {
+            model$config$fragmentSize <- model$config$fragmentSize[mask]
+         }
+      }
       return(model)
    }
    

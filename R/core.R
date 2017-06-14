@@ -823,15 +823,7 @@ pv.mask <-
          mask <- !(mask & curmask)
       }
       if (bApply) {
-         pv$binding <- NULL
-         pv$class <- pv$class[,mask]
-         newpeaks <- NULL
-         for (i in 1:length(mask)) {
-            if (mask[i]) {
-               newpeaks <- pv.listadd(newpeaks,pv$peaks[[i]])
-            }
-         }
-         pv$peaks <- newpeaks
+         pv <- dba(pv, mask)
          return(pv)
       } else {
          return(mask)
