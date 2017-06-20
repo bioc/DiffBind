@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.4.6}{
+  \itemize{
+     \item{don't add _ if no initString in dba.report}
+   }
+}
+
 \section{Version 2.4.5}{
   \itemize{
      \item{Bugfix: subset config$fragmentSize when masking}

@@ -1114,10 +1114,15 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
    data[,8:9] <- signif(data[,8:9],3)
    
    if(!missing(file)) {
-      if(is.null(file)) {
-         file=sprintf("%s_%s_vs_%s_%s.%s",initString,name1,name2,method,ext)
+      if(!is.null(initString)) {
+         initString <- sprintf("%s_",initString)
       } else {
-         file=sprintf("%s_%s.%s",initString,file,ext)
+         initString <- ""
+      }
+      if(is.null(file)) {
+         file=sprintf("%s%s_vs_%s_%s.%s",initString,name1,name2,method,ext)
+      } else {
+         file=sprintf("%s%s.%s",initString,file,ext)
       }
       write.csv(data,row.names=F,file=file)
    }
