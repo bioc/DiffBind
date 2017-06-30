@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.5.6}{
+  \itemize{
+     \item{alternate peak counts: pv.resetCounts}
+   }
+}
+
 \section{Version 2.5.5}{
   \itemize{
      \item{don't add _ if no initString in dba.report}

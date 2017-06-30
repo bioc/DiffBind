@@ -819,3 +819,35 @@ pv.controlID <- function(samples,i,class, curnum){
    }
    return(res)
 }
+
+pv.resetCounts <- function(pv,counts) {
+   
+   if(class(counts) != "data.frame") {
+      stop("New counts must be passed as a data.frame.")
+   }
+   if(sum(pv$class[PV_CALLER,]=="counts") != ncol(pv$class)) {
+      stop("All peaks must have counts to replace.")
+   }
+   if(nrow(pv$binding) != nrow(counts)) {
+      stop("All samples must have same number of peaks as binding matrix.")
+   }
+   if(ncol(pv$binding) != ncol(counts)) {
+      stop("All samples must have same number of samples as binding matrix.")
+   }
+   if(sum(pv$class[PV_ID,] == colnames(counts[,4:ncol(counts)])) != 
+      ncol(pv$class)) {
+      stop("All samples must have same IDs, and be in same order, as binding matrix.")
+   }
+      
+   for(sample in 4:ncol(counts)) {
+      snum <- sample - 3
+      pv$peaks[[snum]]$Reads <- sapply(round(counts[,sample]),
+                                       function(x){max(1,x)})
+   }
+   if(!is.null(pv$score)) {
+      scoreVal <- pv$score
+      pv$score <- NULL
+      pv <- dba.count(pv,peaks=NULL,score=scoreVal)
+   }
+   return(pv)
+} 

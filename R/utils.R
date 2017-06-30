@@ -231,10 +231,15 @@ pv.get_reads <- function(pv,peaksets,bSubControl=T){
       bSubControl <- T
    }
    reads <- NULL
+   if(!is.null(pv$peaks_alt)) {
+      peaklist <- pv$peaks_alt
+   } else {
+      peaklist <- pv$peaks
+   }
    for(peakset in peaksets) {
-      reads <- cbind(reads,pv$peaks[[peakset]]$Reads)
+      reads <- cbind(reads,peaklist[[peakset]]$Reads)
       if(bSubControl) {
-         reads[,ncol(reads)] <- reads[,ncol(reads)] - pv$peaks[[peakset]]$cReads
+         reads[,ncol(reads)] <- reads[,ncol(reads)] - peaklist[[peakset]]$cReads
       }
    }
    
