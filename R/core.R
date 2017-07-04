@@ -426,6 +426,8 @@ pv.vectors <-
       if (is.null(allnames)) {
          allnames <- pv$chrmap[pv$binding[,1]]
       }
+      
+      pv$binding <- pv.check1(pv$binding)
       if (nrow(pv$binding) > 0) {
          vnames <- allnames[pv$binding[,1]]
       }
@@ -442,6 +444,8 @@ pv.vectors <-
          rownames(pv$binding) <- 1:nrow(pv$binding)
       }
       
+      pv$merged <- pv.check1(pv$merged)
+      pv$called <- pv.check1(pv$called)
       pv$chrmap <- newmap
       
       pv$hc <- NULL

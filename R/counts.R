@@ -36,7 +36,7 @@ pv.model <- function(model,mask,minOverlap=2,
                           attributes=attributes,bAllSame=allsame)
       model$config <- as.list(config)
       model$ChIPQCobj <- ChIPQCobj
-      model$class[DBA_REPLICATE,is.na(model$class[DBA_REPLICATE,])]=""
+      model$class[DBA_REPLICATE,is.na(model$class[DBA_REPLICATE,])] <- ""
       if(!missing(mask)) {
          if(length(model$config$fragmentSize) > 1) {
             model$config$fragmentSize <- model$config$fragmentSize[mask]
@@ -358,6 +358,13 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
       called <- pv$called[overlaps,]
    }
    
+   bed <- pv.check1(bed)
+   called <- pv.check1(called)
+
+   if(nrow(bed)==0) {
+      stop("Zero peaks to count!")
+   }
+   
    bed <- as.data.frame(pv.peaksort(bed,pv$chrmap))
    bed[,1] <- pv$chrmap[bed[,1]]
    
@@ -587,12 +594,12 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
          }
       }   
       if(!missing(minMaxval)) {
-         data <- res$binding[,4:ncol(res$binding)]
-         maxs <- apply(res$binding[,4:ncol(res$binding)],1,filterFun)
+         data <- pv.check1(res$binding[,4:ncol(res$binding)])
+         maxs <- apply(data,1,filterFun)
          tokeep <- maxs>=minMaxval
          if(sum(tokeep)<length(tokeep)) {
             if(sum(tokeep)>1) {
-               res$binding <- res$binding[tokeep,]
+               res$binding <- pv.check1(res$binding[tokeep,])
                rownames(res$binding) <- 1:sum(tokeep)
                for(i in 1:length(res$peaks)) {
                   res$peaks[[i]] <- res$peaks[[i]][tokeep,]
@@ -838,7 +845,7 @@ pv.resetCounts <- function(pv,counts) {
       ncol(pv$class)) {
       stop("All samples must have same IDs, and be in same order, as binding matrix.")
    }
-      
+   
    for(sample in 4:ncol(counts)) {
       snum <- sample - 3
       pv$peaks[[snum]]$Reads <- sapply(round(counts[,sample]),

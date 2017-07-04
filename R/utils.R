@@ -1051,3 +1051,14 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
                                    high = retval$breaks[-1], color = retval$col)
    invisible(retval)
 }
+
+pv.check1 <- function(sbMatrix) {
+   if(!is.null(sbMatrix)){
+      if(is.null(nrow(sbMatrix))) {
+         snames <- names(sbMatrix)
+         sbMatrix <- matrix(sbMatrix,1,length(sbMatrix))
+         colnames(sbMatrix) <- snames
+      }
+   }
+   return(sbMatrix)
+}   
