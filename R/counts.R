@@ -358,6 +358,23 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
       called <- pv$called[overlaps,]
    }
    
+   if (is.null(nrow(bed))) { # only one peak
+      bnames <- names(bed)
+      bed <- matrix(bed,1,length(bed))
+      colnames(bed) <- bnames
+      rownames(bed) <- 1
+      if(!is.null(called)) {
+         if(is.null(nrow(called))) {
+            called <- matrix(called,1,length(called))
+            colnames(called) <- names(pv$called)
+         }
+      }
+   }
+   
+   if(nrow(bed)==0) {
+      stop("Zero peaks to count!")
+   }
+   
    bed <- as.data.frame(pv.peaksort(bed,pv$chrmap))
    bed[,1] <- pv$chrmap[bed[,1]]
    
@@ -587,12 +604,12 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
          }
       }   
       if(!missing(minMaxval)) {
-         data <- res$binding[,4:ncol(res$binding)]
-         maxs <- apply(res$binding[,4:ncol(res$binding)],1,filterFun)
+         data <- pv.check1(res$binding[,4:ncol(res$binding)])
+         maxs <- apply(data,1,filterFun)
          tokeep <- maxs>=minMaxval
          if(sum(tokeep)<length(tokeep)) {
             if(sum(tokeep)>1) {
-               res$binding <- res$binding[tokeep,]
+               res$binding <- pv.check1(res$binding[tokeep,])
                rownames(res$binding) <- 1:sum(tokeep)
                for(i in 1:length(res$peaks)) {
                   res$peaks[[i]] <- res$peaks[[i]][tokeep,]

@@ -393,6 +393,10 @@ pv.peaksort <- function(peaks,chrmap) {
       peaks[,1] <- match(peaks[,1],chrmap)
    } else chrs=FALSE
    
+   if(nrow(peaks) < 2) {
+      return(peaks)
+   }
+   
    o <- peakOrder(peaks[,1],peaks[,2],peaks[,3])
    peaks <- peaks[o,]
    if(chrs) {

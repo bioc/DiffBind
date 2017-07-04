@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.4.7}{
+  \itemize{
+     \item{dba.count handles 0 or 1 peak}
+   }
+}
+
 \section{Version 2.4.6}{
   \itemize{
      \item{don't add _ if no initString in dba.report}

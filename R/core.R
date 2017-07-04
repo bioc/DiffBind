@@ -420,12 +420,20 @@ pv.vectors <-
          allnames <- pv$chrmap
       }
       
+
       pv$attributes <- attributes
       pv$minOverlap <- minOverlap
       
       if (is.null(allnames)) {
          allnames <- pv$chrmap[pv$binding[,1]]
       }
+      
+      if(is.null(nrow(pv$binding))) { # 1 peak
+         cnames <- names(pv$binding)
+         pv$binding <- matrix(pv$binding,1,length(pv$binding))
+         colnames(pv$binding) <- cnames
+      }
+      
       if (nrow(pv$binding) > 0) {
          vnames <- allnames[pv$binding[,1]]
       }
@@ -440,6 +448,12 @@ pv.vectors <-
             pv$binding <- pv.peaksort(pv$binding)
          }
          rownames(pv$binding) <- 1:nrow(pv$binding)
+      }
+      
+      if(is.null(nrow(pv$merged))) { # 1 peak
+         snames <- names(pv$merged)
+         pv$merged <- matrix(pv$merged,1,length(pv$merged))
+         colnames(pv$merged) <- snames
       }
       
       pv$chrmap <- newmap
