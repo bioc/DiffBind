@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.5.8}{
+  \itemize{
+     \item{sort peaks when adding directly via dba.peakset}
+   }
+}
+
 \section{Version 2.5.7}{
   \itemize{
      \item{fix single peak boundary conditions}
