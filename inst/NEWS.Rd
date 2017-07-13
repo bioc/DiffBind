@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.4.8}{
+  \itemize{
+     \item{sort peaks added directly via dba.peakset}
+   }
+}
+
+
 \section{Version 2.4.7}{
   \itemize{
      \item{dba.count handles 0 or 1 peak}

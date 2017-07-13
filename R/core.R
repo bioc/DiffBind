@@ -197,6 +197,7 @@ pv.peakset <-
                scoreSave <- scoreCol <- 0
             }
          } else {
+            peaks <- pv.peaksort(peaks)
             if (is.null(scoreCol))
                scoreCol <- 0
             if (is.null(bLowerScoreBetter))
