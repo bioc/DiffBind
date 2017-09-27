@@ -11,7 +11,7 @@ Draws a binding site heatmap
 dba.plotHeatmap(DBA, attributes=DBA$attributes, maxSites=1000, minval, maxval,
                 contrast, method=DBA$config$AnalysisMethod, 
                 th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
-                report, score, bLog=TRUE, mask, sites, sortFun,
+                report, score, bLog=TRUE, mask, sites, sortFun=sd,
                 correlations=TRUE, olPlot=DBA_COR, 
                 ColAttributes,RowAttributes, colSideCols, rowSideCols=colSideCols,
                 margin=10, colScheme="Greens", distMethod="pearson",
@@ -102,7 +102,7 @@ logical vector indicating which sites to include; first maxSites of these. Only 
 }
 
  \item{sortFun}{
-function taking a vector of scores and returning a single value. Only relevant when using global binding matrix (contrast is missing). If present, the global binding matrix will be sorted (descending) on the results, and the first maxSites used in the heatmap. Recommended sort function options include sd, mean, median, min.
+function taking a vector of scores and returning a single value. Only relevant when using global binding matrix (contrast is missing). If not equal to FALSE, the global binding matrix will be sorted (descending) on the results, and the first maxSites used in the heatmap. Recommended sort function options include sd, mean, median, min.
 }
 
 \item{correlations}{

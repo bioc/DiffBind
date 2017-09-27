@@ -658,7 +658,7 @@ dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod, th=DBA$c
 dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minval, maxval,
                             contrast, method=DBA$config$AnalysisMethod, 
                             th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
-                            report, score, bLog=TRUE, mask, sites, sortFun, 
+                            report, score, bLog=TRUE, mask, sites, sortFun=sd, 
                             correlations=TRUE, olPlot=DBA_COR, ColAttributes,RowAttributes, colSideCols, rowSideCols=colSideCols,
                             margin=10, colScheme="Greens", distMethod="pearson",
                             ...)
@@ -734,10 +734,10 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minva
          res <- as(res,"GRanges")
       } else {
          
-         if(!missing(sortFun)) {
+         if(class(sortFun)=="function") {
             savevecs <- DBA$binding
             DBA <- pv.sort(DBA, sortFun, mask=mask)
-         }
+         } else savevecs <- NULL
          
          res <- pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes, mask=mask, sites=sites,
                                RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
@@ -748,7 +748,7 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minva
             res[,1] <- DBA$chrmap[res[,1]]
          }
          res <- as(res,"GRanges")
-         if(!missing(sortFun)) {
+         if(!is.null(savevecs)) {
             DBA$binding <- savevecs
          }
       }

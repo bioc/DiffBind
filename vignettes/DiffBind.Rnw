@@ -26,10 +26,12 @@ savewd <- getwd()
 \newcommand{\exitem}[3]{\item \Rcode{\textbackslash#1\{#2\}} #3 \csname#1\endcsname{#2}.}
 
 \title{\Biocpkg{DiffBind}: Differential binding analysis of ChIP-Seq peak data}
-\author{Rory Stark \\ \Rcode{rory.stark@cruk.cam.ac.uk}
-\and
-Gord Brown \\ \Rcode{gdbzork@gmail.com} 
-\and University of Cambridge\\Cancer Research UK - Cambridge Institute
+
+\author{
+   Rory Stark\thanks{\email{rory.stark@cruk.cam.ac.uk}} and
+   Gord Brown\thanks{\email{gdbzork@gmail.com}}\\
+   Cancer Research UK - Cambridge Institute\\
+   University of Cambridge
 }
 
 \date{Edited: March 27, 2017; Compiled: \today}

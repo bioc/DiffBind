@@ -2,6 +2,15 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.5.9}{
+  \itemize{
+     \item{Fix bug in dba.plotHeatmap is all values in a row are zero}
+     \item{Change sortFun parameter in dba.plotHeatmap to default sd, with
+           FALSE as option for no sorting}
+     \item{Change authors in vignette to conform to new standard}           
+   }
+}
+
 \section{Version 2.5.8}{
   \itemize{
      \item{sort peaks when adding directly via dba.peakset}

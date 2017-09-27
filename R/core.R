@@ -1200,6 +1200,8 @@ pv.plotHeatmap <-
          }
       }
       
+      domap <- domap[rowSums(domap)!=0,]
+      
       if (length(ColScheme) == 1) {
          cols <- colorRampPalette(brewer.pal(9,ColScheme))(256)
       } else
