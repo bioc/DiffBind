@@ -2,73 +2,33 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.5.9}{
-  \itemize{
-     \item{Fix bug in dba.plotHeatmap is all values in a row are zero}
-     \item{Change sortFun parameter in dba.plotHeatmap to default sd, with
-           FALSE as option for no sorting}
-     \item{Change authors in vignette to conform to new standard}           
+\section{Version 2.6.0}{
+Changes since last release include bug fixes and some minor feature refinements.
+
+   \itemize{
+      \item{Feature changes}
+         \itemize{
+            \item{Change sortFun parameter in dba.plotHeatmap to default sd, with
+                  FALSE as option for no sorting}
+             \item{Change sortFun parameter in dba.plotHeatmap to default sd, with
+                   FALSE as option for no sorting}
+             \item{Sort peaks when adding directly via dba.peakset}
+             \item{don't add _ if no initString in dba.report}
+             \item{Internal feature: alternate peak counts: pv.resetCounts}
+         }
+      \item{Bug Fixes}
+         \itemize{
+             \item{Fix bug in dba.plotHeatmap is all values in a row are zero}
+             \item{Change authors in vignette to conform to new standard}
+             \item{Fix single peak boundary conditions}
+             \item{Subset config$fragmentSize when masking}
+             \item{Update example peaks to match data objects}
+             \item{Fix bug in dba.plotHeatmap if all values in a row are zero}
+             \item{Bugfix when returning report as GRanges with only one site}
+             \item{Bugfix when plotting venns of consensus peaksets}
+             \item{Fix buffer overrun causing segfault on MacOS}
+         }
    }
-}
-
-\section{Version 2.5.8}{
-  \itemize{
-     \item{sort peaks when adding directly via dba.peakset}
-   }
-}
-
-\section{Version 2.5.7}{
-  \itemize{
-     \item{fix single peak boundary conditions}
-   }
-}
-
-\section{Version 2.5.6}{
-  \itemize{
-     \item{alternate peak counts: pv.resetCounts}
-   }
-}
-
-\section{Version 2.5.5}{
-  \itemize{
-     \item{don't add _ if no initString in dba.report}
-   }
-}
-
-\section{Version 2.5.4}{
-  \itemize{
-     \item{Bugfix: subset config$fragmentSize when masking}
-     \item{Update example peaks to match data objects}
-   }
-}
-
-\section{Version 2.5.3}{
-  \itemize{
-    \item{Bug Fixes}
-      \itemize{
-        \item{Bugfix for Bugfix when returning report as GRanges with only one site}
-      }
-  }
-}
-
-
-\section{Version 2.5.2}{
-  \itemize{
-    \item{Bug Fixes}
-      \itemize{
-        \item{Bugfix when returing report as GRanges with only one site}
-        \item{Bugfix: plotting venns of consensus peaksets}
-      }
-  }
-}
-
-\section{Version 2.5.1}{
-  \itemize{
-    \item{Bug Fixes}
-      \itemize{
-        \item{Fix buffer overrun causing segfault on MacOS}
-      }
-  }
 }
 
 \section{Version 2.4.0}{
@@ -94,10 +54,10 @@ Changes since least release include bug fixes and some new features:
 }
 
 \section{Version 2.0.0}{
-  DiffBind has had substantial internal changes since the last release. 
-  These are focused on improving memory efficiency for large experiments. 
+  DiffBind has had substantial internal changes since the last release.
+  These are focused on improving memory efficiency for large experiments.
   \itemize{
-     \item{Feature changes} 
+     \item{Feature changes}
         \itemize{
            \item{Change default analysis method to DESeq2 for its more conservative normalization}
            \item{Designate DESeq method as obsolete (in favor of DESeq2); alter documentation and vignette accordingly.}
@@ -120,14 +80,14 @@ Changes since least release include bug fixes and some new features:
      \item{Bug fixes}
        \itemize{
           \item{Fix bug in retrieving SummarizedExperiment}
-          \item{Fix bug when no peaks}   
+          \item{Fix bug when no peaks}
           \item{Fix bugs in non-standard chromosome names and chromosome order}
           \item{Fix bugs in Called logical vectors}
           \item{Ensure loading sample sheet doesn't treat hash as comment char.}
           \item{Tildes in file paths now accepted.}
           \item{Spaces trimmed from entries in sample sheets (with warning).}
           \item{Functions added to importFrom stats to satisfy BiocCheck.}
-       }       
+       }
   }
 }
 
@@ -238,13 +198,13 @@ Changes since last release:
 
      \item{Add support for DESeq2:}{
      \itemize{
-      \item{New: Add DBA_DESEQ2, DBA_ALL_METHODS and DBA_ALL_BLOCK method constants}     
+      \item{New: Add DBA_DESEQ2, DBA_ALL_METHODS and DBA_ALL_BLOCK method constants}
       \item{Change: dba.analyze can analyze using DESeq2}
       \item{Change: all reporting and plotting functions support DESeq2 results}
       \item{Change: vignette includes comparison of edgeR, DESeq, and DESeq2}
      }
    }
-    
+
      \item{Changes to counting using dba.count:}{
        \itemize{
         \item{Change: optimize built-in counting code to use much less memory and run faster}
@@ -252,9 +212,9 @@ Changes since last release:
         \item{New: add readFormat parameter to specify read file type (instead of using file suffix)}
        }
      }
-     
+
    \item{New: generation of result-based DBA object using dba.report (makes it easier to work with differentially bound peaksets)}{}
-     
+
     \item{Changes to defaults:}{
       \itemize{
         \item{Change: default score is now DBA_SCORE_TMM_MINUS_FULL instead of DBA_SCORE_TMM_MINUS_EFFECTIVE in dba.count}
@@ -262,7 +222,7 @@ Changes since last release:
         \item{New: add bCorPlot option to DBA$config to turn off CorPlot by default}
       }
     }
-    
+
    \item{Various bugfixes, improved warnings, updated documentation}{}
   }
 }
@@ -277,12 +237,12 @@ Changes since last release:
             \item{Allow maxFilter to be a numerical vector to retrieve filtering rate}
             \item{Add parameter: filterFun to control filtering method}
         }
-      \item{New: Support for SummarizedExperiment objects (dba and dba.report)} 
+      \item{New: Support for SummarizedExperiment objects (dba and dba.report)}
           \itemize{
             \item{Add bSummarizedExperiment option to dba() to convert DBA object}
             \item{Add DataType = DBA_DATA_SUMMARIZED_REPORT option to dba.report() to return SummarizedExperiment}
          }
-      \item{Documentation: Add section to vignette showing how to obtain full tamoxifen resistance dataset}  
+      \item{Documentation: Add section to vignette showing how to obtain full tamoxifen resistance dataset}
          \itemize{
             \item{Add section to vignette showing how to obtains full tamoxifen dataset}
             \item{Add script (tamoxifen_GEO.R) and sample sheet (tamoxifen_GEO.csv) to extras for full tamoxifen dataset}
@@ -290,7 +250,7 @@ Changes since last release:
             \item{Add examples to man pages for dba and dba.report to show retrieval of SummarizedExperiment objects}
             \item{Update and cleanup vignette and man pages}
          }
-      \item{Various bugfixes and improved warnings}      
+      \item{Various bugfixes and improved warnings}
    }
 }
 
@@ -315,7 +275,7 @@ Changes since last release:
 	  }
 	  \item{dba.plotPCA}
 	  \itemize{
-               \item{Add support for specifying sample mask to include any subset of samples in a contrast plot, including samples that were not in the original contrast}  
+               \item{Add support for specifying sample mask to include any subset of samples in a contrast plot, including samples that were not in the original contrast}
             }
       }
       \item{Peaksets (dba and dba.peakset)}
@@ -359,7 +319,7 @@ Changes since last release:
 
    \item{Added new metadata type, DBA_TREATMENT.}
 
-   \item{New DBA_SCORE_ options for specifying scoring method, including TMM normalized counts, 
+   \item{New DBA_SCORE_ options for specifying scoring method, including TMM normalized counts,
 and ability to change scoring method on the fly in dba.plotHeatmap and dba.plotPCA when plotting global binding matrix.}
 
    \item{bRemoveDuplicates parameter in dba.count allows duplicate reads to be discarded when computing counts}
