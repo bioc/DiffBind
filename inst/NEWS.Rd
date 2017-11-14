@@ -2,6 +2,19 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.7.1}{
+Changes are (so far) bug fixes.
+
+   \itemize{
+      \item{Bug Fixes}
+         \itemize{
+             \item{Bug in dba.count caused by not registering one of the C
+                   routines correctly.}
+         }
+      }
+}
+
+
 \section{Version 2.6.0}{
 Changes since last release include bug fixes and some minor feature refinements.
 
