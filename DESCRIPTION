@@ -10,7 +10,7 @@ Description: Compute differentially bound sites from multiple ChIP-seq
         occupancy (overlap) analysis and plotting functions.
 License: Artistic-2.0
 LazyLoad: yes
-Depends: R (>= 3.3.0), GenomicRanges, SummarizedExperiment
+Depends: R (>= 3.4), GenomicRanges, SummarizedExperiment
 Imports: RColorBrewer, amap, edgeR, gplots, grDevices, limma, GenomicAlignments, 
         locfit, stats, utils, IRanges, zlibbioc, lattice, systemPipeR, tools, Rcpp,
         dplyr, ggplot2, BiocParallel, parallel, S4Vectors, Rsamtools, DESeq2, methods,
