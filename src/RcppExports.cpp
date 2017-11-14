@@ -44,10 +44,20 @@ BEGIN_RCPP
 END_RCPP
 }
 
+extern "C" {
+SEXP croi_count_reads(SEXP filename_r,SEXP insertLength_r,SEXP filetype_r,
+                      SEXP bufferSize_r,SEXP minMapQual_r,SEXP chrom_r,
+                      SEXP left_r,SEXP right_r,
+                      SEXP intervalCount_r,SEXP withoutDupes_r,
+                      SEXP wantSummits_r,SEXP counts_r,SEXP summits_r,
+                      SEXP heights_r);
+}
+
 static const R_CallMethodDef CallEntries[] = {
     {"_DiffBind_mergePeaks", (DL_FUNC) &_DiffBind_mergePeaks, 2},
     {"_DiffBind_mergeScores", (DL_FUNC) &_DiffBind_mergeScores, 3},
     {"_DiffBind_peakOrder", (DL_FUNC) &_DiffBind_peakOrder, 3},
+    {"croi_count_reads", (DL_FUNC) &croi_count_reads, 14},
     {NULL, NULL, 0}
 };
 
