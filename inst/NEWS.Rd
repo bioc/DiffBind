@@ -2,7 +2,26 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.7.1}{
+\section{Version 2.6.3}{
+Bug Fixes
+
+   \itemize{
+      \item{fix bug when recentering passed-in peaks}
+   }
+}
+
+\section{Version 2.6.2}{
+Bug Fixes
+
+   \itemize{
+      \item{dontrun example code for dba.save writing into LIB}
+      \item{dontrun example code for dba setting wd to LIB}
+      \item{fix bug in dba.report when using filtering from dba.analyze}
+      \item{fix bug in dba.count when passing in peaks using factors}
+   }
+}
+
+\section{Version 2.6.1}{
 Changes are (so far) bug fixes.
 
    \itemize{

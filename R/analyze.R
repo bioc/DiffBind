@@ -1026,6 +1026,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
    
    keep <-  data[,thCol] <= th
    sites <- as.numeric(data[keep,siteCol])
+   sites <- match(sites,as.integer(rownames(counts)))
    if(sum(keep)==0) {
       if(!bSupressWarning) {
          warning('No sites above threshold',call.=FALSE)

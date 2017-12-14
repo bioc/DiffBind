@@ -50,7 +50,6 @@ pv.DataType2Peaks <- function(RDpeaks){
    if(is.null(RDpeaks)) {
       return(NULL)
    }
-   
    if(class(RDpeaks)=='logical') {
       return(RDpeaks)
    }
@@ -75,6 +74,9 @@ pv.DataType2Peaks <- function(RDpeaks){
    } else {
       res <- RDpeaks
    }
+  if(class(res)=="data.frame") {
+    res[,1] <- as.character(res[,1])
+  }
    return(res)
 }
 

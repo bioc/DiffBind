@@ -166,6 +166,7 @@ Rory Stark and Gordon Brown
 
 \examples{
 # Create DBA object from a samplesheet
+\dontrun{
 setwd(system.file("extra", package="DiffBind"))
 tamoxifen <- dba(sampleSheet="tamoxifen.csv")
 tamoxifen
@@ -175,6 +176,7 @@ tamoxifen
 
 tamoxifen <- dba(sampleSheet="tamoxifen_allfields.csv",config="config.csv")
 tamoxifen
+}
 
 #Create a DBA object with a subset of samples
 data(tamoxifen_peaks)
