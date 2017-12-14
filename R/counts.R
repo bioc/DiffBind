@@ -773,8 +773,9 @@ pv.Recenter <- function(pv,summits,peakrange,called=NULL) {
       pv$called <- res$merged[,4:ncol(res$merged)]
       pv$chrmap <- res$chrmap
    } else {
-      pv$merged <- pv.merge(bed)
-      pv$chrmap <- pv$chrmap
+      res <- pv$merge(bed)
+      pv$merged <- res$merged
+      pv$chrmap <- res$chrmap
    }
    pv$merged <- data.frame(pv$merged)
    pv$merged[,1] <- pv$chrmap[pv$merged[,1]]
