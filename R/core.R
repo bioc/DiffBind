@@ -578,12 +578,14 @@ pv.consensus <-
       } else {
          peaklist  <- NULL
          classlist <- NULL
+         chrs <- NULL
          for (samp in sampvec) {
             peaklist  <- pv.listadd(peaklist,pv$peaks[[samp]])
+            chrs <- sort(unique(c(chrs,unique(pv$peaks[[samp]][,1]))))
          }
          tmp$peaks  <- peaklist
          tmp$class  <- pv$class[, sampvec]
-         tmp$chrmap <- pv$chrmap
+         tmp$chrmap <- chrs
          tmp <- pv.vectors(tmp,minOverlap = minOverlap)
       }
       
@@ -602,7 +604,7 @@ pv.consensus <-
       
       #kludge to get peakset in correct format
       tmpf <- tempfile(as.character(Sys.getpid())) #tmpdir='.')
-      pv.do_peaks2bed(tmp$binding, pv$chrmap,tmpf)
+      pv.do_peaks2bed(tmp$binding, tmp$chrmap,tmpf)
       tmp$binding <- pv.readbed(tmpf)
       unlink(tmpf)
       

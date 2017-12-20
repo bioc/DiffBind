@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.7.4}{
+Bug Fixes
+
+   \itemize{
+      \item{fix bug when adding consensus peaks with chromosomes not present in some peaksets}
+   }
+}
+
 \section{Version 2.7.3}{
 Bug Fixes
 
