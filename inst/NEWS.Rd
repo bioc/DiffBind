@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.7.5}{
+Bug Fixes
+
+   \itemize{
+      \item{Sort report by FDR instead of p_value}
+   }
+}
+
 \section{Version 2.7.4}{
 Bug Fixes
 

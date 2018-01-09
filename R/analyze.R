@@ -1109,7 +1109,11 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
       data <- data[abs(data$Fold)>=minFold,]
    }
    
-   data <- data[order(data$'p-value'),]
+   if(bUsePval) {
+     data <- data[order(data$'p-value'),]
+   } else {
+     data <- data[order(data$FDR,data$'p-value'),]
+   }
    
    data[,4:7] <- round(data[,4:7],2)
    data[,8:9] <- signif(data[,8:9],3)
