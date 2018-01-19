@@ -83,7 +83,7 @@ pv.DataType2Peaks <- function(RDpeaks){
 pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,th=0.05,
                            bUsePval=FALSE,bNormalized=T,report,
                            bPCA=F,bLog=T,minval,maxval,mask,fold=0,
-                           bFlip=FALSE) {
+                           bFlip=FALSE, precision=2:3) {
    
    if(contrast > length(pv$contrasts)) {
       stop('Specified contrast number is greater than number of contrasts')
@@ -95,7 +95,7 @@ pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,t
    if(missing(report)) {
       report <- pv.DBAreport(pv,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
                              bNormalized=bNormalized,bCounts=T,bSupressWarning=T,
-                             minFold=fold,bFlip=bFlip)
+                             minFold=fold,bFlip=bFlip,precision=precision)
       if(is.null(report)) {
          stop('Unable to plot -- no sites within threshold')	
       }

@@ -638,7 +638,7 @@ dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod, th=DBA$c
    if(DataType==DBA_DATA_SUMMARIZED_EXPERIMENT) {
       DBA <- pv.getPlotData(DBA,contrast=contrast,report=res,
                             method=method,th=th,bUsePval=bUsePval,bNormalized=T,
-                            bFlip=bFlip)
+                            bFlip=bFlip, precision=0)
       res <- pv.DBA2SummarizedExperiment(DBA,report=res)
       return(res)
    }

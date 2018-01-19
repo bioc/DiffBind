@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.6.6}{
+Bug Fixes
+
+   \itemize{
+      \item{Internal option for reports to use full precision}
+   }
+}
+
 \section{Version 2.6.5}{
 Bug Fixes
 
