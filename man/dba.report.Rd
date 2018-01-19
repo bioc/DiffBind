@@ -178,7 +178,7 @@ data(tamoxifen_counts)
 tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION, block=tamoxifen$masks$MCF7)
 tamoxifen <- dba.analyze(tamoxifen,bCorPlot=FALSE)
 tamoxifen.DB <- dba.report(tamoxifen,method=c(DBA_DESEQ2,DBA_DESEQ2_BLOCK),
-                          bDB=TRUE, bGain=TRUE, bLoss=TRUE)
+                          bDB=TRUE, bGain=TRUE, bLoss=TRUE, bAll=FALSE)
 dba.plotVenn(tamoxifen.DB,1:4,label1="Single Factor GAIN",label2="Single Factor LOSS",
                              label3="Blocking Factor GAIN",label4="Blocking Factor LOSS")
 }
