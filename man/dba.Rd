@@ -18,7 +18,7 @@ dba(DBA,mask, minOverlap=2,
     bAddCallerConsensus=FALSE, 
     bRemoveM=TRUE, bRemoveRandom=TRUE, 
     bSummarizedExperiment=FALSE,
-    bCorPlot, attributes)  
+    bCorPlot, attributes, dir)  
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -127,6 +127,12 @@ vector of attributes to use subsequently as defaults when generating labels in p
 \item DBA_CONTROL
 }
 }
+\item{dir}{
+Directory path. If supplied, files referenced in the \code{sampleSheet} will have
+this path prepended. 
+Applies to \code{PeakFiles}, \code{bamReads}, and \code{bamControl}, if present.
+If \code{sampleSheet} is a filepath, this will prepended to that as well.
+}
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
@@ -167,8 +173,8 @@ Rory Stark and Gordon Brown
 \examples{
 # Create DBA object from a samplesheet
 \dontrun{
-setwd(system.file("extra", package="DiffBind"))
-tamoxifen <- dba(sampleSheet="tamoxifen.csv")
+basedir <- system.file("extra", package="DiffBind")
+tamoxifen <- dba(sampleSheet="tamoxifen.csv", dir=basedir)
 tamoxifen
 
 tamoxifen <- dba(sampleSheet="tamoxifen_allfields.csv")
@@ -184,9 +190,9 @@ Responsive <- dba(tamoxifen,tamoxifen$masks$Responsive)
 Responsive
 
 # change peak caller but leave peak format the same
-setwd(system.file("extra", package="DiffBind"))
-tamoxifen <- dba(sampleSheet="tamoxifen.csv", peakCaller="macs", 
-                 peakFormat="raw", scoreCol=5 )
+basedir <- system.file("extra", package="DiffBind")
+tamoxifen <- dba(sampleSheet="tamoxifen.csv", dir=basedir,
+                 peakCaller="macs", peakFormat="raw", scoreCol=5 )
 dba.show(tamoxifen, attributes=c(DBA_TISSUE,DBA_CONDITION,DBA_REPLICATE,DBA_CALLER))
 
 # Convert DBA object to SummarizedExperiment

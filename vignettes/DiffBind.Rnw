@@ -6,7 +6,6 @@
 
 <<style, eval=TRUE, echo=FALSE, results=tex>>=
 BiocStyle::latex()
-savewd <- getwd()
 @ 
 
 \newcommand{\DBA}{\Biocpkg{DiffBind}~}
@@ -21,7 +20,6 @@ savewd <- getwd()
 
 \begin{document}
 \SweaveOpts{concordance=TRUE}
-\SweaveOpts{prefix.string=\Sexpr{savewd}/DiffBind}
 
 \newcommand{\exitem}[3]{\item \Rcode{\textbackslash#1\{#2\}} #3 \csname#1\endcsname{#2}.}
 
@@ -34,7 +32,7 @@ savewd <- getwd()
    University of Cambridge
 }
 
-\date{Edited: March 27, 2017; Compiled: \today}
+\date{Edited: January 19, 2018; Compiled: \today}
 
 \maketitle
 
@@ -143,13 +141,11 @@ options(warn=-1)
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
 library(DiffBind)
-setwd(system.file("extra", package="DiffBind"))
 @
 
 Obtaining the sites significantly differentially bound (DB) between the samples that respond to tamoxifen and those that are resistant can be done in a five-step script:
 
 <<eval=FALSE,echo=TRUE,results=hide>>=
-print(savewd)
 tamoxifen <- dba(sampleSheet="tamoxifen.csv")
 tamoxifen <- dba.count(tamoxifen)
 tamoxifen <- dba.contrast(tamoxifen)
@@ -174,7 +170,8 @@ samples
 The peaksets are read in using the following \DBA function:
 
 <<dbaConstruct, eval=TRUE,echo=TRUE,results=verbatim>>=
-tamoxifen <- dba(sampleSheet="tamoxifen.csv")
+tamoxifen <- dba(sampleSheet="tamoxifen.csv",
+                 dir=system.file("extra", package="DiffBind"))
 @
 
 The result is a \Rclass{DBA object}; the metadata associated with this object can be displayed simply as follows:
@@ -246,7 +243,7 @@ This is done using the \Rcode{dba.contrast} function, as follows:
 tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION)
 @
 
-The uses the \emph{Condition} metadata (Responsive vs. Resistant) to set up a a contrast with 
+This uses the \emph{Condition} metadata (Responsive vs. Resistant) to set up a contrast with 
 4 samples in the Resistant group and 7 samples in the Responsive group.\footnote{This step is actually optional: if the main analysis function \Rcode{dba.analyze} 
 is invoked with no contrasts established, \DBA will set up a default set of contrasts automatically, which in this case will be the one we are interested in.}
 
@@ -376,7 +373,7 @@ This same data can also be shown with the concentrations of each sample groups p
 
 \subsection{Volcano plots}
 
-Similar to MA plots, Volcano plots also highlight significantly differentially bound sitesand show their fold changes. 
+Similar to MA plots, Volcano plots also highlight significantly differentially bound sites and show their fold changes. 
 Here, however, the confidence statistic (FDR or p-value) is 
 shown on a negative log scale.
 
@@ -391,7 +388,7 @@ The plot is shown in  Figure~\ref{DiffBind-tamox_sdb_volcano}.
 
 \subsection{Boxplots}
 
-Boxplots provide a way to view how read distributions differ between classes of binding sites. Consider the example, where the 
+Boxplots provide a way to view how read distributions differ between classes of binding sites. Consider the example, where  
 \Sexpr{as.numeric(levels(dba.show(tamoxifen,bContrasts=T)[1,5]))} 
 differentially bound sites are identified. 
 The MA plot (Figure~\ref{DiffBind-tamox_sdb_ma}) shows that these are not distributed evenly 
@@ -552,7 +549,7 @@ We see that while \Biocpkg{edgeR} identifies a lower number of sites than \Biocp
 when modelling the confounding factor the greater sensitivity results in more sites being identified using both packages. 
 You can check this by looking at the identified sites using \Rcode{dba.report}, and performing MA, heatmap, and PCA plots.
 
-We can also compare the sites identified using \Biocpkg{edgeR} and \Biocpkg{DESeq2}. An easy way to do this is to use a special feature of the \Rcode{dba.report} function that constructs a "results-bdba.plotVenn(ased" \Rclass{DBA object}:
+We can also compare the sites identified using \Biocpkg{edgeR} and \Biocpkg{DESeq2}. An easy way to do this is to use a special feature of the \Rcode{dba.report} function that constructs a "results-based" \Rclass{DBA object}:
 
 <<tamox_block_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
 tam.block <- dba.report(tamoxifen,method=DBA_ALL_METHODS_BLOCK,bDB=TRUE,bAll=TRUE)
@@ -995,7 +992,7 @@ Due to space limitations, the aligned reads associated with the cell line data u
 Data for the vignette are available for download at \url{http://DiffBind.starkhome.com}.
 
 The full data for all chromosomes are also available in the Short Read Archive
-(GEO scession number GSE32222).
+(GEO accession number GSE32222).
 Email for detailed instructions on how to retrieve them in the appropriate form.
 
 %' Also included is a sample sheet that uses the downloaded data. 
@@ -1057,9 +1054,6 @@ particularly Mark Robinson and Davis McCarthy, for helpful discussions.
 toLatex(sessionInfo())
 @
 
-<<eval=TRUE,echo=FALSE,results=hide>>=
-setwd(savewd)
-@
 \bibliography{DiffBind}
 
 \end{document}

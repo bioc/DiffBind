@@ -81,81 +81,81 @@ dba <- function(DBA,mask, minOverlap=2,
                                   bCorPlot=FALSE, th=0.05, bUsePval=FALSE),
                 peakCaller="raw", peakFormat, scoreCol, bLowerScoreBetter, filter, skipLines=0, bAddCallerConsensus=FALSE, 
                 bRemoveM=TRUE, bRemoveRandom=TRUE, bSummarizedExperiment=FALSE,
-                bCorPlot, attributes) 
+                bCorPlot, attributes, dir) 
 {
-   if(!missing(DBA)){
-      if(class(DBA)=="character") {
-         stop("DBA object is a character string; perhaps meant to be argument \'sampleSheet\'?")	
-      }
-      DBA <- pv.check(DBA,bCheckSort=FALSE)	
-   } 
-   
-   res <- pv.model(DBA, mask=mask, minOverlap=minOverlap, samplesheet=sampleSheet, config=config, 
-                   caller=peakCaller, format=peakFormat, scorecol=scoreCol,bLowerBetter=bLowerScoreBetter,
-                   skipLines=skipLines,bAddCallerConsensus=bAddCallerConsensus, 
-                   bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,
-                   filter=filter, attributes=attributes)
-   
-   res$contrasts=NULL
-   
-   if(is.null(res$config$DataType)) {
-      res$config$DataType=DBA_DATA_DEFAULT
-   }
-   
-   if(is.null(res$config$parallelPackage)){
-      res$config$parallelPackage=DBA_PARALLEL_MULTICORE
-   }
-   if(is.null(res$config$RunParallel)){
-      res$config$RunParallel=TRUE
-   }
-   if(is.null(res$config$AnalysisMethod)){
-      res$config$AnalysisMethod=DBA_DESEQ2
-   }
-   if(is.null(res$config$bCorPlot)){
-      if(missing(bCorPlot)){
-         res$config$bCorPlot=FALSE
-      } else {
-         res$config$bCorPlot=bCorPlot   
-      }
-   }
-   if(is.null(res$config$th)){
-      res$config$th=0.05
-   }
-   if(is.null(res$config$bUsePval)){
-      res$config$bUsePval=FALSE
-   }
-   
-   if(missing(DBA)){
-      DBA=NULL
-   } 
-   if(is.null(DBA$config$reportInit)){
-      res$config$reportInit="DBA"
-   } else {
-      res$config$reportInit=DBA$config$reportInit
-   }
-   if(class(res)!="DBA") {
-      class(res) <- "DBA"
-   }
-   
-   if(!missing(bCorPlot)) {
-      if(bCorPlot) {
-         try(dba.plotHeatmap(res),silent=TRUE)      
-      }
-   }
-   
-   if(bSummarizedExperiment) {
-      res <- pv.DBA2SummarizedExperiment(res)
-   } else {
-      if(!is.null(DBA$ChIPQCobj)) {
-         #          resQC <- DBA$ChIPQCobj
-         #          resQC@DBA <- res
-         #          res <- resQC
-         warning('Returning new DBA object (not ChIPQCexperiment object)')
-      }
-      res$ChIPQCobj <- NULL   
-   }
-   
-   return(res)                 
+  if(!missing(DBA)){
+    if(class(DBA)=="character") {
+      stop("DBA object is a character string; perhaps meant to be argument \'sampleSheet\'?")	
+    }
+    DBA <- pv.check(DBA,bCheckSort=FALSE)	
+  } 
+  
+  res <- pv.model(DBA, mask=mask, minOverlap=minOverlap, samplesheet=sampleSheet, config=config, 
+                  caller=peakCaller, format=peakFormat, scorecol=scoreCol,bLowerBetter=bLowerScoreBetter,
+                  skipLines=skipLines,bAddCallerConsensus=bAddCallerConsensus, 
+                  bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,
+                  filter=filter, attributes=attributes, dir)
+  
+  res$contrasts=NULL
+  
+  if(is.null(res$config$DataType)) {
+    res$config$DataType=DBA_DATA_DEFAULT
+  }
+  
+  if(is.null(res$config$parallelPackage)){
+    res$config$parallelPackage=DBA_PARALLEL_MULTICORE
+  }
+  if(is.null(res$config$RunParallel)){
+    res$config$RunParallel=TRUE
+  }
+  if(is.null(res$config$AnalysisMethod)){
+    res$config$AnalysisMethod=DBA_DESEQ2
+  }
+  if(is.null(res$config$bCorPlot)){
+    if(missing(bCorPlot)){
+      res$config$bCorPlot=FALSE
+    } else {
+      res$config$bCorPlot=bCorPlot   
+    }
+  }
+  if(is.null(res$config$th)){
+    res$config$th=0.05
+  }
+  if(is.null(res$config$bUsePval)){
+    res$config$bUsePval=FALSE
+  }
+  
+  if(missing(DBA)){
+    DBA=NULL
+  } 
+  if(is.null(DBA$config$reportInit)){
+    res$config$reportInit="DBA"
+  } else {
+    res$config$reportInit=DBA$config$reportInit
+  }
+  if(class(res)!="DBA") {
+    class(res) <- "DBA"
+  }
+  
+  if(!missing(bCorPlot)) {
+    if(bCorPlot) {
+      try(dba.plotHeatmap(res),silent=TRUE)      
+    }
+  }
+  
+  if(bSummarizedExperiment) {
+    res <- pv.DBA2SummarizedExperiment(res)
+  } else {
+    if(!is.null(DBA$ChIPQCobj)) {
+      #          resQC <- DBA$ChIPQCobj
+      #          resQC@DBA <- res
+      #          res <- resQC
+      warning('Returning new DBA object (not ChIPQCexperiment object)')
+    }
+    res$ChIPQCobj <- NULL   
+  }
+  
+  return(res)                 
 }
 
 ###############################################
@@ -169,141 +169,141 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor, condition, trea
                         bRetrieve=FALSE, writeFile, numCols=4,
                         DataType=DBA$config$DataType)
 {
-   res <- NULL
-   
-   if(!missing(peaks)){
-      if(class(peaks) != "DBA") {
-         peaks <- pv.DataType2Peaks(peaks)
-      } else {
-         peaks <- pv.check(peaks,bDoVectors=FALSE)	
-      }
-   }
-   
-   if(missing(DataType)) {
-      DataType <- DBA_DATA_DEFAULT
-   }
-   
-   if(bRetrieve==TRUE || !missing(writeFile)) { ## RETRIEVE/WRITE PEAKSETS
-      
-      if(missing(writeFile)) {
-         writeFile <- NULL
-      }
-      
-      if(missing(peaks)) {
-         if(!is.null(DBA)) {
-            DBA <- pv.check(DBA,bCheckEmpty=TRUE,bDoVectors=FALSE)
-         } else {
-            stop("DBA object is NULL; can't retrieve peakset.")	
-         }	
-      } else {
-         if(is.vector(peaks)) {
-            if(is.null(DBA)) {
-               stop("DBA object is NULL; can't retrieve peakset.")	
-            }	
-            if(length(peaks) > 1) {
-               if(minOverlap > length(peaks)) {
-                  stop('minOverlap is greater than number of specified peaks.')	
-               } else {
-                  DBA <- dba(DBA,mask=peaks,minOverlap=minOverlap,bCorPlot=FALSE)
-                  peaks <- NULL
-               }
-            }      
-         }	
-      }
-      
-      res <- pv.writePeakset(DBA, fname=writeFile, peaks=peaks, numCols=numCols)     
-      
-      if(DataType!=DBA_DATA_FRAME) {
-         res <- pv.peaks2DataType(res,DataType)
-      }    
-      
-   } else { ## ADD PEAKSET(S)
-      
-      bCheckS <- TRUE
-      bDoV <- TRUE
-      
+  res <- NULL
+  
+  if(!missing(peaks)){
+    if(class(peaks) != "DBA") {
+      peaks <- pv.DataType2Peaks(peaks)
+    } else {
+      peaks <- pv.check(peaks,bDoVectors=FALSE)	
+    }
+  }
+  
+  if(missing(DataType)) {
+    DataType <- DBA_DATA_DEFAULT
+  }
+  
+  if(bRetrieve==TRUE || !missing(writeFile)) { ## RETRIEVE/WRITE PEAKSETS
+    
+    if(missing(writeFile)) {
+      writeFile <- NULL
+    }
+    
+    if(missing(peaks)) {
       if(!is.null(DBA)) {
-         DBA <- pv.check(DBA,bDoVectors=FALSE)
-      }
-      if(!missing(peaks)) {
-         if(class(peaks)=="DBA") {
-            res <- pv.peakset_all(DBA, addpv=peaks, minOverlap=minOverlap)
-            bCheckS <- FALSE
-            bDoV <- FALSE
-         }
-      }
-      if(is.null(res)) {
-         if(!missing(consensus) && pv.isConsensus(DBA)) {
-            if(consensus != TRUE) {
-               stop("DBA object is already formed from a consensus peakset!")
-            }
-         }
-         res <- pv.peakset(DBA, peaks=peaks, 
-                           sampID=sampID, tissue=tissue, factor=factor,condition=condition,treatment=treatment,
-                           replicate=replicate,control=control,
-                           peak.caller=peak.caller, peak.format=peak.format, reads=reads, consensus=consensus, 
-                           readBam=bamReads, controlBam=bamControl,
-                           scoreCol=scoreCol, bLowerScoreBetter=bLowerScoreBetter, 
-                           bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,
-                           minOverlap=minOverlap, filter=filter, counts=counts)
-      }
-      
-      if(class(res)!="DBA") {
-         class(res) <- "DBA"
-      }
-      
-      if(is.null(res$config$DataType)) {
-         res$config$DataType=DBA_DATA_DEFAULT
-      }
-      if(is.null(res$config$parallelPackage)){
-         res$config$parallelPackage=DBA_PARALLEL_MULTICORE
-      }
-      if(is.null(res$config$RunParallel)){
-         res$config$RunParallel=TRUE
-      }
-      if(is.null(res$config$th)){
-         res$config$th=0.05
-      }
-      if(is.null(res$config$bUsePval)){
-         res$config$bUsePval=FALSE
-      }
-      
-      if(is.null(DBA$config$reportInit)){
-         res$config$reportInit="DBA"
+        DBA <- pv.check(DBA,bCheckEmpty=TRUE,bDoVectors=FALSE)
       } else {
-         res$config$reportInit=DBA$config$reportInit
+        stop("DBA object is NULL; can't retrieve peakset.")	
+      }	
+    } else {
+      if(is.vector(peaks)) {
+        if(is.null(DBA)) {
+          stop("DBA object is NULL; can't retrieve peakset.")	
+        }	
+        if(length(peaks) > 1) {
+          if(minOverlap > length(peaks)) {
+            stop('minOverlap is greater than number of specified peaks.')	
+          } else {
+            DBA <- dba(DBA,mask=peaks,minOverlap=minOverlap,bCorPlot=FALSE)
+            peaks <- NULL
+          }
+        }      
+      }	
+    }
+    
+    res <- pv.writePeakset(DBA, fname=writeFile, peaks=peaks, numCols=numCols)     
+    
+    if(DataType!=DBA_DATA_FRAME) {
+      res <- pv.peaks2DataType(res,DataType)
+    }    
+    
+  } else { ## ADD PEAKSET(S)
+    
+    bCheckS <- TRUE
+    bDoV <- TRUE
+    
+    if(!is.null(DBA)) {
+      DBA <- pv.check(DBA,bDoVectors=FALSE)
+    }
+    if(!missing(peaks)) {
+      if(class(peaks)=="DBA") {
+        res <- pv.peakset_all(DBA, addpv=peaks, minOverlap=minOverlap)
+        bCheckS <- FALSE
+        bDoV <- FALSE
       }
-      if(is.null(res$config$AnalysisMethod)){
-         res$config$AnalysisMethod=DBA_DESEQ2
+    }
+    if(is.null(res)) {
+      if(!missing(consensus) && pv.isConsensus(DBA)) {
+        if(consensus != TRUE) {
+          stop("DBA object is already formed from a consensus peakset!")
+        }
       }
-      if(is.null(res$config$bCorPlot)){
-         res$config$bCorPlot=FALSE
-      } 
-      
-      if(bMerge) {
-         res <- pv.check(res,bCheckSort=bCheckS,bDoVectors=bDoV)
+      res <- pv.peakset(DBA, peaks=peaks, 
+                        sampID=sampID, tissue=tissue, factor=factor,condition=condition,treatment=treatment,
+                        replicate=replicate,control=control,
+                        peak.caller=peak.caller, peak.format=peak.format, reads=reads, consensus=consensus, 
+                        readBam=bamReads, controlBam=bamControl,
+                        scoreCol=scoreCol, bLowerScoreBetter=bLowerScoreBetter, 
+                        bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,
+                        minOverlap=minOverlap, filter=filter, counts=counts)
+    }
+    
+    if(class(res)!="DBA") {
+      class(res) <- "DBA"
+    }
+    
+    if(is.null(res$config$DataType)) {
+      res$config$DataType=DBA_DATA_DEFAULT
+    }
+    if(is.null(res$config$parallelPackage)){
+      res$config$parallelPackage=DBA_PARALLEL_MULTICORE
+    }
+    if(is.null(res$config$RunParallel)){
+      res$config$RunParallel=TRUE
+    }
+    if(is.null(res$config$th)){
+      res$config$th=0.05
+    }
+    if(is.null(res$config$bUsePval)){
+      res$config$bUsePval=FALSE
+    }
+    
+    if(is.null(DBA$config$reportInit)){
+      res$config$reportInit="DBA"
+    } else {
+      res$config$reportInit=DBA$config$reportInit
+    }
+    if(is.null(res$config$AnalysisMethod)){
+      res$config$AnalysisMethod=DBA_DESEQ2
+    }
+    if(is.null(res$config$bCorPlot)){
+      res$config$bCorPlot=FALSE
+    } 
+    
+    if(bMerge) {
+      res <- pv.check(res,bCheckSort=bCheckS,bDoVectors=bDoV)
+    }
+    
+    if(!is.null(DBA$ChIPQCobj)) {
+      #          resQC <- DBA$ChIPQCobj
+      #          resQC@DBA <- res
+      #          res <- resQC
+      warning('Returning new DBA object (not ChIPQCexperiment object)')
+    }   
+  }   
+  
+  numpeaks <- length(res$peaks)
+  if(numpeaks > 1) {
+    if(is.null(res$called)) {
+      res <- dba(res)
+    } else 
+      if(numpeaks != ncol(res$called)) {
+        res <- dba(res)
       }
-      
-      if(!is.null(DBA$ChIPQCobj)) {
-         #          resQC <- DBA$ChIPQCobj
-         #          resQC@DBA <- res
-         #          res <- resQC
-         warning('Returning new DBA object (not ChIPQCexperiment object)')
-      }   
-   }   
-   
-   numpeaks <- length(res$peaks)
-   if(numpeaks > 1) {
-      if(is.null(res$called)) {
-         res <- dba(res)
-      } else 
-         if(numpeaks != ncol(res$called)) {
-            res <- dba(res)
-         }
-   }
-   
-   return(res)                       
-   
+  }
+  
+  return(res)                       
+  
 }                      
 
 ##################################################
@@ -324,60 +324,60 @@ dba.overlap <- function(DBA, mask, mode=DBA_OLAP_PEAKS,
                         byAttribute, bCorOnly=TRUE, CorMethod="pearson", 
                         DataType=DBA$config$DataType)
 {                      
-   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
-   
-   if( (mode == DBA_OLAP_ALL) | (!missing(contrast)) | (!missing(report)) ) {
+  DBA <- pv.check(DBA,bCheckEmpty=TRUE)
+  
+  if( (mode == DBA_OLAP_ALL) | (!missing(contrast)) | (!missing(report)) ) {
+    
+    if( (!missing(contrast)) | (!missing(report)) ) {
       
-      if( (!missing(contrast)) | (!missing(report)) ) {
-         
-         if(missing(report)) {
-            report   <- dba.report(DBA,method=method, contrast=contrast,th=th,bUsePval=bUsePval,DataType=DBA_DATA_FRAME)
-         } else {
-            if(class(report)!="data.frame") {
-               stop('Class not supported for report parameter. Call dba.report with DataType=DBA_DATA_FRAME.')	
-            }
-            if(!missing(contrast)) {
-               DBA <- pv.getOverlapData(DBA,contrast,report)
-            }
-         }
-         
-         sites <- as.numeric(rownames(report))
-         
-         if(missing(mask)) {
-            if(missing(contrast)) {
-               mask <- 1:length(DBA$peaks)
-            } else {
-               mask  <- DBA$contrasts[[contrast]]$group1 | DBA$contrasts[[contrast]]$group2
-            }   
-         }  else if (length(mask)==1) {
-            mask <- 1:length(DBA$peaks)         
-         }
-         
-         res <- pv.occupancy(DBA, mask=mask, sites=sites, byAttribute=byAttribute, 
-                             Sort='cor', CorMethod=CorMethod,
-                             bCorOnly=bCorOnly)         
-         
+      if(missing(report)) {
+        report   <- dba.report(DBA,method=method, contrast=contrast,th=th,bUsePval=bUsePval,DataType=DBA_DATA_FRAME)
       } else {
-         
-         res <- pv.occupancy(DBA, mask=mask, byAttribute=byAttribute, 
-                             Sort='cor', CorMethod=CorMethod,
-                             bCorOnly=bCorOnly)
-      } 
+        if(class(report)!="data.frame") {
+          stop('Class not supported for report parameter. Call dba.report with DataType=DBA_DATA_FRAME.')	
+        }
+        if(!missing(contrast)) {
+          DBA <- pv.getOverlapData(DBA,contrast,report)
+        }
+      }
       
-   }  else if(mode == DBA_OLAP_RATE) {
+      sites <- as.numeric(rownames(report))
       
-      res <- pv.overlapRate(DBA,mask=mask)
+      if(missing(mask)) {
+        if(missing(contrast)) {
+          mask <- 1:length(DBA$peaks)
+        } else {
+          mask  <- DBA$contrasts[[contrast]]$group1 | DBA$contrasts[[contrast]]$group2
+        }   
+      }  else if (length(mask)==1) {
+        mask <- 1:length(DBA$peaks)         
+      }
       
-   }  else {
+      res <- pv.occupancy(DBA, mask=mask, sites=sites, byAttribute=byAttribute, 
+                          Sort='cor', CorMethod=CorMethod,
+                          bCorOnly=bCorOnly)         
       
-      res <- pv.overlap(DBA,mask=mask)
+    } else {
       
-      if(DataType!=DBA_DATA_FRAME) {
-         res <- lapply(res,pv.peaks2DataType,DataType)
-      }   
-   }                       
-   
-   return(res)
+      res <- pv.occupancy(DBA, mask=mask, byAttribute=byAttribute, 
+                          Sort='cor', CorMethod=CorMethod,
+                          bCorOnly=bCorOnly)
+    } 
+    
+  }  else if(mode == DBA_OLAP_RATE) {
+    
+    res <- pv.overlapRate(DBA,mask=mask)
+    
+  }  else {
+    
+    res <- pv.overlap(DBA,mask=mask)
+    
+    if(DataType!=DBA_DATA_FRAME) {
+      res <- lapply(res,pv.peaks2DataType,DataType)
+    }   
+  }                       
+  
+  return(res)
 }
 
 ###############################################  
@@ -411,100 +411,100 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_TMM_MINUS_FULL, 
                       bUseSummarizeOverlaps=FALSE, readFormat=DBA_READS_DEFAULT,
                       bParallel=DBA$config$RunParallel) 
 {
-   DBA <- pv.check(DBA,missing(peaks))
-   
-   #if(!missing(bLowMem)) {
-   #   stop("parameter bLowMem deprecated, replaced with bUseSummarizeOverlaps")   
-   #}
-   
-   if(minOverlap > length(DBA$peaks)) {
-      stop(sprintf("minOverlap can not be greater than the number of peaksets [%s]",length(DBA$peaks)))	
-   }           
-   
-   bUseLast <- F
-   
-   res <- NULL
-   resetContrasts <- TRUE
-   if(missing(peaks) && !missing(summits) && !is.null(DBA$summits)) {
-      if(DBA$summits == 0 ) {
-         peaks=NULL
+  DBA <- pv.check(DBA,missing(peaks))
+  
+  #if(!missing(bLowMem)) {
+  #   stop("parameter bLowMem deprecated, replaced with bUseSummarizeOverlaps")   
+  #}
+  
+  if(minOverlap > length(DBA$peaks)) {
+    stop(sprintf("minOverlap can not be greater than the number of peaksets [%s]",length(DBA$peaks)))	
+  }           
+  
+  bUseLast <- F
+  
+  res <- NULL
+  resetContrasts <- TRUE
+  if(missing(peaks) && !missing(summits) && !is.null(DBA$summits)) {
+    if(DBA$summits == 0 ) {
+      peaks=NULL
+    } else {
+      if(summits != DBA$summits) {
+        stop('Can not change value of summits. Re-run from peaks.')
       } else {
-         if(summits != DBA$summits) {
-            stop('Can not change value of summits. Re-run from peaks.')
-         } else {
-            warning('No action taken, returning passed object...')
-            res <- DBA
-         }
+        warning('No action taken, returning passed object...')
+        res <- DBA
       }
-   }
-   if(!missing(peaks) || length(filter)>1) {
-      if(is.null(peaks) || length(filter)>1) {
-         callers <- unique(DBA$class[DBA_CALLER,])
-         if((length(callers)==1) & (callers[1]=='counts')) {
-            DBA <- pv.check(DBA)
-            if(!missing(summits)) {
-               if(summits>0) {
-                  res <- pv.Recenter(DBA,summits,1:length(DBA$peaks),DBA$called)
-                  res <- pv.counts(res,peaks=res$merged,
-                                   defaultScore=score, bLog=bLog, insertLength=fragmentSize, bOnlyCounts=T,
-                                   bCalledMasks=TRUE, minMaxval=filter, bParallel=bParallel, bUseLast=bUseLast,
-                                   bWithoutDupes=bRemoveDuplicates,bScaleControl=bScaleControl,filterFun=filterFun,
-                                   bLowMem=bUseSummarizeOverlaps,readFormat=readFormat,summits=0,
-                                   minMappingQuality=mapQCth,bRecentered=TRUE)
-                  res$summits <- summits
-               } else {
-                  stop('Error: summits=0')
-               }
-            } else {
-               if(length(filter)>1) {
-                  DBA <- pv.setScore(DBA,score=score,bLog=bLog,minMaxval=0,
-                                     filterFun=filterFun)
-                  res <- pv.filterRate(DBA,filter,filterFun=filterFun)	
-               } else {
-                  res <- pv.setScore(DBA,score=score,bLog=bLog,minMaxval=filter,
-                                     filterFun=filterFun)
-               }
-               resetContrasts=FALSE	
-            }
-         } else {
-            stop('DBA object must contains only counts')	
-         }	
+    }
+  }
+  if(!missing(peaks) || length(filter)>1) {
+    if(is.null(peaks) || length(filter)>1) {
+      callers <- unique(DBA$class[DBA_CALLER,])
+      if((length(callers)==1) & (callers[1]=='counts')) {
+        DBA <- pv.check(DBA)
+        if(!missing(summits)) {
+          if(summits>0) {
+            res <- pv.Recenter(DBA,summits,1:length(DBA$peaks),DBA$called)
+            res <- pv.counts(res,peaks=res$merged,
+                             defaultScore=score, bLog=bLog, insertLength=fragmentSize, bOnlyCounts=T,
+                             bCalledMasks=TRUE, minMaxval=filter, bParallel=bParallel, bUseLast=bUseLast,
+                             bWithoutDupes=bRemoveDuplicates,bScaleControl=bScaleControl,filterFun=filterFun,
+                             bLowMem=bUseSummarizeOverlaps,readFormat=readFormat,summits=0,
+                             minMappingQuality=mapQCth,bRecentered=TRUE)
+            res$summits <- summits
+          } else {
+            stop('Error: summits=0')
+          }
+        } else {
+          if(length(filter)>1) {
+            DBA <- pv.setScore(DBA,score=score,bLog=bLog,minMaxval=0,
+                               filterFun=filterFun)
+            res <- pv.filterRate(DBA,filter,filterFun=filterFun)	
+          } else {
+            res <- pv.setScore(DBA,score=score,bLog=bLog,minMaxval=filter,
+                               filterFun=filterFun)
+          }
+          resetContrasts=FALSE	
+        }
       } else {
-         peaks <- pv.DataType2Peaks(peaks)
-      }
-   }
-   
-   if(is.null(res)) {
-      res <- pv.counts(DBA, peaks=peaks, minOverlap=minOverlap, 
-                       defaultScore=score, bLog=bLog, insertLength=fragmentSize, bOnlyCounts=T,
-                       bCalledMasks=TRUE, minMaxval=filter, bParallel=bParallel, bUseLast=bUseLast,
-                       bWithoutDupes=bRemoveDuplicates,bScaleControl=bScaleControl,filterFun=filterFun,
-                       bLowMem=bUseSummarizeOverlaps,readFormat=readFormat,summits=summits,
-                       minMappingQuality=mapQCth)
-      if(!missing(summits)) {
-         res$summits <- summits
-      }
-   }
-   if(resetContrasts && length(res$contrasts)>0) {
-      for(i in 1:length(res$contrasts)) {
-         res$contrasts[[i]]$edgeR <- NULL
-         res$contrasts[[i]]$DESeq <- NULL         	
-      }
-   }
-   
-   if(bCorPlot){
-      try(dba.plotHeatmap(res,correlations=T),silent=TRUE)
-   }
-   
-   if(class(res)!="DBA") {
-      class(res) <- "DBA"
-   }
-   
-   if(!is.null(DBA$ChIPQCobj)) {
-      res <- checkQCobj(DBA$ChIPQCobj,res)
-   }
-   
-   return(res)
+        stop('DBA object must contains only counts')	
+      }	
+    } else {
+      peaks <- pv.DataType2Peaks(peaks)
+    }
+  }
+  
+  if(is.null(res)) {
+    res <- pv.counts(DBA, peaks=peaks, minOverlap=minOverlap, 
+                     defaultScore=score, bLog=bLog, insertLength=fragmentSize, bOnlyCounts=T,
+                     bCalledMasks=TRUE, minMaxval=filter, bParallel=bParallel, bUseLast=bUseLast,
+                     bWithoutDupes=bRemoveDuplicates,bScaleControl=bScaleControl,filterFun=filterFun,
+                     bLowMem=bUseSummarizeOverlaps,readFormat=readFormat,summits=summits,
+                     minMappingQuality=mapQCth)
+    if(!missing(summits)) {
+      res$summits <- summits
+    }
+  }
+  if(resetContrasts && length(res$contrasts)>0) {
+    for(i in 1:length(res$contrasts)) {
+      res$contrasts[[i]]$edgeR <- NULL
+      res$contrasts[[i]]$DESeq <- NULL         	
+    }
+  }
+  
+  if(bCorPlot){
+    try(dba.plotHeatmap(res,correlations=T),silent=TRUE)
+  }
+  
+  if(class(res)!="DBA") {
+    class(res) <- "DBA"
+  }
+  
+  if(!is.null(DBA$ChIPQCobj)) {
+    res <- checkQCobj(DBA$ChIPQCobj,res)
+  }
+  
+  return(res)
 }
 
 ########################################################
@@ -515,24 +515,24 @@ dba.contrast <- function(DBA, group1, group2=!group1, name1="group1", name2="gro
                          minMembers=3, block, bNot = FALSE,
                          categories=c(DBA_TISSUE,DBA_FACTOR,DBA_CONDITION,DBA_TREATMENT))
 {
-   if(minMembers < 2) {
-      stop('minMembers must be at least 2. Use of replicates strongly advised.')	
-   }
-   
-   DBA <- pv.check(DBA,TRUE)
-   
-   res <- pv.contrast(DBA, group1=group1, group2=group2, name1=name1, name2=name2,
-                      minMembers=minMembers, categories=categories,block=block, bNot=bNot)
-   
-   if(class(res)!="DBA") {
-      class(res) <- "DBA"
-   }
-   
-   if(!is.null(DBA$ChIPQCobj)) {
-      res <- checkQCobj(DBA$ChIPQCobj,res)
-   }
-   
-   return(res)                       	
+  if(minMembers < 2) {
+    stop('minMembers must be at least 2. Use of replicates strongly advised.')	
+  }
+  
+  DBA <- pv.check(DBA,TRUE)
+  
+  res <- pv.contrast(DBA, group1=group1, group2=group2, name1=name1, name2=name2,
+                     minMembers=minMembers, categories=categories,block=block, bNot=bNot)
+  
+  if(class(res)!="DBA") {
+    class(res) <- "DBA"
+  }
+  
+  if(!is.null(DBA$ChIPQCobj)) {
+    res <- checkQCobj(DBA$ChIPQCobj,res)
+  }
+  
+  return(res)                       	
 }
 
 ###################################################################
@@ -545,49 +545,49 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
                         bCorPlot=DBA$config$bCorPlot, bReduceObjects=TRUE, 
                         bParallel=DBA$config$RunParallel)
 {
-   
-   #if(bParallel && DBA$config$parallelPackage==DBA_PARALLEL_MULTICORE) {
-   #   warning('Parallel operation currently unreliable. Executing serially.')#,immediate.=TRUE)
-   #   bParallel=F	
-   #}
-   
-   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
-   
-   res <- pv.DBA(DBA, method ,bSubControl,bFullLibrarySize,bTagwise=bTagwise,
-                 minMembers=3,bParallel,
-                 filter=filter, filterFun=filterFun)
-   
-   if(bReduceObjects) {
-      if(!is.null(res$contrasts)) {
-         res$contrasts <- lapply(res$contrasts,pv.stripDBA)
-      }      	
-   }
-   
-   if(bCorPlot){
-      warn <- T
-      rep <- pv.DBAreport(res,contrast=1,method=method[1],th=0.05,bSupressWarning=T)
-      if(!is.null(rep)) {
-         if(!is.null(dim(rep))) {
-            if(nrow(rep)>1) {
-               warn=F
-               x <- try(dba.plotHeatmap(res,contrast=1,method=method[1],correlations=T),silent=TRUE)
-            }	
-         }
+  
+  #if(bParallel && DBA$config$parallelPackage==DBA_PARALLEL_MULTICORE) {
+  #   warning('Parallel operation currently unreliable. Executing serially.')#,immediate.=TRUE)
+  #   bParallel=F	
+  #}
+  
+  DBA <- pv.check(DBA,bCheckEmpty=TRUE)
+  
+  res <- pv.DBA(DBA, method ,bSubControl,bFullLibrarySize,bTagwise=bTagwise,
+                minMembers=3,bParallel,
+                filter=filter, filterFun=filterFun)
+  
+  if(bReduceObjects) {
+    if(!is.null(res$contrasts)) {
+      res$contrasts <- lapply(res$contrasts,pv.stripDBA)
+    }      	
+  }
+  
+  if(bCorPlot){
+    warn <- T
+    rep <- pv.DBAreport(res,contrast=1,method=method[1],th=0.05,bSupressWarning=T)
+    if(!is.null(rep)) {
+      if(!is.null(dim(rep))) {
+        if(nrow(rep)>1) {
+          warn=F
+          x <- try(dba.plotHeatmap(res,contrast=1,method=method[1],correlations=T),silent=TRUE)
+        }	
       }
-      if(warn) {
-         warning('No correlation heatmap plotted -- contrast 1 does not have enough differentially bound sites.')	
-      }
-   }
-   
-   if(class(res)!="DBA") {
-      class(res) <- "DBA"
-   }
-   
-   if(!is.null(DBA$ChIPQCobj)) {
-      res <- checkQCobj(DBA$ChIPQCobj,res)
-   }
-   
-   return(res)
+    }
+    if(warn) {
+      warning('No correlation heatmap plotted -- contrast 1 does not have enough differentially bound sites.')	
+    }
+  }
+  
+  if(class(res)!="DBA") {
+    class(res) <- "DBA"
+  }
+  
+  if(!is.null(DBA$ChIPQCobj)) {
+    res <- checkQCobj(DBA$ChIPQCobj,res)
+  }
+  
+  return(res)
 }
 
 ###########################################################
@@ -595,60 +595,68 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
 ###########################################################
 
 dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod, th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
-                       fold=0, bNormalized=TRUE, bFlip=FALSE,
+                       fold=0, bNormalized=TRUE, bFlip=FALSE, precision,
                        bCalled=FALSE, bCounts=FALSE, bCalledDetail=FALSE,
                        bDB, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
                        file,initString=DBA$config$reportInit,ext='csv',DataType=DBA$config$DataType) 
-   
+  
 {
-   
-   DBA <- pv.check(DBA,bCheckEmpty=TRUE) 
-   
-   if(DataType==DBA_DATA_SUMMARIZED_EXPERIMENT) {
-      bCounts=T
-   }
-   
-   if(!missing(bDB)|!missing(bNotDB)) {
-      if(missing(bDB)) {
-         bDB=FALSE
-      }
-      if(missing(bNotDB)) {
-         bNotDB=FALSE
-      }
-      res <- pv.resultsDBA(DBA,contrasts=contrast,methods=method,
-                           th=th,bUsePval=bUsePval,fold=fold,
-                           bDB=bDB,bNotDB=bNotDB,bUp=bGain,bDown=bLoss,bAll=bAll,
-                           bFlip=bFlip)
-      
-      res <- dba(res,minOverlap=1)
-      res$resultObject <- TRUE
-      return(res)                    
-   }
-   
-   if(missing(contrast)) {
-      contrast=1
-   }
-   
-   res <- pv.DBAreport(pv=DBA,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
-                       bCalled=bCalled,bCounts=bCounts,bCalledDetail=bCalledDetail,
-                       file=file,initString=initString,bNormalized=bNormalized,
-                       ext=ext,minFold=fold,
-                       bFlip=bFlip) 
-   
-   if(DataType==DBA_DATA_SUMMARIZED_EXPERIMENT) {
-      DBA <- pv.getPlotData(DBA,contrast=contrast,report=res,
-                            method=method,th=th,bUsePval=bUsePval,bNormalized=T,
-                            bFlip=bFlip)
-      res <- pv.DBA2SummarizedExperiment(DBA,report=res)
-      return(res)
-   }
-   
-   if(DataType!=DBA_DATA_FRAME) {
-      res <- pv.peaks2DataType(res,DataType)
-   }
-   
-   return(res)	
-   
+  
+  DBA <- pv.check(DBA,bCheckEmpty=TRUE) 
+  
+  if(DataType==DBA_DATA_SUMMARIZED_EXPERIMENT) {
+    bCounts=T
+  }
+  
+  if(!missing(bDB)|!missing(bNotDB)) {
+    if(missing(bDB)) {
+      bDB=FALSE
+    }
+    if(missing(bNotDB)) {
+      bNotDB=FALSE
+    }
+    res <- pv.resultsDBA(DBA,contrasts=contrast,methods=method,
+                         th=th,bUsePval=bUsePval,fold=fold,
+                         bDB=bDB,bNotDB=bNotDB,bUp=bGain,bDown=bLoss,bAll=bAll,
+                         bFlip=bFlip)
+    
+    res <- dba(res,minOverlap=1)
+    res$resultObject <- TRUE
+    return(res)                    
+  }
+  
+  if(missing(contrast)) {
+    contrast=1
+  }
+  
+  if(missing(precision)) {
+    if(DataType==DBA_DATA_SUMMARIZED_EXPERIMENT) {
+      precision <- 0
+    } else {
+      precision <- 2:3
+    }
+  }
+  
+  res <- pv.DBAreport(pv=DBA,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
+                      bCalled=bCalled,bCounts=bCounts,bCalledDetail=bCalledDetail,
+                      file=file,initString=initString,bNormalized=bNormalized,
+                      ext=ext,minFold=fold,
+                      bFlip=bFlip, precision=precision) 
+  
+  if(DataType==DBA_DATA_SUMMARIZED_EXPERIMENT) {
+    DBA <- pv.getPlotData(DBA,contrast=contrast,report=res,
+                          method=method,th=th,bUsePval=bUsePval,bNormalized=T,
+                          bFlip=bFlip, precision=0)
+    res <- pv.DBA2SummarizedExperiment(DBA,report=res)
+    return(res)
+  }
+  
+  if(DataType!=DBA_DATA_FRAME) {
+    res <- pv.peaks2DataType(res,DataType)
+  }
+  
+  return(res)	
+  
 }                      
 
 ################################################
@@ -663,98 +671,98 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minva
                             margin=10, colScheme="Greens", distMethod="pearson",
                             ...)
 {
-   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
-   
-   if( (missing(contrast) || !missing(mask)) && !missing(score) ) {
-      DBA <- dba.count(DBA,peaks=NULL,score=score,bCorPlot=FALSE)	
-   }
-   
-   mask <- pv.setMask(DBA,mask,contrast)
-   
-   if(!missing(contrast)) {
-      if(!missing(report)) {
-         report <- pv.DataType2Peaks(report)
-      }   	
-      DBA <- pv.getPlotData(DBA,attributes=attributes,contrast=contrast,report=report,
-                            method=method,th=th,bUsePval=bUsePval,bNormalized=T,
-                            bPCA=F,bLog=F,minval=minval,maxval=maxval,mask=mask)
-      contrast <- 1
-      mask <- NULL                     
-   }
-   
-   if(bLog) {
-      vectors <- DBA$binding[,4:ncol(DBA$binding)]
-      if(max(vectors) > 1) { # must have positive counts to do log
-         vectors[vectors<1]=1
-         if(missing(minval)) {
-            minval <- 0
-         } else {
-            minval <- max(0,minval)
-         }
-         vectors <- log2(vectors)
-         DBA$binding[,4:ncol(DBA$binding)] <- vectors
-      }
-   }
-   
-   if(length(correlations)==1 & ((correlations[1] == DBA_OLAP_ALL) | (correlations[1] == TRUE)))  {
-      if(nrow(DBA$binding)>1) {
-         if(!missing(sites)) {
-            if(is.logical(sites)) {
-               sites <- which(sites)	
-            }	   
-         } 	
-         correlations <- pv.occupancy(DBA, mask=mask, sites=sites, Sort='cor', bCorOnly=T,CorMethod=distMethod)
+  DBA <- pv.check(DBA,bCheckEmpty=TRUE)
+  
+  if( (missing(contrast) || !missing(mask)) && !missing(score) ) {
+    DBA <- dba.count(DBA,peaks=NULL,score=score,bCorPlot=FALSE)	
+  }
+  
+  mask <- pv.setMask(DBA,mask,contrast)
+  
+  if(!missing(contrast)) {
+    if(!missing(report)) {
+      report <- pv.DataType2Peaks(report)
+    }   	
+    DBA <- pv.getPlotData(DBA,attributes=attributes,contrast=contrast,report=report,
+                          method=method,th=th,bUsePval=bUsePval,bNormalized=T,
+                          bPCA=F,bLog=F,minval=minval,maxval=maxval,mask=mask)
+    contrast <- 1
+    mask <- NULL                     
+  }
+  
+  if(bLog) {
+    vectors <- DBA$binding[,4:ncol(DBA$binding)]
+    if(max(vectors) > 1) { # must have positive counts to do log
+      vectors[vectors<1]=1
+      if(missing(minval)) {
+        minval <- 0
       } else {
-         warning('No correlation heatmap plotted -- contrast does not have enough differentially bound sites.')	
-         return(NULL)   	     	
+        minval <- max(0,minval)
       }
-   }
-   
-   if(correlations[1]!=FALSE) {
-      res <- pv.plotHeatmap(DBA, attributes=attributes, overlaps=correlations, olPlot=olPlot, mask=mask,
-                            ColScheme=colScheme, distMeth=distMethod, bReorder=TRUE, contrast=contrast,
+      vectors <- log2(vectors)
+      DBA$binding[,4:ncol(DBA$binding)] <- vectors
+    }
+  }
+  
+  if(length(correlations)==1 & ((correlations[1] == DBA_OLAP_ALL) | (correlations[1] == TRUE)))  {
+    if(nrow(DBA$binding)>1) {
+      if(!missing(sites)) {
+        if(is.logical(sites)) {
+          sites <- which(sites)	
+        }	   
+      } 	
+      correlations <- pv.occupancy(DBA, mask=mask, sites=sites, Sort='cor', bCorOnly=T,CorMethod=distMethod)
+    } else {
+      warning('No correlation heatmap plotted -- contrast does not have enough differentially bound sites.')	
+      return(NULL)   	     	
+    }
+  }
+  
+  if(correlations[1]!=FALSE) {
+    res <- pv.plotHeatmap(DBA, attributes=attributes, overlaps=correlations, olPlot=olPlot, mask=mask,
+                          ColScheme=colScheme, distMeth=distMethod, bReorder=TRUE, contrast=contrast,
+                          RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
+                          minval=minval, maxval=maxval, margins=c(margin,margin),
+                          ...)
+  } else {
+    
+    if(!missing(contrast)) {
+      if(nrow(DBA$binding)<2) { 	
+        warning('No heatmap plotted -- contrast does not have enough differentially bound sites.')	
+        return(NULL)   	     	
+      }
+      res <- pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes, contrast=contrast,
                             RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
-                            minval=minval, maxval=maxval, margins=c(margin,margin),
-                            ...)
-   } else {
-      
-      if(!missing(contrast)) {
-         if(nrow(DBA$binding)<2) { 	
-            warning('No heatmap plotted -- contrast does not have enough differentially bound sites.')	
-            return(NULL)   	     	
-         }
-         res <- pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes, contrast=contrast,
-                               RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
-                               ColScheme=colScheme, distMeth=distMethod, 
-                               margins=c(margin,margin), ...)
-         res <- data.frame(DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)])
-         if(!is.character(res[1,1])) {
-            res[,1] <- DBA$chrmap[res[,1]]
-         }
-         res <- as(res,"GRanges")
-      } else {
-         
-         if(class(sortFun)=="function") {
-            savevecs <- DBA$binding
-            DBA <- pv.sort(DBA, sortFun, mask=mask)
-         } else savevecs <- NULL
-         
-         res <- pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes, mask=mask, sites=sites,
-                               RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
-                               minval=minval, maxval=maxval, ColScheme=colScheme, distMeth=distMethod, 
-                               margins=c(margin,margin),...)
-         res <- data.frame(DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)])
-         if(!is.character(res[1,1])) {
-            res[,1] <- DBA$chrmap[res[,1]]
-         }
-         res <- as(res,"GRanges")
-         if(!is.null(savevecs)) {
-            DBA$binding <- savevecs
-         }
+                            ColScheme=colScheme, distMeth=distMethod, 
+                            margins=c(margin,margin), ...)
+      res <- data.frame(DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)])
+      if(!is.character(res[1,1])) {
+        res[,1] <- DBA$chrmap[res[,1]]
       }
-   }
-   
-   invisible(res)	
+      res <- as(res,"GRanges")
+    } else {
+      
+      if(class(sortFun)=="function") {
+        savevecs <- DBA$binding
+        DBA <- pv.sort(DBA, sortFun, mask=mask)
+      } else savevecs <- NULL
+      
+      res <- pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes, mask=mask, sites=sites,
+                            RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
+                            minval=minval, maxval=maxval, ColScheme=colScheme, distMeth=distMethod, 
+                            margins=c(margin,margin),...)
+      res <- data.frame(DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)])
+      if(!is.character(res[1,1])) {
+        res[,1] <- DBA$chrmap[res[,1]]
+      }
+      res <- as(res,"GRanges")
+      if(!is.null(savevecs)) {
+        DBA$binding <- savevecs
+      }
+    }
+  }
+  
+  invisible(res)	
 }
 
 #######################################################
@@ -767,61 +775,61 @@ dba.plotPCA <- function(DBA, attributes, minval, maxval,
                         report, score, bLog=TRUE, mask, sites, label, cor=FALSE,
                         b3D=FALSE, vColors, dotSize, labelSize, labelCols, 
                         components=1:3, ...)
-   
+  
 {
-   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
-   
-   mask <- pv.setMask(DBA,mask,contrast)
-   
-   if(missing(contrast) && !missing(score)) {
-      DBA <- dba.count(DBA,peaks=NULL,score=score,bCorPlot=FALSE)	
-   } else if (!missing(score)) {
-      warning('score parameter ignored when contrast is specified')	
-   }  
-   
-   if(missing(label)) {
-      label=NULL
-   } else {
-      if(missing(labelSize)) {
-         labelSize=.8
-      }
-      if(missing(labelCols)) {
-         labelCols="black"
-      }
-   }
-   
-   if(!missing(contrast)){
-      if(missing(attributes)) {
-         attributes <- DBA_GROUP
-      }
-      if(missing(dotSize)) {
-         dotSize=NULL
-      }
-      if(!missing(report)) {
-         report <- pv.DataType2Peaks(report)
-      }  	  
-      DBA <- pv.getPlotData(DBA,attributes=attributes,contrast=contrast,report=report,
-                            method=method,th=th,bUsePval=bUsePval,bNormalized=T,
-                            bPCA=T,minval=minval,maxval=maxval,mask=mask,bLog=F)                     
-      if(attributes[1] == PV_GROUP) {
-         attributes <- PV_ID
-      }
-      res <- pv.plotPCA(DBA,attributes=attributes,size=dotSize,cor=cor,
-                        b3D=b3D,vColors=vColors,label=label,bLog=bLog,
-                        labelSize=labelSize,labelCols=labelCols,
-                        comps=components,...)
-   } else {
-      if(missing(attributes)) {
-         attributes <- pv.attributePCA(DBA)
-      }
-      
-      res <- pv.plotPCA(DBA, attributes=attributes, size=dotSize, mask=mask, 
-                        sites=sites, b3D=b3D, vColors=vColors, label=label,
-                        bLog=bLog,labelSize=labelSize,labelCols=labelCols,
-                        comps=components,...)  
-   }
-   
-   invisible(res)	
+  DBA <- pv.check(DBA,bCheckEmpty=TRUE)
+  
+  mask <- pv.setMask(DBA,mask,contrast)
+  
+  if(missing(contrast) && !missing(score)) {
+    DBA <- dba.count(DBA,peaks=NULL,score=score,bCorPlot=FALSE)	
+  } else if (!missing(score)) {
+    warning('score parameter ignored when contrast is specified')	
+  }  
+  
+  if(missing(label)) {
+    label=NULL
+  } else {
+    if(missing(labelSize)) {
+      labelSize=.8
+    }
+    if(missing(labelCols)) {
+      labelCols="black"
+    }
+  }
+  
+  if(!missing(contrast)){
+    if(missing(attributes)) {
+      attributes <- DBA_GROUP
+    }
+    if(missing(dotSize)) {
+      dotSize=NULL
+    }
+    if(!missing(report)) {
+      report <- pv.DataType2Peaks(report)
+    }  	  
+    DBA <- pv.getPlotData(DBA,attributes=attributes,contrast=contrast,report=report,
+                          method=method,th=th,bUsePval=bUsePval,bNormalized=T,
+                          bPCA=T,minval=minval,maxval=maxval,mask=mask,bLog=F)                     
+    if(attributes[1] == PV_GROUP) {
+      attributes <- PV_ID
+    }
+    res <- pv.plotPCA(DBA,attributes=attributes,size=dotSize,cor=cor,
+                      b3D=b3D,vColors=vColors,label=label,bLog=bLog,
+                      labelSize=labelSize,labelCols=labelCols,
+                      comps=components,...)
+  } else {
+    if(missing(attributes)) {
+      attributes <- pv.attributePCA(DBA)
+    }
+    
+    res <- pv.plotPCA(DBA, attributes=attributes, size=dotSize, mask=mask, 
+                      sites=sites, b3D=b3D, vColors=vColors, label=label,
+                      bLog=bLog,labelSize=labelSize,labelCols=labelCols,
+                      comps=components,...)  
+  }
+  
+  invisible(res)	
 }
 
 #############################
@@ -835,25 +843,25 @@ dba.plotBox <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                         bDB=TRUE, bDBIncreased=TRUE, bDBDecreased=TRUE,
                         pvalMethod=wilcox.test,  bReversePos=FALSE, attribOrder, 
                         vColors, varwidth=TRUE, notch=TRUE, ...) 
-   
+  
 {
-   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
-   
-   if(contrast > length(DBA$contrasts)) {
-      stop('Supplied contrast greater than number of contrasts')	
-   }
-   
-   res <- pv.plotBoxplot(DBA, contrast=contrast, method=method, th=th, 
-                         bUsePval=bUsePval, bNormalized=bNormalized,
-                         attribute=attribute,bAll=bAll, 
-                         bAllIncreased=bAllIncreased, bAllDecreased=bAllDecreased, 
-                         bDB=bDB, bDBIncreased=bDBIncreased, 
-                         bDBDecreased=bDBDecreased,
-                         pvalMethod=pvalMethod,  bReversePos=bReversePos, 
-                         attribOrder=attribOrder, vColors=vColors, 
-                         varwidth=varwidth, notch=notch, ...)
-   
-   invisible(res)	
+  DBA <- pv.check(DBA,bCheckEmpty=TRUE)
+  
+  if(contrast > length(DBA$contrasts)) {
+    stop('Supplied contrast greater than number of contrasts')	
+  }
+  
+  res <- pv.plotBoxplot(DBA, contrast=contrast, method=method, th=th, 
+                        bUsePval=bUsePval, bNormalized=bNormalized,
+                        attribute=attribute,bAll=bAll, 
+                        bAllIncreased=bAllIncreased, bAllDecreased=bAllDecreased, 
+                        bDB=bDB, bDBIncreased=bDBIncreased, 
+                        bDBDecreased=bDBDecreased,
+                        pvalMethod=pvalMethod,  bReversePos=bReversePos, 
+                        attribOrder=attribOrder, vColors=vColors, 
+                        varwidth=varwidth, notch=notch, ...)
+  
+  invisible(res)	
 }
 
 #########################################
@@ -866,17 +874,17 @@ dba.plotMA <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                        factor="", bFlip=FALSE, bXY=FALSE, dotSize=.45, 
                        bSignificant=TRUE, bSmooth=TRUE, 
                        xrange, yrange, ...)
-   
+  
 {
-   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
-   
-   res <- pv.DBAplotMA(DBA, contrast=contrast, method=method, bMA=!bXY, bXY=bXY,
-                       th=th, bUsePval=bUsePval, fold=fold,
-                       facname=factor, bNormalized=bNormalized, cex=dotSize, 
-                       bSignificant=bSignificant, bSmooth=bSmooth,bFlip=bFlip,
-                       xrange=xrange, yrange=yrange,...)
-   
-   invisible(res)
+  DBA <- pv.check(DBA,bCheckEmpty=TRUE)
+  
+  res <- pv.DBAplotMA(DBA, contrast=contrast, method=method, bMA=!bXY, bXY=bXY,
+                      th=th, bUsePval=bUsePval, fold=fold,
+                      facname=factor, bNormalized=bNormalized, cex=dotSize, 
+                      bSignificant=bSignificant, bSmooth=bSmooth,bFlip=bFlip,
+                      xrange=xrange, yrange=yrange,...)
+  
+  invisible(res)
 }
 
 #####################################
@@ -887,16 +895,16 @@ dba.plotVolcano <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                             th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
                             fold=0, factor="", bFlip=FALSE, 
                             bLabels=FALSE, maxLabels=50, dotSize=1)
-   
+  
 {
-   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
-   
-   res <- pv.DBAplotVolcano(DBA, contrast=contrast, method=method, 
-                            th=th, bUsePval=bUsePval, fold=fold,
-                            facname=factor, dotSize=dotSize,
-                            bFlip=bFlip, bLabels=bLabels, maxLabels=maxLabels)
-   
-   invisible(as(res,"GRanges"))
+  DBA <- pv.check(DBA,bCheckEmpty=TRUE)
+  
+  res <- pv.DBAplotVolcano(DBA, contrast=contrast, method=method, 
+                           th=th, bUsePval=bUsePval, fold=fold,
+                           facname=factor, dotSize=dotSize,
+                           bFlip=bFlip, bLabels=bLabels, maxLabels=maxLabels)
+  
+  invisible(as(res,"GRanges"))
 }
 
 ###########################################################
@@ -906,19 +914,19 @@ dba.plotVolcano <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
 dba.plotClust <- function(DBA, mask, sites, attributes=DBA$attributes, distMethod="pearson",
                           contrast, method=DBA$config$AnalysisMethod, th=DBA$config$th, bUsePval=DBA$config$bUsePval)
 {
-   
-   if(!missing(contrast)) {
-      
-      message('dba.plotClust: Contrast clustering not implemented.')
-      res <- NULL
-      
-   } else {
-      
-      res <- pv.plotClust(DBA, mask=mask, sites=sites, 
-                          attributes=attributes, distMeth=distMethod)
-   }
-   
-   return(res)
+  
+  if(!missing(contrast)) {
+    
+    message('dba.plotClust: Contrast clustering not implemented.')
+    res <- NULL
+    
+  } else {
+    
+    res <- pv.plotClust(DBA, mask=mask, sites=sites, 
+                        attributes=attributes, distMeth=distMethod)
+  }
+  
+  return(res)
 }                         
 
 ####################################################
@@ -931,165 +939,165 @@ dba.plotVenn <- function(DBA, mask, overlaps, label1, label2, label3, label4, ma
                          bDB=TRUE, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
                          labelAttributes, DataType=DBA$config$DataType)
 {
-   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
-   
-   newDBA <- NULL
-   
-   if (!missing(overlaps)){
-      
-      if(missing(label1)) {
-         label1 <- "A"
+  DBA <- pv.check(DBA,bCheckEmpty=TRUE)
+  
+  newDBA <- NULL
+  
+  if (!missing(overlaps)){
+    
+    if(missing(label1)) {
+      label1 <- "A"
+    }
+    if(missing(label2)) {
+      label2 <- "B"
+    }
+    if(missing(label3)) {
+      label3 <- "C"
+    }
+    if(missing(label4)) {
+      label4 <- "D"
+    }
+    
+    overlaps <- lapply(overlaps,pv.DataType2Peaks)
+    
+  } else if(!missing(contrast)){
+    if(max(contrast)>length(DBA$contrasts)) {
+      stop('Contrast greater than number of contrasts.')   
+    }
+    newDBA <- dba.report(DBA,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
+                         bDB=bDB, bNotDB=bNotDB,bAll=bAll, bGain=bGain, bLoss=bLoss)
+    
+    if(is.null(newDBA$peaks)){
+      stop('No peaksets meet specified criteria.')   
+    }
+    if(missing(mask)) {
+      mask <- 1:length(newDBA$peaks)
+      if(length(mask)>4){
+        stop('Too many peaksets meet specified criteria.')
       }
-      if(missing(label2)) {
-         label2 <- "B"
+      if(length(mask)==1) {
+        stop('Only one peakset meets specified criteria.')
       }
-      if(missing(label3)) {
-         label3 <- "C"
-      }
-      if(missing(label4)) {
-         label4 <- "D"
-      }
-      
-      overlaps <- lapply(overlaps,pv.DataType2Peaks)
-      
-   } else if(!missing(contrast)){
-      if(max(contrast)>length(DBA$contrasts)) {
-         stop('Contrast greater than number of contrasts.')   
-      }
-      newDBA <- dba.report(DBA,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
-                           bDB=bDB, bNotDB=bNotDB,bAll=bAll, bGain=bGain, bLoss=bLoss)
-      
-      if(is.null(newDBA$peaks)){
-         stop('No peaksets meet specified criteria.')   
-      }
-      if(missing(mask)) {
-         mask <- 1:length(newDBA$peaks)
-         if(length(mask)>4){
-            stop('Too many peaksets meet specified criteria.')
-         }
-         if(length(mask)==1) {
-            stop('Only one peakset meets specified criteria.')
-         }
-      } else {
-         if(is.logical(mask)) {
-            if(length(mask)!=length(newDBA$peaks)) {
-               stop('Logical mask doe not have same number of elements as there are peaksets.')
-            }
-            if(sum(mask)>4) {
-               stop('Too many peaksets in mask.')
-            } else if(length(mask)>4){
-               stop('Too many peaksets in mask.')
-            }
-            mask <- which(mask)
-         }
-         if(length(mask)>length(newDBA$peaks) | max(mask)>length(newDBA$peaks) ) {
-            stop('Peakset specified in mask is out of range.')
-         }
-      }
-      
-      overlaps <- dba.overlap(newDBA,mask,mode=DBA_OLAP_PEAKS,DataType=DBA_DATA_FRAME)
-      
-      res <- pv.whichPeaksets(newDBA,mask)
-      
-      if(missing(labelAttributes)) {
-         labelAttributes=c(DBA_ID,DBA_FACTOR,DBA_TISSUE,DBA_CONDITION,DBA_TREATMENT)  
-      }
-      crec <- matrix(newDBA$class[labelAttributes,mask],length(labelAttributes),length(mask))
-      if(length(mask)==2) {
-         labels <- pv.namestrings(crec[,1],crec[,2])
-      } else if (length(mask)==3) {
-         labels <- pv.namestrings(crec[,1],crec[,2],crec[,3])         
-      } else {
-         labels <- pv.namestrings(crec[,1],crec[,2],crec[,3],crec[,4])         
-      }
-      
-      if(missing(label1)) {
-         label1 <- labels$n1
-      }
-      if(missing(label2)) {
-         label2 <- labels$n2
-      }
-      if(missing(label3)) {
-         label3 <- labels$n3
-      }
-      if(missing(label4)) {
-         label4 <- labels$n4
-      }
-      
-      if (missing(sub)) {
-         sub <- labels$tstring
-      }
-      
-   } else if(!missing(mask)) {
-      
+    } else {
       if(is.logical(mask)) {
-         if(length(mask)!=length(DBA$peaks)) {
-            stop('Logical mask does not have same number of elements as there are peaksets.')
-         }
-         if(sum(mask)>4) {
-            stop('Too many peaksets in mask.')
-         }
-         mask <- which(mask)
-      } else if(length(mask)>4){
-         stop('Too many peaksets in mask.')
-      }      
-      
-      overlaps <- dba.overlap(DBA,mask,mode=DBA_OLAP_PEAKS,DataType=DBA_DATA_FRAME)
-      
-      res <- pv.whichPeaksets(DBA,mask)
-      if(missing(labelAttributes)) {
-         if(pv.checkValue(DBA$resultObject,TRUE)) {
-            labelAttributes <- c(DBA_ID,DBA_FACTOR,DBA_TISSUE,DBA_CONDITION,DBA_TREATMENT)  
-         } else {
-            labelAttributes <- DBA_ID
-         }
+        if(length(mask)!=length(newDBA$peaks)) {
+          stop('Logical mask doe not have same number of elements as there are peaksets.')
+        }
+        if(sum(mask)>4) {
+          stop('Too many peaksets in mask.')
+        } else if(length(mask)>4){
+          stop('Too many peaksets in mask.')
+        }
+        mask <- which(mask)
       }
-      crec <- matrix(DBA$class[labelAttributes,mask],length(labelAttributes),length(mask))
-      if(length(mask)==2) {
-         labels <- pv.namestrings(crec[,1],crec[,2])
-      } else if (length(mask)==3) {
-         labels <- pv.namestrings(crec[,1],crec[,2],crec[,3])         
+      if(length(mask)>length(newDBA$peaks) | max(mask)>length(newDBA$peaks) ) {
+        stop('Peakset specified in mask is out of range.')
+      }
+    }
+    
+    overlaps <- dba.overlap(newDBA,mask,mode=DBA_OLAP_PEAKS,DataType=DBA_DATA_FRAME)
+    
+    res <- pv.whichPeaksets(newDBA,mask)
+    
+    if(missing(labelAttributes)) {
+      labelAttributes=c(DBA_ID,DBA_FACTOR,DBA_TISSUE,DBA_CONDITION,DBA_TREATMENT)  
+    }
+    crec <- matrix(newDBA$class[labelAttributes,mask],length(labelAttributes),length(mask))
+    if(length(mask)==2) {
+      labels <- pv.namestrings(crec[,1],crec[,2])
+    } else if (length(mask)==3) {
+      labels <- pv.namestrings(crec[,1],crec[,2],crec[,3])         
+    } else {
+      labels <- pv.namestrings(crec[,1],crec[,2],crec[,3],crec[,4])         
+    }
+    
+    if(missing(label1)) {
+      label1 <- labels$n1
+    }
+    if(missing(label2)) {
+      label2 <- labels$n2
+    }
+    if(missing(label3)) {
+      label3 <- labels$n3
+    }
+    if(missing(label4)) {
+      label4 <- labels$n4
+    }
+    
+    if (missing(sub)) {
+      sub <- labels$tstring
+    }
+    
+  } else if(!missing(mask)) {
+    
+    if(is.logical(mask)) {
+      if(length(mask)!=length(DBA$peaks)) {
+        stop('Logical mask does not have same number of elements as there are peaksets.')
+      }
+      if(sum(mask)>4) {
+        stop('Too many peaksets in mask.')
+      }
+      mask <- which(mask)
+    } else if(length(mask)>4){
+      stop('Too many peaksets in mask.')
+    }      
+    
+    overlaps <- dba.overlap(DBA,mask,mode=DBA_OLAP_PEAKS,DataType=DBA_DATA_FRAME)
+    
+    res <- pv.whichPeaksets(DBA,mask)
+    if(missing(labelAttributes)) {
+      if(pv.checkValue(DBA$resultObject,TRUE)) {
+        labelAttributes <- c(DBA_ID,DBA_FACTOR,DBA_TISSUE,DBA_CONDITION,DBA_TREATMENT)  
       } else {
-         labels <- pv.namestrings(crec[,1],crec[,2],crec[,3],crec[,4])         
+        labelAttributes <- DBA_ID
       }
-      if(missing(label1)) {
-         label1 <- labels$n1
-      }
-      if(missing(label2)) {
-         label2 <- labels$n2
-      }
-      if(missing(label3)) {
-         label3 <- labels$n3
-      }
-      if(missing(label4)) {
-         label4 <- labels$n4
-      }
-      if (missing(sub)) {
-         sub <- labels$tstring
-      }
-   } else {
-      stop("Must specify one of mask, overlaps, or contrast.")
-   }
-   
-   if(missing(main)) {
-      main <- "Binding Site Overlaps"
-   }
-   if (missing(sub)) {
-      sub <- ""
-   }
-   
-   pv.plotVenn(overlaps,label1=label1,label2=label2,label3=label3,label4=label4,main,sub)
-   
-   if(DataType == DBA_DATA_DBAOBJECT) {
-      if(!is.null(newDBA)) {
-         return(newDBA)
-      } else {
-         warning('No DBA object to return.')
-      }
-   } else {
-      overlaps <- lapply(overlaps, pv.peaks2DataType, DataType)
-      invisible(overlaps)
-   }   
+    }
+    crec <- matrix(DBA$class[labelAttributes,mask],length(labelAttributes),length(mask))
+    if(length(mask)==2) {
+      labels <- pv.namestrings(crec[,1],crec[,2])
+    } else if (length(mask)==3) {
+      labels <- pv.namestrings(crec[,1],crec[,2],crec[,3])         
+    } else {
+      labels <- pv.namestrings(crec[,1],crec[,2],crec[,3],crec[,4])         
+    }
+    if(missing(label1)) {
+      label1 <- labels$n1
+    }
+    if(missing(label2)) {
+      label2 <- labels$n2
+    }
+    if(missing(label3)) {
+      label3 <- labels$n3
+    }
+    if(missing(label4)) {
+      label4 <- labels$n4
+    }
+    if (missing(sub)) {
+      sub <- labels$tstring
+    }
+  } else {
+    stop("Must specify one of mask, overlaps, or contrast.")
+  }
+  
+  if(missing(main)) {
+    main <- "Binding Site Overlaps"
+  }
+  if (missing(sub)) {
+    sub <- ""
+  }
+  
+  pv.plotVenn(overlaps,label1=label1,label2=label2,label3=label3,label4=label4,main,sub)
+  
+  if(DataType == DBA_DATA_DBAOBJECT) {
+    if(!is.null(newDBA)) {
+      return(newDBA)
+    } else {
+      warning('No DBA object to return.')
+    }
+  } else {
+    overlaps <- lapply(overlaps, pv.peaks2DataType, DataType)
+    invisible(overlaps)
+  }   
 }
 
 ###################################
@@ -1099,11 +1107,11 @@ dba.plotVenn <- function(DBA, mask, overlaps, label1, label2, label3, label4, ma
 dba.show <- function(DBA, mask, attributes, bContrasts=FALSE, 
                      th=DBA$config$th, bUsePval=DBA$config$bUsePval) 
 {
-   DBA <- pv.check(DBA)
-   
-   res <- pv.list(DBA, mask=mask, bContrasts=bContrasts, attributes=attributes, th=th, bUsePval=bUsePval)
-   
-   return(res)
+  DBA <- pv.check(DBA)
+  
+  res <- pv.list(DBA, mask=mask, bContrasts=bContrasts, attributes=attributes, th=th, bUsePval=bUsePval)
+  
+  return(res)
 }
 
 #######################################
@@ -1112,23 +1120,23 @@ dba.show <- function(DBA, mask, attributes, bContrasts=FALSE,
 
 dba.mask <- function(DBA, attribute, value, combine='or', mask, merge='or', bApply=FALSE,
                      peakset, minValue=-1)
-   
+  
 {
-   DBA <- pv.check(DBA)
-   
-   if(missing(peakset)) {
-      
-      res <- pv.mask(DBA, attribute=attribute, value=value, combine=combine,
-                     mask=mask, merge=merge, bApply=bApply)
-      
-   } else {
-      
-      res <- pv.whichSites(DBA, pnum=peakset, combine=combine, minVal=minValue)
-      
-   }
-   
-   return(res)
-   
+  DBA <- pv.check(DBA)
+  
+  if(missing(peakset)) {
+    
+    res <- pv.mask(DBA, attribute=attribute, value=value, combine=combine,
+                   mask=mask, merge=merge, bApply=bApply)
+    
+  } else {
+    
+    res <- pv.whichSites(DBA, pnum=peakset, combine=combine, minVal=minValue)
+    
+  }
+  
+  return(res)
+  
 }
 
 ###################################
@@ -1137,46 +1145,46 @@ dba.mask <- function(DBA, attribute, value, combine='or', mask, merge='or', bApp
 
 dba.save <- function(DBA, file='DBA', dir='.', pre='dba_', ext='RData', bMinimize=FALSE)
 {
-   
-   if(class(DBA)=="ChIPQCexperiment") {
-      saveChIPQC <- DBA
-      DBA <- DBA@DBA
-   } else saveChIPQC <- NULL
-   
-   if(nrow(DBA$class)<DBA_TREATMENT) {
-      DBA$class <- rbind(DBA$class,'')
-      rownames(DBA$class)[DBA_TREATMENT]='Treatment'	
-   }
-   
-   DBA$binding <- NULL	
-   DBA$values  <- NULL
-   DBA$hc      <- NULL
-   DBA$pc      <- NULL
-   
-   DBA$config$lsfInit      <- NULL
-   DBA$config$parallelInit <- NULL
-   DBA$config$initFun      <- NULL
-   DBA$config$paramFun     <- NULL
-   DBA$config$addjobFun    <- NULL
-   DBA$config$lapplyFun    <- NULL
-   DBA$config$wait4jobsFun <- NULL
-   DBA$config$parallelInit <- NULL
-   
-   version <- strsplit(as.character(packageVersion("DiffBind")),".",fixed=T)[[1]]
-   
-   DBA$config$Version1 <- version[1]
-   DBA$config$Version2 <- version[2]
-   DBA$config$Version3 <- version[3]
-   
-   if(!is.null(saveChIPQC)) {
-      saveChIPQC@DBA <- DBA
-      DBA <- saveChIPQC
-   }
-   res <- pv.save(DBA,file=file ,
-                  dir=dir, pre=pre, ext=ext,
-                  compress=TRUE)
-   
-   return(res)
+  
+  if(class(DBA)=="ChIPQCexperiment") {
+    saveChIPQC <- DBA
+    DBA <- DBA@DBA
+  } else saveChIPQC <- NULL
+  
+  if(nrow(DBA$class)<DBA_TREATMENT) {
+    DBA$class <- rbind(DBA$class,'')
+    rownames(DBA$class)[DBA_TREATMENT]='Treatment'	
+  }
+  
+  DBA$binding <- NULL	
+  DBA$values  <- NULL
+  DBA$hc      <- NULL
+  DBA$pc      <- NULL
+  
+  DBA$config$lsfInit      <- NULL
+  DBA$config$parallelInit <- NULL
+  DBA$config$initFun      <- NULL
+  DBA$config$paramFun     <- NULL
+  DBA$config$addjobFun    <- NULL
+  DBA$config$lapplyFun    <- NULL
+  DBA$config$wait4jobsFun <- NULL
+  DBA$config$parallelInit <- NULL
+  
+  version <- strsplit(as.character(packageVersion("DiffBind")),".",fixed=T)[[1]]
+  
+  DBA$config$Version1 <- version[1]
+  DBA$config$Version2 <- version[2]
+  DBA$config$Version3 <- version[3]
+  
+  if(!is.null(saveChIPQC)) {
+    saveChIPQC@DBA <- DBA
+    DBA <- saveChIPQC
+  }
+  res <- pv.save(DBA,file=file ,
+                 dir=dir, pre=pre, ext=ext,
+                 compress=TRUE)
+  
+  return(res)
 } 
 
 ###################################
@@ -1185,123 +1193,123 @@ dba.save <- function(DBA, file='DBA', dir='.', pre='dba_', ext='RData', bMinimiz
 
 dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
 {
-   
-   res <- pv.load(file=file, dir=dir, pre=pre, ext=ext)
-   
-   if(class(res)=="ChIPQCexperiment") {
-      saveChIPQC <- res
-      res <- res@DBA
-   } else saveChIPQC <- NULL
-   
-   if(!is.null(res$vectors)) {
-      if(!is.null(res$allvectors)) {
-         res$binding     <- res$vectors
-         res$totalMerged <- nrow(res$allvectors)
-         res$merged      <- res$allvectors[,1:3]
-      } else {
-         res$binding     <- res$vectors
-         res$merged      <- res$vectors[,1:3]
-         res$totalMerged <- nrow(res$merged)
+  
+  res <- pv.load(file=file, dir=dir, pre=pre, ext=ext)
+  
+  if(class(res)=="ChIPQCexperiment") {
+    saveChIPQC <- res
+    res <- res@DBA
+  } else saveChIPQC <- NULL
+  
+  if(!is.null(res$vectors)) {
+    if(!is.null(res$allvectors)) {
+      res$binding     <- res$vectors
+      res$totalMerged <- nrow(res$allvectors)
+      res$merged      <- res$allvectors[,1:3]
+    } else {
+      res$binding     <- res$vectors
+      res$merged      <- res$vectors[,1:3]
+      res$totalMerged <- nrow(res$merged)
+    }
+    res$vectors    <- NULL
+    res$allvectors <- NULL
+  }
+  
+  if(is.null(res$binding)) {
+    if(is.null(res$minOverlap)) {
+      minOverlap=2
+    } else {
+      minOverlap <- res$minOverlap
+    }
+    contrasts  <- res$contrasts
+    called     <- res$called
+    attributes <- res$attributes
+    for(i in 1:length(res$peaks)) {
+      if(is.factor(res$peaks[[i]][,1])) {
+        res$peaks[[i]][,1] <- as.character(res$peaks[[i]][,1])
       }
-      res$vectors    <- NULL
-      res$allvectors <- NULL
-   }
-   
-   if(is.null(res$binding)) {
-      if(is.null(res$minOverlap)) {
-         minOverlap=2
-      } else {
-         minOverlap <- res$minOverlap
-      }
-      contrasts  <- res$contrasts
-      called     <- res$called
-      attributes <- res$attributes
-      for(i in 1:length(res$peaks)) {
-         if(is.factor(res$peaks[[i]][,1])) {
-            res$peaks[[i]][,1] <- as.character(res$peaks[[i]][,1])
-         }
-      }
-      res <- pv.vectors(res,minOverlap=minOverlap,bAllSame=pv.allSame(res),
-                        merge=is.null(res$merged))
-      res$contrasts  <- contrasts
-      res$called     <- called
-      res$attributes <- attributes
-   }
-   
-   if(is.null(res$config$DataType)) {
-      res$config$DataType=DBA_DATA_DEFAULT
-      if(!is.null(res$config$RangedData)) {
-         if(res$config$RangedData==F) {
-            res$config$DataType=DBA_DATA_FRAME   	
-         } 
-      }
-   }
-   
-   if(is.null(res$config$saveDir)) {
-      res$config$saveDir <- "Robjects"
-   }
-   
-   if(is.null(res$config$savePrefix)) {
-      res$config$saveDir <- "dba_"
-   }
-   
-   if(is.null(res$config$saveExt)) {
-      res$config$saveDir <- "RData"
-   }
-   
-   if(is.null(res$config$reportInit)) {
-      res$config$saveDir <- "reports/DBA"
-   }
-   if(is.null(res$config$AnalysisMethod)){
-      res$config$AnalysisMethod=DBA_DESEQ2
-   }
-   
-   if(is.null(res$bCorPlot)){
-      res$config$bCorPlot=FALSE
-   }
-   
-   if(class(res$attributes) == "function") {
-      res$attributes <- NULL
-   }
-   
-   if(is.null(res$config$th)){
-      res$config$th=0.05
-   }
-   if(is.null(res$config$bUsePval)){
-      res$config$bUsePval=FALSE
-   }   
-   
-   res$config$lsfInit      <- NULL
-   res$config$parallelInit <- NULL
-   res$config$initFun      <- NULL
-   res$config$paramFun     <- NULL
-   res$config$addjobFun    <- NULL
-   res$config$lapplyFun    <- NULL
-   res$config$wait4jobsFun <- NULL
-   res$config$parallelInit <- NULL
-   
-   res$config <- as.list(res$config)
-   
-   if (is.null(res$config$mapQCth)) {
-      res$config$mapQCth=15   
-   }
-   
-   if (is.null(res$config$fragmentSize)) {
-      res$config$fragmentSize=125
-   }   
-   version <- strsplit(as.character(packageVersion("DiffBind")),".",fixed=T)[[1]]
-   res <- pv.version(res,version[1],version[2], version[3])
-   
-   if(class(res)!="DBA") {
-      class(res) <- "DBA"
-   }
-   
-   if(!is.null(saveChIPQC)) {
-      saveChIPQC@DBA <- res
-      res <- saveChIPQC
-   }
-   pv.gc()
-   return(res)
+    }
+    res <- pv.vectors(res,minOverlap=minOverlap,bAllSame=pv.allSame(res),
+                      merge=is.null(res$merged))
+    res$contrasts  <- contrasts
+    res$called     <- called
+    res$attributes <- attributes
+  }
+  
+  if(is.null(res$config$DataType)) {
+    res$config$DataType=DBA_DATA_DEFAULT
+    if(!is.null(res$config$RangedData)) {
+      if(res$config$RangedData==F) {
+        res$config$DataType=DBA_DATA_FRAME   	
+      } 
+    }
+  }
+  
+  if(is.null(res$config$saveDir)) {
+    res$config$saveDir <- "Robjects"
+  }
+  
+  if(is.null(res$config$savePrefix)) {
+    res$config$saveDir <- "dba_"
+  }
+  
+  if(is.null(res$config$saveExt)) {
+    res$config$saveDir <- "RData"
+  }
+  
+  if(is.null(res$config$reportInit)) {
+    res$config$saveDir <- "reports/DBA"
+  }
+  if(is.null(res$config$AnalysisMethod)){
+    res$config$AnalysisMethod=DBA_DESEQ2
+  }
+  
+  if(is.null(res$bCorPlot)){
+    res$config$bCorPlot=FALSE
+  }
+  
+  if(class(res$attributes) == "function") {
+    res$attributes <- NULL
+  }
+  
+  if(is.null(res$config$th)){
+    res$config$th=0.05
+  }
+  if(is.null(res$config$bUsePval)){
+    res$config$bUsePval=FALSE
+  }   
+  
+  res$config$lsfInit      <- NULL
+  res$config$parallelInit <- NULL
+  res$config$initFun      <- NULL
+  res$config$paramFun     <- NULL
+  res$config$addjobFun    <- NULL
+  res$config$lapplyFun    <- NULL
+  res$config$wait4jobsFun <- NULL
+  res$config$parallelInit <- NULL
+  
+  res$config <- as.list(res$config)
+  
+  if (is.null(res$config$mapQCth)) {
+    res$config$mapQCth=15   
+  }
+  
+  if (is.null(res$config$fragmentSize)) {
+    res$config$fragmentSize=125
+  }   
+  version <- strsplit(as.character(packageVersion("DiffBind")),".",fixed=T)[[1]]
+  res <- pv.version(res,version[1],version[2], version[3])
+  
+  if(class(res)!="DBA") {
+    class(res) <- "DBA"
+  }
+  
+  if(!is.null(saveChIPQC)) {
+    saveChIPQC@DBA <- res
+    res <- saveChIPQC
+  }
+  pv.gc()
+  return(res)
 } 
 
 ##########################
@@ -1309,35 +1317,35 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
 ##########################
 
 print.DBA <- function(x,...){
-   x <- pv.check(x)
-   cat(sprintf("%s:\n",summary(x)))
-   print(dba.show(x))
-   if(!is.null(x$contrasts)){
-      cat("\n")
-      
-      if(length(x$contrasts) == 1) {
-         cat(sprintf("1 Contrast:\n") )
-      } else {
-         cat(sprintf("%d Contrasts:\n",length(x$contrasts)))
-      }
-      print(dba.show(x,bContrasts=T,th=x$config$th,bUsePval=x$config$bUsePval))
-   }
+  x <- pv.check(x)
+  cat(sprintf("%s:\n",summary(x)))
+  print(dba.show(x))
+  if(!is.null(x$contrasts)){
+    cat("\n")
+    
+    if(length(x$contrasts) == 1) {
+      cat(sprintf("1 Contrast:\n") )
+    } else {
+      cat(sprintf("%d Contrasts:\n",length(x$contrasts)))
+    }
+    print(dba.show(x,bContrasts=T,th=x$config$th,bUsePval=x$config$bUsePval))
+  }
 }
 
 summary.DBA <- function(object,...) {
-   if(is.null(object$binding)) {
-      cat('Run dba first\n')
-      return()
-   }
-   res <- sprintf("%d Samples, %d sites in matrix",
-                  length(object$peaks),nrow(object$binding))
-   if(nrow(object$binding) != object$totalMerged) {
-      res <- sprintf("%s (%d total)",res,object$totalMerged)
-   }
-   return(res)
+  if(is.null(object$binding)) {
+    cat('Run dba first\n')
+    return()
+  }
+  res <- sprintf("%d Samples, %d sites in matrix",
+                 length(object$peaks),nrow(object$binding))
+  if(nrow(object$binding) != object$totalMerged) {
+    res <- sprintf("%s (%d total)",res,object$totalMerged)
+  }
+  return(res)
 }
 
 plot.DBA <- function(x,...){
-   DBA <- pv.check(x)
-   res <- dba.plotHeatmap(x,...)
+  DBA <- pv.check(x)
+  res <- dba.plotHeatmap(x,...)
 }

@@ -3,1277 +3,1279 @@
 pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T,
                    minMembers=3,bParallel=F, block,
                    filter=0,filterFun=max) {
-   
-   if(bParallel) {
-      setParallel <- TRUE
-      bParallel <- FALSE
-   } else {
-      setParallel <- FALSE	
-   }
-   
-   if(is.null(pv$contrasts)) {
-      if(missing(block)) {
-         pv <- pv.contrast(pv,minMembers=minMembers)
-      } else {
-         pv <- pv.contrast(pv,minMembers=minMembers,block=block)
-      }
-   }
-   
-   if(is.null(pv$contrasts)) {
-      stop('Unable to perform analysis: no contrasts specified.')	
-   }
-   
-   noreps <- FALSE
-   for(contrast in pv$contrasts) {
-      if(sum(contrast$group1)<2) {
-         noreps <- TRUE
-      }
-      if(sum(contrast$group2)<2) {
-         noreps <- TRUE
-      }
-   }
-   if(noreps) {
-      warning("Some groups have no replicates. Results may be unreliable.",call.=FALSE)	
-   }
-   
-   if(bParallel) {
-      pv <- dba.parallel(pv)
-      jobs <- NULL
-      numjobs <- 0
-   }
-   
-   
-   results <- NULL
-   if('edgeR' %in% method) {
-      #require(edgeR)
-      if(bParallel && (pv$config$parallelPackage > 0)) {
-         numjobs <- numjobs + 1
-         params <- dba.parallel.params(pv$config,c('pv.allDEedgeR','pv.DEedgeR','pv.contrast','pv.listadd'))
-         fdebug('submit job: pv.all')
-         jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,
-                                                     pv.allDEedgeR,pv,
-                                                     bFullLibrarySize=bFullLibrarySize,bParallel=T,
-                                                     bSubControl=bSubControl,bTagwise=bTagwise,bGLM=F,
-                                                     filter=filter,filterFun=filterFun))
-      } else {
-         results <- pv.listadd(results, pv.allDEedgeR(pv,block=block,
-                                                      bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                      bParallel=setParallel,bTagwise=bTagwise,bGLM=F,
-                                                      filter=filter,filterFun=filterFun))
-      }
-   }
-   if('edgeRGLM' %in% method) {
-      #require(edgeR)
-      if(bParallel && (pv$config$parallelPackage > 0)) {
-         numjobs <- numjobs + 1
-         params <- dba.parallel.params(pv$config,c('pv.allDEedgeR','pv.DEedgeR','pv.contrast','pv.listadd'))
-         fdebug('submit job: pv.all')
-         jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,
-                                                     pv.allDEedgeR,pv,
-                                                     bFullLibrarySize=bFullLibrarySize,bParallel=T,
-                                                     bSubControl=bSubControl,bTagwise=bTagwise,bGLM=T,
-                                                     filter=filter,filterFun=filterFun))
-      } else {
-         results <- pv.listadd(results, pv.allDEedgeR(pv,block=block,
-                                                      bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                      bParallel=setParallel,bTagwise=bTagwise,bGLM=T,
-                                                      filter=filter,filterFun=filterFun))
-      }
-   }
-   
-   if('DESeq1' %in% method) {
-      if (!requireNamespace("DESeq",quietly=TRUE)) {
-         stop("Package DESeq not installed")
-      }
-      if(bParallel && (pv$config$parallelPackage > 0)) {
-         numjobs <- numjobs + 1
-         params <- dba.parallel.params(pv$config,c('pv.DESeq'))
-         jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq,pv,
-                                                     bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                     bTagwise=bTagwise,bGLM=F,
-                                                     bParallel=T,
-                                                     filter=filter,filterFun=filterFun))
-      } else {
-         results <- pv.listadd(results,pv.allDESeq(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                   bTagwise=bTagwise,bGLM=F,bParallel=setParallel,
+  
+  if(bParallel) {
+    setParallel <- TRUE
+    bParallel <- FALSE
+  } else {
+    setParallel <- FALSE	
+  }
+  
+  if(is.null(pv$contrasts)) {
+    if(missing(block)) {
+      pv <- pv.contrast(pv,minMembers=minMembers)
+    } else {
+      pv <- pv.contrast(pv,minMembers=minMembers,block=block)
+    }
+  }
+  
+  if(is.null(pv$contrasts)) {
+    stop('Unable to perform analysis: no contrasts specified.')	
+  }
+  
+  noreps <- FALSE
+  for(contrast in pv$contrasts) {
+    if(sum(contrast$group1)<2) {
+      noreps <- TRUE
+    }
+    if(sum(contrast$group2)<2) {
+      noreps <- TRUE
+    }
+  }
+  if(noreps) {
+    warning("Some groups have no replicates. Results may be unreliable.",call.=FALSE)	
+  }
+  
+  if(bParallel) {
+    pv <- dba.parallel(pv)
+    jobs <- NULL
+    numjobs <- 0
+  }
+  
+  
+  results <- NULL
+  if('edgeR' %in% method) {
+    #require(edgeR)
+    if(bParallel && (pv$config$parallelPackage > 0)) {
+      numjobs <- numjobs + 1
+      params <- dba.parallel.params(pv$config,c('pv.allDEedgeR','pv.DEedgeR','pv.contrast','pv.listadd'))
+      fdebug('submit job: pv.all')
+      jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,
+                                                  pv.allDEedgeR,pv,
+                                                  bFullLibrarySize=bFullLibrarySize,bParallel=T,
+                                                  bSubControl=bSubControl,bTagwise=bTagwise,bGLM=F,
+                                                  filter=filter,filterFun=filterFun))
+    } else {
+      results <- pv.listadd(results, pv.allDEedgeR(pv,block=block,
+                                                   bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                   bParallel=setParallel,bTagwise=bTagwise,bGLM=F,
                                                    filter=filter,filterFun=filterFun))
-      }
-   }
-   
-   if('DESeq1GLM' %in% method) {
-      if (!requireNamespace("DESeq",quietly=TRUE)) {
-         stop("Package DESeq not installed")
-      }
-      if(bParallel && (pv$config$parallelPackage > 0)) {
-         numjobs <- numjobs + 1
-         params <- dba.parallel.params(pv$config,c('pv.DESeq'))
-         jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq,pv,
-                                                     bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                     bTagwise=bTagwise,bGLM=T,
-                                                     bParallel=T,filter=filter,filterFun=filterFun))
-      } else {
-         results <- pv.listadd(results,pv.allDESeq(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                   bTagwise=bTagwise,bGLM=T,bParallel=setParallel,
+    }
+  }
+  if('edgeRGLM' %in% method) {
+    #require(edgeR)
+    if(bParallel && (pv$config$parallelPackage > 0)) {
+      numjobs <- numjobs + 1
+      params <- dba.parallel.params(pv$config,c('pv.allDEedgeR','pv.DEedgeR','pv.contrast','pv.listadd'))
+      fdebug('submit job: pv.all')
+      jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,
+                                                  pv.allDEedgeR,pv,
+                                                  bFullLibrarySize=bFullLibrarySize,bParallel=T,
+                                                  bSubControl=bSubControl,bTagwise=bTagwise,bGLM=T,
+                                                  filter=filter,filterFun=filterFun))
+    } else {
+      results <- pv.listadd(results, pv.allDEedgeR(pv,block=block,
+                                                   bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                   bParallel=setParallel,bTagwise=bTagwise,bGLM=T,
                                                    filter=filter,filterFun=filterFun))
-      }
-   }
-   
-   if('DESeq2' %in% method) {
-      if (!requireNamespace("DESeq2",quietly=TRUE)) {
-         stop("Package DESeq2 not installed")
-      }
-      if(bParallel && (pv$config$parallelPackage > 0)) {
-         numjobs <- numjobs + 1
-         params <- dba.parallel.params(pv$config,c('pv.DESeq2'))
-         jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq2,pv,
-                                                     bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                     bTagwise=bTagwise,bGLM=F,
-                                                     bParallel=T,filter=filter,filterFun=filterFun))
-      } else {
-         results <- pv.listadd(results,pv.allDESeq2(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                    bTagwise=bTagwise,bGLM=F,bParallel=setParallel,
-                                                    filter=filter,filterFun=filterFun))
-      }
-   }
-   
-   
-   if(bParallel && (pv$config$parallelPackage > 0)) {
-      results <- dba.parallel.wait4jobs(pv$config,jobs)
-   }
-   
-   jnum <- 1
-   if( ('edgeR' %in% method) || ('edgeRGLM' %in% method) ) {
-      edger <- results[[jnum]]
-      for(i in 1:length(edger)){
-         pv$contrasts[[i]]$edgeR <- edger[[i]]
-      }
-      jnum <- jnum+1
-   }
-   if( ('DESeq1' %in% method) || ('DESeq1GLM' %in% method) ) {
-      deseq <- results[[jnum]]
-      for(i in 1:length(deseq)){
-         pv$contrasts[[i]]$DESeq1 <- deseq[[i]]
-      }
-      jnum <- jnum+1
-   }
-   
-   if( ('DESeq2' %in% method) || ('DESeq2GLM' %in% method) ) {
-      deseq2 <- results[[jnum]]
-      for(i in 1:length(deseq2)){
-         pv$contrasts[[i]]$DESeq2 <- deseq2[[i]]
-      }
-      jnum <- jnum+1
-   } 
-   
-   pv$filter    <- filter
-   pv$filterFun <- filterFun
-   
-   fdebug(sprintf('Exit pv.DBA: %f',pv$contrasts[[1]]$edgeR$counts[7,1]))
-   return(pv)
+    }
+  }
+  
+  if('DESeq1' %in% method) {
+    if (!requireNamespace("DESeq",quietly=TRUE)) {
+      stop("Package DESeq not installed")
+    }
+    if(bParallel && (pv$config$parallelPackage > 0)) {
+      numjobs <- numjobs + 1
+      params <- dba.parallel.params(pv$config,c('pv.DESeq'))
+      jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq,pv,
+                                                  bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                  bTagwise=bTagwise,bGLM=F,
+                                                  bParallel=T,
+                                                  filter=filter,filterFun=filterFun))
+    } else {
+      results <- pv.listadd(results,pv.allDESeq(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                bTagwise=bTagwise,bGLM=F,bParallel=setParallel,
+                                                filter=filter,filterFun=filterFun))
+    }
+  }
+  
+  if('DESeq1GLM' %in% method) {
+    if (!requireNamespace("DESeq",quietly=TRUE)) {
+      stop("Package DESeq not installed")
+    }
+    if(bParallel && (pv$config$parallelPackage > 0)) {
+      numjobs <- numjobs + 1
+      params <- dba.parallel.params(pv$config,c('pv.DESeq'))
+      jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq,pv,
+                                                  bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                  bTagwise=bTagwise,bGLM=T,
+                                                  bParallel=T,filter=filter,filterFun=filterFun))
+    } else {
+      results <- pv.listadd(results,pv.allDESeq(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                bTagwise=bTagwise,bGLM=T,bParallel=setParallel,
+                                                filter=filter,filterFun=filterFun))
+    }
+  }
+  
+  if('DESeq2' %in% method) {
+    if (!requireNamespace("DESeq2",quietly=TRUE)) {
+      stop("Package DESeq2 not installed")
+    }
+    if(bParallel && (pv$config$parallelPackage > 0)) {
+      numjobs <- numjobs + 1
+      params <- dba.parallel.params(pv$config,c('pv.DESeq2'))
+      jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq2,pv,
+                                                  bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                  bTagwise=bTagwise,bGLM=F,
+                                                  bParallel=T,filter=filter,filterFun=filterFun))
+    } else {
+      results <- pv.listadd(results,pv.allDESeq2(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                 bTagwise=bTagwise,bGLM=F,bParallel=setParallel,
+                                                 filter=filter,filterFun=filterFun))
+    }
+  }
+  
+  
+  if(bParallel && (pv$config$parallelPackage > 0)) {
+    results <- dba.parallel.wait4jobs(pv$config,jobs)
+  }
+  
+  jnum <- 1
+  if( ('edgeR' %in% method) || ('edgeRGLM' %in% method) ) {
+    edger <- results[[jnum]]
+    for(i in 1:length(edger)){
+      pv$contrasts[[i]]$edgeR <- edger[[i]]
+    }
+    jnum <- jnum+1
+  }
+  if( ('DESeq1' %in% method) || ('DESeq1GLM' %in% method) ) {
+    deseq <- results[[jnum]]
+    for(i in 1:length(deseq)){
+      pv$contrasts[[i]]$DESeq1 <- deseq[[i]]
+    }
+    jnum <- jnum+1
+  }
+  
+  if( ('DESeq2' %in% method) || ('DESeq2GLM' %in% method) ) {
+    deseq2 <- results[[jnum]]
+    for(i in 1:length(deseq2)){
+      pv$contrasts[[i]]$DESeq2 <- deseq2[[i]]
+    }
+    jnum <- jnum+1
+  } 
+  
+  pv$filter    <- filter
+  pv$filterFun <- filterFun
+  
+  fdebug(sprintf('Exit pv.DBA: %f',pv$contrasts[[1]]$edgeR$counts[7,1]))
+  return(pv)
 }
 
 pv.DEinit <- function(pv,mask1,mask2,group1=1,group2=2,method='edgeR',
                       bSubControl=F,bFullLibrarySize=F,removeComps=0,
                       bRawCounts=F,targets=NULL,
                       filter=0,filterFun=max) {
-   
-   fdebug('enter pv.DEinit')
-   
-   edgeR  <- F
-   DESeq1 <- F
-   DESeq2 <- F
-   if(method == 'edgeR') {
-      #require('edgeR')
-      edgeR <- T   
-   } else if (method == 'DESeq1'|| method=='DESeq1GLM') {
-      if (requireNamespace("DESeq",quietly=TRUE)) {
-         DESeq1 <- T 
-      }   
-   } else if (method == 'DESeq2') {
-      #stop('DESeq2 not supported in this release',call.=F)
-      if (requireNamespace("DESeq2",quietly=TRUE)) {
-         DESeq2 <- T 
+  
+  fdebug('enter pv.DEinit')
+  
+  edgeR  <- F
+  DESeq1 <- F
+  DESeq2 <- F
+  if(method == 'edgeR') {
+    #require('edgeR')
+    edgeR <- T   
+  } else if (method == 'DESeq1'|| method=='DESeq1GLM') {
+    if (requireNamespace("DESeq",quietly=TRUE)) {
+      DESeq1 <- T 
+    }   
+  } else if (method == 'DESeq2') {
+    #stop('DESeq2 not supported in this release',call.=F)
+    if (requireNamespace("DESeq2",quietly=TRUE)) {
+      DESeq2 <- T 
+    } else {
+      stop("Package DESeq2 not installed")
+    }    
+  } else {
+    warning('Invalid method: ',method,call.=FALSE)
+    return(NULL)
+  }
+  
+  srcmask <- pv.mask(pv,PV_CALLER,"source") | pv.mask(pv,PV_CALLER,"counts")
+  
+  fdebug(sprintf('pv.DEinit: %s %2.0f %s %2.0f srcmask %2.0f',
+                 group1,sum(mask1),group2,sum(mask2),sum(srcmask)))
+  g1 <- which(mask1 & srcmask)
+  g2 <- which(mask2 & srcmask)
+  
+  s1 <- pv.get_reads(pv,g1,bSubControl=bSubControl)
+  s2 <- pv.get_reads(pv,g2,bSubControl=bSubControl)
+  
+  counts <- cbind(s1,s2)
+  
+  if(filter > 0){
+    scores <- apply(counts,1,filterFun)
+    keep   <- scores > filter
+    counts <- counts[keep,]
+    rownames(counts) <- which(keep)
+  } else {
+    rownames(counts) <- as.character(1:nrow(counts))
+  }
+  
+  colnames(counts) <- c(pv$class[PV_ID,mask1],pv$class[PV_ID,mask2])
+  
+  if(bRawCounts) {
+    return(counts)	
+  }
+  
+  groups <- factor(c(rep(group1,length(g1)),rep(group2,length(g2))))
+  if(bFullLibrarySize) {
+    libsize <- as.numeric(pv$class[PV_READS,c(g1,g2)])
+  } else {
+    libsize <- colSums(counts)
+  }
+  if(!bRawCounts) {
+    if(edgeR) {
+      res <- DGEList(counts,lib.size=libsize,
+                     group=groups,genes=as.character(1:nrow(counts)))
+      rownames(res$counts) <- 1:nrow(res$counts)
+      fdebug(sprintf('DGEList counts: %f',res$counts[7,1]))
+    }
+    if(DESeq1) {
+      colnames(counts) <- NULL
+      if(is.null(targets)) {
+        res <- DESeq::newCountDataSet(counts,groups)
       } else {
-         stop("Package DESeq2 not installed")
-      }    
-   } else {
-      warning('Invalid method: ',method,call.=FALSE)
-      return(NULL)
-   }
-   
-   srcmask <- pv.mask(pv,PV_CALLER,"source") | pv.mask(pv,PV_CALLER,"counts")
-   
-   fdebug(sprintf('pv.DEinit: %s %2.0f %s %2.0f srcmask %2.0f',
-                  group1,sum(mask1),group2,sum(mask2),sum(srcmask)))
-   g1 <- which(mask1 & srcmask)
-   g2 <- which(mask2 & srcmask)
-   
-   s1 <- pv.get_reads(pv,g1,bSubControl=bSubControl)
-   s2 <- pv.get_reads(pv,g2,bSubControl=bSubControl)
-   
-   counts <- cbind(s1,s2)
-   
-   if(filter > 0){
-      scores <- apply(counts,1,filterFun)
-      keep   <- scores > filter
-      counts <- counts[keep,]
-      rownames(counts) <- which(keep)
-   } else {
-      rownames(counts) <- as.character(1:nrow(counts))
-   }
-   
-   colnames(counts) <- c(pv$class[PV_ID,mask1],pv$class[PV_ID,mask2])
-   
-   if(bRawCounts) {
-      return(counts)	
-   }
-   
-   groups <- factor(c(rep(group1,length(g1)),rep(group2,length(g2))))
-   if(bFullLibrarySize) {
-      libsize <- as.numeric(pv$class[PV_READS,c(g1,g2)])
-   } else {
-      libsize <- colSums(counts)
-   }
-   if(!bRawCounts) {
-      if(edgeR) {
-         res <- DGEList(counts,lib.size=libsize,
-                        group=groups,genes=as.character(1:nrow(counts)))
-         rownames(res$counts) <- 1:nrow(res$counts)
-         fdebug(sprintf('DGEList counts: %f',res$counts[7,1]))
+        res <- DESeq::newCountDataSet(counts,targets)	
       }
-      if(DESeq1) {
-         colnames(counts) <- NULL
-         if(is.null(targets)) {
-            res <- DESeq::newCountDataSet(counts,groups)
-         } else {
-            res <- DESeq::newCountDataSet(counts,targets)	
-         }
-         if(bFullLibrarySize) {
-            DESeq::sizeFactors(res) <- libsize/min(libsize)
-         }
+      if(bFullLibrarySize) {
+        DESeq::sizeFactors(res) <- libsize/min(libsize)
       }
-      if(DESeq2) {
-         colnames(counts) <- NULL
-         if(is.null(targets)) {     	
-            res <- DESeq2::DESeqDataSetFromMatrix(counts,data.frame(groups),formula(~ groups))
-         } else {
-            res <- DESeq2::DESeqDataSetFromMatrix(counts,data.frame(targets),formula(~ group))     		
-         }
-         if(bFullLibrarySize) {
-            DESeq2::sizeFactors(res) <- libsize/min(libsize)
-         }  
+    }
+    if(DESeq2) {
+      colnames(counts) <- NULL
+      if(is.null(targets)) {     	
+        res <- DESeq2::DESeqDataSetFromMatrix(counts,data.frame(groups),formula(~ groups))
+      } else {
+        res <- DESeq2::DESeqDataSetFromMatrix(counts,data.frame(targets),formula(~ group))     		
       }
-   }                
-   return(res)
+      if(bFullLibrarySize) {
+        DESeq2::sizeFactors(res) <- libsize/min(libsize)
+      }  
+    }
+  }                
+  return(res)
 }
 
 pv.DEedgeR <- function(pv,group1,group2,label1="Group 1",label2="Group 2",blockList=NULL,
                        bSubControl=F,bFullLibrarySize=F,bTagwise=T,bGLM=T,bNormOnly=F,
                        bWeighting=FALSE, filter=0,filterFun=max) {
-   
-   fdebug('Enter pv.DEedgeR')
-   
-   #require(edgeR)
-   
-   res <- pv.DEinit(pv,group1,group2,label1,label2,method='edgeR',
-                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                    filter=filter, filterFun=filterFun)
-   res <- calcNormFactors(res,method="TMM",doWeighting=bWeighting)
-   fdebug(sprintf('calcNormFactors: %f',res$counts[7,1]))
-   
-   if(bNormOnly) {
-      return(res)	
-   }
-   
-   if(is.null(blockList)) {
-      fdebug('blockList is NULL')
-   } else {
-      fdebug('blockList is not NULL')
-   }
-   fdebug('pv.DEedgeR: check for blocking factor')
-   if(is.null(blockList)) {
-      fdebug('pv.DEedgeR: NO blocking factor')
-      res <- estimateCommonDisp(res)
-      fdebug(sprintf('estimateCommonDisp: %f',res$counts[7,1]))
-      if(bGLM){
-         res$design <- model.matrix(~res$samples$group)
-         if(bTagwise) {
-            res <- estimateGLMCommonDisp(res,res$design)
-            res <- estimateGLMTagwiseDisp(res,res$design)
-         } else {
-            res <- estimateGLMCommonDisp(res,res$design)
-         }
-         res$GLM <- glmFit(res,res$design)
-         res$LRT <- glmLRT(res$GLM,2)
-      } else {
-         if(bTagwise){
-            res <- estimateTagwiseDisp(res,prior.df=50,trend="none")
-            #res <- estimateTagwiseDisp(res,prior.n=getPriorN(res),trend="movingave")
-            res$db     <- exactTest(res,dispersion='tagwise')
-         } else {
-            res$db     <- exactTest(res,dispersion='common')	
-         }
-      }
-      fdebug(sprintf('Fit and test: %f',res$counts[7,1]))
-      fdebug('pv.DEedgeR: estimateTagwiseDisp complete')
-      
-      fdebug(sprintf('pv.DEedgeR: exactTest complete:%s-%s',res$db$comparison[1],res$db$comparison[2]))
-      #res$db$fdr <- topTags(res$db,nrow(res$db$counts))
-   } else {
-      fdebug('pv.DEedgeR: BLOCKING FACTOR')
-      
-      targets <- pv.blockFactors(pv,group1,group2,label1,label2,blockList)
-      if(is.null(targets)){
-         return(res)	
-      }
-      res$samples <- data.frame(cbind(targets,res$samples[,2:3]))
-      
-      attr <-  blockList[[1]]$attribute
-      if(attr=='Replicate') {
-         res$designmatrix <- model.matrix(~ Replicate + group,data = targets)
-      } else if(attr=='Tissue') {
-         res$designmatrix <- model.matrix(~ Tissue + group,data = targets)
-      } else if(attr=='Factor') {
-         res$designmatrix <- model.matrix(~ Factor + group,data = targets)
-      } else if(attr=='Condition') {
-         res$designmatrix <- model.matrix(~ Condition + group,data = targets)
-      } else if(attr=='Caller') {
-         res$designmatrix <- model.matrix(~ Caller + group,data = targets)
-      } else if(attr=='Treatment') {
-         res$designmatrix <- model.matrix(~ Treatment + group,data = targets)
-      } else if(attr=='Block') {
-         res$designmatrix <- model.matrix(~ Block + group,data = targets)
-      } else {
-         warning('Unsupported blocking attribute: ',attr,call.=FALSE)
-         return(NULL)	
-      }
-      message('edgeR multi-factor analysis.')
-      res <- calcNormFactors(res,method="TMM",doWeighting=bWeighting)
-      res <- estimateGLMCommonDisp(res,res$designmatrix)
+  
+  fdebug('Enter pv.DEedgeR')
+  
+  #require(edgeR)
+  
+  res <- pv.DEinit(pv,group1,group2,label1,label2,method='edgeR',
+                   bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                   filter=filter, filterFun=filterFun)
+  res <- calcNormFactors(res,method="TMM",doWeighting=bWeighting)
+  fdebug(sprintf('calcNormFactors: %f',res$counts[7,1]))
+  
+  if(bNormOnly) {
+    return(res)	
+  }
+  
+  if(is.null(blockList)) {
+    fdebug('blockList is NULL')
+  } else {
+    fdebug('blockList is not NULL')
+  }
+  fdebug('pv.DEedgeR: check for blocking factor')
+  if(is.null(blockList)) {
+    fdebug('pv.DEedgeR: NO blocking factor')
+    res <- estimateCommonDisp(res)
+    fdebug(sprintf('estimateCommonDisp: %f',res$counts[7,1]))
+    if(bGLM){
+      res$design <- model.matrix(~res$samples$group)
       if(bTagwise) {
-         res <- estimateGLMTagwiseDisp(res,res$designmatrix)
+        res <- estimateGLMCommonDisp(res,res$design)
+        res <- estimateGLMTagwiseDisp(res,res$design)
+      } else {
+        res <- estimateGLMCommonDisp(res,res$design)
       }
-      res$GLM <- glmFit(res,res$designmatrix)
-      res$LRT <- glmLRT(res$GLM,ncol(res$designmatrix))
-      res$counts <- NULL	 
-      #res$fdr <- topTags(res$LRT,nrow(res$counts))
-   }
-   
-   res$bSubControl      <- bSubControl
-   res$bFullLibrarySize <- bFullLibrarySize
-   
-   fdebug(sprintf('Exit pv.DEedgeR: %f',res$counts[7,1]))
-   return(res)	
-   
+      res$GLM <- glmFit(res,res$design)
+      res$LRT <- glmLRT(res$GLM,2)
+    } else {
+      if(bTagwise){
+        res <- estimateTagwiseDisp(res,prior.df=50,trend="none")
+        #res <- estimateTagwiseDisp(res,prior.n=getPriorN(res),trend="movingave")
+        res$db     <- exactTest(res,dispersion='tagwise')
+      } else {
+        res$db     <- exactTest(res,dispersion='common')	
+      }
+    }
+    fdebug(sprintf('Fit and test: %f',res$counts[7,1]))
+    fdebug('pv.DEedgeR: estimateTagwiseDisp complete')
+    
+    fdebug(sprintf('pv.DEedgeR: exactTest complete:%s-%s',res$db$comparison[1],res$db$comparison[2]))
+    #res$db$fdr <- topTags(res$db,nrow(res$db$counts))
+  } else {
+    fdebug('pv.DEedgeR: BLOCKING FACTOR')
+    
+    targets <- pv.blockFactors(pv,group1,group2,label1,label2,blockList)
+    if(is.null(targets)){
+      return(res)	
+    }
+    res$samples <- data.frame(cbind(targets,res$samples[,2:3]))
+    
+    attr <-  blockList[[1]]$attribute
+    if(attr=='Replicate') {
+      res$designmatrix <- model.matrix(~ Replicate + group,data = targets)
+    } else if(attr=='Tissue') {
+      res$designmatrix <- model.matrix(~ Tissue + group,data = targets)
+    } else if(attr=='Factor') {
+      res$designmatrix <- model.matrix(~ Factor + group,data = targets)
+    } else if(attr=='Condition') {
+      res$designmatrix <- model.matrix(~ Condition + group,data = targets)
+    } else if(attr=='Caller') {
+      res$designmatrix <- model.matrix(~ Caller + group,data = targets)
+    } else if(attr=='Treatment') {
+      res$designmatrix <- model.matrix(~ Treatment + group,data = targets)
+    } else if(attr=='Block') {
+      res$designmatrix <- model.matrix(~ Block + group,data = targets)
+    } else {
+      warning('Unsupported blocking attribute: ',attr,call.=FALSE)
+      return(NULL)	
+    }
+    message('edgeR multi-factor analysis.')
+    res <- calcNormFactors(res,method="TMM",doWeighting=bWeighting)
+    res <- estimateGLMCommonDisp(res,res$designmatrix)
+    if(bTagwise) {
+      res <- estimateGLMTagwiseDisp(res,res$designmatrix)
+    }
+    res$GLM <- glmFit(res,res$designmatrix)
+    res$LRT <- glmLRT(res$GLM,ncol(res$designmatrix))
+    res$counts <- NULL	 
+    #res$fdr <- topTags(res$LRT,nrow(res$counts))
+  }
+  
+  res$bSubControl      <- bSubControl
+  res$bFullLibrarySize <- bFullLibrarySize
+  
+  fdebug(sprintf('Exit pv.DEedgeR: %f',res$counts[7,1]))
+  return(res)	
+  
 }
 
 pv.DESeq <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
                      bSubControl=T,bFullLibrarySize=F,bTagwise=T,bGLM=T,
                      blockList=NULL,filter=0, filterFun=max){
-   if (!requireNamespace("DESeq",quietly=TRUE)) {
-      stop("Package DESeq not installed")
-   }
-   res <- NULL
-   
-   targets <- NULL
-   if(!is.null(blockList)) {
-      targets <- pv.blockFactors(pv,group1,group2,label1,label2,blockList)
-      if(is.null(targets)){
-         return(res)	
+  if (!requireNamespace("DESeq",quietly=TRUE)) {
+    stop("Package DESeq not installed")
+  }
+  res <- NULL
+  
+  targets <- NULL
+  if(!is.null(blockList)) {
+    targets <- pv.blockFactors(pv,group1,group2,label1,label2,blockList)
+    if(is.null(targets)){
+      return(res)	
+    }
+  } 
+  res$DEdata <- pv.DEinit(pv,group1,group2,label1,label2,method='DESeq1', 
+                          bSubControl=bSubControl,
+                          bFullLibrarySize=bFullLibrarySize,targets=targets,
+                          filter=filter, filterFun=filterFun)
+  res$counts <- DESeq::counts(res$DEdata)
+  if(!bFullLibrarySize) {
+    res$DEdata <- DESeq::estimateSizeFactors(res$DEdata)
+  }
+  res$facs <- DESeq::sizeFactors(res$DEdata)
+  if(sum(group1)+sum(group2)==2){
+    res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='blind',sharingMode='fit-only')
+  } else {
+    if(bTagwise && !bGLM && is.null(blockList)) {
+      res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='per-condition')
+    } else {
+      if(bGLM && is.null(blockList)) {
+        res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled')
       }
-   } 
-   res$DEdata <- pv.DEinit(pv,group1,group2,label1,label2,method='DESeq1', 
-                           bSubControl=bSubControl,
-                           bFullLibrarySize=bFullLibrarySize,targets=targets,
-                           filter=filter, filterFun=filterFun)
-   res$counts <- DESeq::counts(res$DEdata)
-   if(!bFullLibrarySize) {
-      res$DEdata <- DESeq::estimateSizeFactors(res$DEdata)
-   }
-   res$facs <- DESeq::sizeFactors(res$DEdata)
-   if(sum(group1)+sum(group2)==2){
-      res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='blind',sharingMode='fit-only')
-   } else {
-      if(bTagwise && !bGLM && is.null(blockList)) {
-         res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='per-condition')
-      } else {
-         if(bGLM && is.null(blockList)) {
-            res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled')
-         }
-         #if(bTagwise && is.null(blockList)) {
-         #  warning('Unable to use tagwise dispersion estimates with GLM',call.=FALSE)	
-         #}
-      }
-   }
-   if(bGLM && is.null(blockList)){
-      res$fullFit      <- DESeq::fitNbinomGLMs(res$DEdata,count ~ condition)
-      res$reducedFit   <- DESeq::fitNbinomGLMs(res$DEdata,count ~ 1)
-      res$de           <- DESeq::nbinomGLMTest(res$fullFit,res$reducedFit)
-      res$de           <- cbind(1:length(res$de),res$de,p.adjust(res$de,method="BH"))
-      colnames(res$de) <- c('id','pval','padj')
-      res$de           <- data.frame(res$de)
-   } else if (!is.null(blockList)) {
-      message('DESeq multi-factor analysis')
-      attr <-  blockList[[1]]$attribute
-      if(attr=='Replicate') {
-         res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
-                                                  modelFormula = count ~ group + Replicate)       	
-         res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Replicate)
-         res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Replicate)
-      } else if(attr=='Tissue') {
-         res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
-                                                  modelFormula = count ~ group + Tissue)          	
-         res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Tissue)
-         res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Tissue)
-      } else if(attr=='Factor') {
-         res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
-                                                  modelFormula = count ~ group + Factor)  
-         res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Factor)
-         res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Factor)
-      } else if(attr=='Condition') {
-         res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
-                                                  modelFormula = count ~ group + Condition)  
-         res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Condition)
-         res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Condition)
-      } else if(attr=='Caller') {
-         res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
-                                                  modelFormula = count ~ group + Caller)  
-         res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Caller)
-         res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Caller)
-      } else if(attr=='Treatment') {
-         res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
-                                                  modelFormula = count ~ group + Treatment)  
-         res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Treatment)
-         res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Treatment)
-      } else if(attr=='Block') {
-         res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
-                                                  modelFormula = count ~ group + Block)  
-         res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Block)
-         res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Block)
-      } else {
-         warning('Unsupported blocking attribute: ',attr,call.=FALSE)
-         return(NULL)	
-      }
-      res$de           <- DESeq::nbinomGLMTest(res$fullFit,res$reducedFit)
-      res$de           <- cbind(1:length(res$de),res$de,p.adjust(res$de,method="BH"))
-      colnames(res$de) <- c('id','pval','padj')
-      res$de           <- data.frame(res$de)
-      fdebug(sprintf('pv.DESeq blocking analysis: %d db (%s/%s)',sum(res$de$padj<0.05),label1,label2))
-   } else {
-      res$de <- DESeq::nbinomTest(res$DEdata,label1,label2)[,c(1,7:8)]
-   }
-   
-   res$de <- res$de[order(res$de$padj),]
-   
-   res$bSubControl      <- bSubControl
-   res$bFullLibrarySize <- bFullLibrarySize
-   
-   return(res)
-   
+      #if(bTagwise && is.null(blockList)) {
+      #  warning('Unable to use tagwise dispersion estimates with GLM',call.=FALSE)	
+      #}
+    }
+  }
+  if(bGLM && is.null(blockList)){
+    res$fullFit      <- DESeq::fitNbinomGLMs(res$DEdata,count ~ condition)
+    res$reducedFit   <- DESeq::fitNbinomGLMs(res$DEdata,count ~ 1)
+    res$de           <- DESeq::nbinomGLMTest(res$fullFit,res$reducedFit)
+    res$de           <- cbind(1:length(res$de),res$de,p.adjust(res$de,method="BH"))
+    colnames(res$de) <- c('id','pval','padj')
+    res$de           <- data.frame(res$de)
+  } else if (!is.null(blockList)) {
+    message('DESeq multi-factor analysis')
+    attr <-  blockList[[1]]$attribute
+    if(attr=='Replicate') {
+      res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
+                                               modelFormula = count ~ group + Replicate)       	
+      res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Replicate)
+      res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Replicate)
+    } else if(attr=='Tissue') {
+      res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
+                                               modelFormula = count ~ group + Tissue)          	
+      res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Tissue)
+      res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Tissue)
+    } else if(attr=='Factor') {
+      res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
+                                               modelFormula = count ~ group + Factor)  
+      res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Factor)
+      res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Factor)
+    } else if(attr=='Condition') {
+      res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
+                                               modelFormula = count ~ group + Condition)  
+      res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Condition)
+      res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Condition)
+    } else if(attr=='Caller') {
+      res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
+                                               modelFormula = count ~ group + Caller)  
+      res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Caller)
+      res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Caller)
+    } else if(attr=='Treatment') {
+      res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
+                                               modelFormula = count ~ group + Treatment)  
+      res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Treatment)
+      res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Treatment)
+    } else if(attr=='Block') {
+      res$DEdata <- DESeq::estimateDispersions(res$DEdata,fitType='local',method='pooled-CR',
+                                               modelFormula = count ~ group + Block)  
+      res$fullFit    <- DESeq::fitNbinomGLMs(res$DEdata,count ~ group + Block)
+      res$reducedFit <- DESeq::fitNbinomGLMs(res$DEdata,count ~ Block)
+    } else {
+      warning('Unsupported blocking attribute: ',attr,call.=FALSE)
+      return(NULL)	
+    }
+    res$de           <- DESeq::nbinomGLMTest(res$fullFit,res$reducedFit)
+    res$de           <- cbind(1:length(res$de),res$de,p.adjust(res$de,method="BH"))
+    colnames(res$de) <- c('id','pval','padj')
+    res$de           <- data.frame(res$de)
+    fdebug(sprintf('pv.DESeq blocking analysis: %d db (%s/%s)',sum(res$de$padj<0.05),label1,label2))
+  } else {
+    res$de <- DESeq::nbinomTest(res$DEdata,label1,label2)[,c(1,7:8)]
+  }
+  
+  res$de <- res$de[order(res$de$padj),]
+  
+  res$bSubControl      <- bSubControl
+  res$bFullLibrarySize <- bFullLibrarySize
+  
+  return(res)
+  
 }
 
 pv.DESeq2 <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
                       bSubControl=T,bFullLibrarySize=F,bTagwise=T,bGLM=T,
                       blockList=NULL,filter=0, filterFun=max){
-   if (!requireNamespace("DESeq2",quietly=TRUE)) {
-      stop("Package DESeq2 not installed")
-   }
-   res <- NULL
-   
-   targets <- NULL
-   if(!is.null(blockList)) {
-      targets <- pv.blockFactors(pv,group1,group2,label1,label2,blockList)
-      if(is.null(targets)){
-         return(res)	
-      }
-   } 
-   res$DEdata <- pv.DEinit(pv,group1,group2,label1,label2,method='DESeq2',
-                           bSubControl=bSubControl,
-                           bFullLibrarySize=bFullLibrarySize,targets=targets,
-                           filter=filter, filterFun=filterFun)
-   res$counts <- DESeq2::counts(res$DEdata)
-   
-   if (!is.null(blockList)) {
-      message('DESeq2 multi-factor analysis')
-      attr <-  blockList[[1]]$attribute
-      if(attr=='Replicate') {
-         DESeq2::design(res$DEdata) <- formula(~Replicate + group)
-      } else if(attr=='Tissue') {
-         DESeq2::design(res$DEdata) <- formula(~Tissue + group)    
-      } else if(attr=='Factor') {
-         DESeq2::design(res$DEdata) <- formula(~Factor + group)
-      } else if(attr=='Condition') {
-         DESeq2::design(res$DEdata) <- formula(~Condition + group)
-      } else if(attr=='Caller') {
-         DESeq2::design(res$DEdata) <- formula(~Caller + group)
-      } else if(attr=='Treatment') {
-         DESeq2::design(res$DEdata) <- formula(~Treatment + group)
-      } else if(attr=='Block') {
-         DESeq2::design(res$DEdata) <- formula(~Block + group)
-      } else {
-         warning('Unsupported blocking attribute: ',attr,call.=FALSE)
-         return(NULL)  
-      }
-      fdebug(sprintf('pv.DESeq blocking analysis: %d db (%s/%s)',sum(res$de$padj<0.05),label1,label2))
-   } 
-   
-   if(!bFullLibrarySize) {
-      res$DEdata <- DESeq2::estimateSizeFactors(res$DEdata)
-   }
-   
-   res$facs   <- DESeq2::sizeFactors(res$DEdata)
-   res$DEdata <- DESeq2::estimateDispersions(res$DEdata,fitType='local')
-   res$DEdata <- DESeq2::nbinomWaldTest(res$DEdata)
-   res$de     <- DESeq2::results(res$DEdata)
-   
-   res$de$pvalue[is.na(res$de$pvalue)]=1
-   res$de$padj[is.na(res$de$padj)]=1
-   
-   res$de <- res$de[order(res$de$padj),]
-   res$de <- cbind(as.numeric(rownames(res$de)),res$de$pvalue,res$de$padj)
-   colnames(res$de) <- c("id","pval","padj")
-   rownames(res$de) <- res$de[,1]
-   res$de <- data.frame(res$de)
-   
-   res$bSubControl      <- bSubControl
-   res$bFullLibrarySize <- bFullLibrarySize
-   
-   return(res)
-   
+  if (!requireNamespace("DESeq2",quietly=TRUE)) {
+    stop("Package DESeq2 not installed")
+  }
+  res <- NULL
+  
+  targets <- NULL
+  if(!is.null(blockList)) {
+    targets <- pv.blockFactors(pv,group1,group2,label1,label2,blockList)
+    if(is.null(targets)){
+      return(res)	
+    }
+  } 
+  res$DEdata <- pv.DEinit(pv,group1,group2,label1,label2,method='DESeq2',
+                          bSubControl=bSubControl,
+                          bFullLibrarySize=bFullLibrarySize,targets=targets,
+                          filter=filter, filterFun=filterFun)
+  res$counts <- DESeq2::counts(res$DEdata)
+  
+  if (!is.null(blockList)) {
+    message('DESeq2 multi-factor analysis')
+    attr <-  blockList[[1]]$attribute
+    if(attr=='Replicate') {
+      DESeq2::design(res$DEdata) <- formula(~Replicate + group)
+    } else if(attr=='Tissue') {
+      DESeq2::design(res$DEdata) <- formula(~Tissue + group)    
+    } else if(attr=='Factor') {
+      DESeq2::design(res$DEdata) <- formula(~Factor + group)
+    } else if(attr=='Condition') {
+      DESeq2::design(res$DEdata) <- formula(~Condition + group)
+    } else if(attr=='Caller') {
+      DESeq2::design(res$DEdata) <- formula(~Caller + group)
+    } else if(attr=='Treatment') {
+      DESeq2::design(res$DEdata) <- formula(~Treatment + group)
+    } else if(attr=='Block') {
+      DESeq2::design(res$DEdata) <- formula(~Block + group)
+    } else {
+      warning('Unsupported blocking attribute: ',attr,call.=FALSE)
+      return(NULL)  
+    }
+    fdebug(sprintf('pv.DESeq blocking analysis: %d db (%s/%s)',sum(res$de$padj<0.05),label1,label2))
+  } 
+  
+  if(!bFullLibrarySize) {
+    res$DEdata <- DESeq2::estimateSizeFactors(res$DEdata)
+  }
+  
+  res$facs   <- DESeq2::sizeFactors(res$DEdata)
+  res$DEdata <- DESeq2::estimateDispersions(res$DEdata,fitType='local')
+  res$DEdata <- DESeq2::nbinomWaldTest(res$DEdata)
+  res$de     <- DESeq2::results(res$DEdata)
+  
+  res$de$pvalue[is.na(res$de$pvalue)]=1
+  res$de$padj[is.na(res$de$padj)]=1
+  
+  res$de <- res$de[order(res$de$padj),]
+  res$de <- cbind(as.numeric(rownames(res$de)),res$de$pvalue,res$de$padj)
+  colnames(res$de) <- c("id","pval","padj")
+  rownames(res$de) <- res$de[,1]
+  res$de <- data.frame(res$de)
+  
+  res$bSubControl      <- bSubControl
+  res$bFullLibrarySize <- bFullLibrarySize
+  
+  return(res)
+  
 }
 pv.DEedgeR_parallel <- function(contrast,pv,blockList,bSubControl,
                                 bFullLibrarySize,bTagwise,bGLM,
                                 filter=0,filterFun=max) {
-   crec <- pv$contrasts[[contrast]]
-   if(!is.null(blockList)) {
-      blockList <- crec$blocklist
-   }
-   res <- pv.DEedgeR(pv,crec$group1,crec$group2,crec$name1,crec$name2,
-                     blockList=blockList,
-                     bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                     bTagwise=bTagwise,bGLM=bGLM,
-                     filter=filter,filterFun=filterFun)
-   
-   fdebug(sprintf('Exit pv.DEedgeR_parallel: %f',res$counts[7,1]))
-   pv.gc()
-   return(res)
+  crec <- pv$contrasts[[contrast]]
+  if(!is.null(blockList)) {
+    blockList <- crec$blocklist
+  }
+  res <- pv.DEedgeR(pv,crec$group1,crec$group2,crec$name1,crec$name2,
+                    blockList=blockList,
+                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                    bTagwise=bTagwise,bGLM=bGLM,
+                    filter=filter,filterFun=filterFun)
+  
+  fdebug(sprintf('Exit pv.DEedgeR_parallel: %f',res$counts[7,1]))
+  pv.gc()
+  return(res)
 }
 
 
 pv.allDEedgeR <- function(pv,block,bFullLibrarySize=F,bParallel=F,bSubControl=F,
                           bTagwise=T,bGLM=F,filter=filter,filterFun=filterFun) {
-   
-   fdebug('ENTER pv.allDEedgeR')
-   #require(edgeR)
-   
-   if(is.null(pv$contrasts)) {
-      if(missing(block)) {
-         pv$contrasts <- pv.contrast(pv)
-      } else {
-         pv$contrasts <- pv.contrast(pv,block=block)
+  
+  fdebug('ENTER pv.allDEedgeR')
+  #require(edgeR)
+  
+  if(is.null(pv$contrasts)) {
+    if(missing(block)) {
+      pv$contrasts <- pv.contrast(pv)
+    } else {
+      pv$contrasts <- pv.contrast(pv,block=block)
+    }
+  }
+  
+  if(bParallel) {
+    pv <- dba.parallel(pv)
+    jobs <- NULL
+    blocks <- NULL
+  }
+  
+  fdebug('pv.allDEedgeR: for each contrast')
+  reslist <- NULL
+  
+  if(bParallel && (pv$config$parallelPackage > 0)) {
+    params <- dba.parallel.params(pv$config,c('pv.DEedgeR_parallel','pv.DEedgeR','pv.DEinit','calcNormFactors',
+                                              'estimateCommonDisp','estimateTagwiseDisp',
+                                              'estimateGLMCommonDisp','estimateGLMTagwiseDisp',
+                                              'exactTest','topTags',
+                                              'glmFit','glmLRT'))
+    reslist <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),pv.DEedgeR_parallel,pv,
+                                   NULL,bSubControl,bFullLibrarySize,bTagwise,bGLM=bGLM,
+                                   filter=filter,filterFun=filterFun)
+    
+    fdebug(sprintf('Return from parallel call to pv.DEedgeR_parallel: %f',reslist[[1]]$counts[7,1]))
+    
+    blist <- NULL
+    for(i in 1:length(pv$contrasts)) {
+      if(!is.null(pv$contrasts[[i]]$blocklist)) {
+        blist <- c(blist,i)
       }
-   }
-   
-   if(bParallel) {
-      pv <- dba.parallel(pv)
-      jobs <- NULL
-      blocks <- NULL
-   }
-   
-   fdebug('pv.allDEedgeR: for each contrast')
-   reslist <- NULL
-   
-   if(bParallel && (pv$config$parallelPackage > 0)) {
-      params <- dba.parallel.params(pv$config,c('pv.DEedgeR_parallel','pv.DEedgeR','pv.DEinit','calcNormFactors',
-                                                'estimateCommonDisp','estimateTagwiseDisp',
-                                                'estimateGLMCommonDisp','estimateGLMTagwiseDisp',
-                                                'exactTest','topTags',
-                                                'glmFit','glmLRT'))
-      reslist <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),pv.DEedgeR_parallel,pv,
-                                     NULL,bSubControl,bFullLibrarySize,bTagwise,bGLM=bGLM,
-                                     filter=filter,filterFun=filterFun)
+    }
+    if(length(blist > 0)) {
+      bres <-  dba.parallel.lapply(pv$config,params,blist,pv.DEedgeR_parallel,pv,
+                                   TRUE,bSubControl,bFullLibrarySize,bTagwise,
+                                   filter=filter,filterFun=filterFun)
+      for(i in 1:length(blist)) {
+        reslist[[blist[i]]]$block <- bres[[i]]
+      }    
+    }     
+  } else { #SERIAL
+    for(i in 1:length(pv$contrast)) { 	
+      res <- pv.DEedgeR(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
+                        pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
+                        bSubControl=bSubControl,
+                        bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
+                        bGLM=bGLM,filter=filter,filterFun=filterFun)
       
-      fdebug(sprintf('Return from parallel call to pv.DEedgeR_parallel: %f',reslist[[1]]$counts[7,1]))
-      
-      blist <- NULL
-      for(i in 1:length(pv$contrasts)) {
-         if(!is.null(pv$contrasts[[i]]$blocklist)) {
-            blist <- c(blist,i)
-         }
+      if(!is.null(pv$contrasts[[i]]$blocklist)) {
+        res$block <- pv.DEedgeR(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
+                                pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
+                                pv$contrasts[[i]]$blocklist,
+                                bSubControl=bSubControl,
+                                bFullLibrarySize=bFullLibrarySize,
+                                bTagwise=bTagwise,filter=filter,filterFun=filterFun)   
       }
-      if(length(blist > 0)) {
-         bres <-  dba.parallel.lapply(pv$config,params,blist,pv.DEedgeR_parallel,pv,
-                                      TRUE,bSubControl,bFullLibrarySize,bTagwise,
-                                      filter=filter,filterFun=filterFun)
-         for(i in 1:length(blist)) {
-            reslist[[blist[i]]]$block <- bres[[i]]
-         }    
-      }     
-   } else { #SERIAL
-      for(i in 1:length(pv$contrast)) { 	
-         res <- pv.DEedgeR(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
-                           pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                           bSubControl=bSubControl,
-                           bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
-                           bGLM=bGLM,filter=filter,filterFun=filterFun)
-         
-         if(!is.null(pv$contrasts[[i]]$blocklist)) {
-            res$block <- pv.DEedgeR(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
-                                    pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                                    pv$contrasts[[i]]$blocklist,
-                                    bSubControl=bSubControl,
-                                    bFullLibrarySize=bFullLibrarySize,
-                                    bTagwise=bTagwise,filter=filter,filterFun=filterFun)   
-         }
-         reslist <- pv.listadd(reslist,res)   
-      }
-   }
-   
-   fdebug(sprintf('Exit pv.allDEedgeR: %f',reslist[[1]]$counts[7,1]))
-   return(reslist)
+      reslist <- pv.listadd(reslist,res)   
+    }
+  }
+  
+  fdebug(sprintf('Exit pv.allDEedgeR: %f',reslist[[1]]$counts[7,1]))
+  return(reslist)
 }
 
 
 pv.DESeq_parallel <- function(contrast,pv,blockList,bSubControl,bFullLibrarySize,
                               bTagwise=T,bGLM=F,filter=0,filterFun=max) {
-   crec <- pv$contrasts[[contrast]]
-   if(!is.null(blockList)) {
-      blockList <- crec$blocklist
-   }
-   res <- pv.DESeq(pv,crec$group1,crec$group2,crec$name1,crec$name2,
-                   bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                   bTagwise=bTagwise,bGLM=bGLM,blockList=blockList,
-                   filter=filter,filterFun=filterFun)
-   pv.gc()
-   return(res)
+  crec <- pv$contrasts[[contrast]]
+  if(!is.null(blockList)) {
+    blockList <- crec$blocklist
+  }
+  res <- pv.DESeq(pv,crec$group1,crec$group2,crec$name1,crec$name2,
+                  bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                  bTagwise=bTagwise,bGLM=bGLM,blockList=blockList,
+                  filter=filter,filterFun=filterFun)
+  pv.gc()
+  return(res)
 }
 
 pv.allDESeq <- function(pv,block,bSubControl=F,bFullLibrarySize=F,bTagwise=T,
                         bGLM=F,bParallel=F, filter=0,filterFun=max) {
-   
-   if (!requireNamespace("DESeq",quietly=TRUE)) {
-      stop("Package DESeq not installed")
-   }
-   
-   if(is.null(pv$contrasts)) {
-      if(missing(block)) {
-         pv <- pv.contrast(pv)
-      } else {
-         pv <- pv.contrast(pv,block=block)
+  
+  if (!requireNamespace("DESeq",quietly=TRUE)) {
+    stop("Package DESeq not installed")
+  }
+  
+  if(is.null(pv$contrasts)) {
+    if(missing(block)) {
+      pv <- pv.contrast(pv)
+    } else {
+      pv <- pv.contrast(pv,block=block)
+    }
+  }
+  
+  if(bParallel) {
+    pv <- dba.parallel(pv)
+    jobs <- NULL
+    blocks <- NULL
+  }
+  
+  fdebug('pv.allDESeq: for each contrast')
+  reslist <- NULL
+  
+  if(bParallel && (pv$config$parallelPackage > 0)) {   
+    params <- dba.parallel.params(pv$config,c('pv.DESeq_parallel','pv.DESeq'))
+    
+    reslist  <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),
+                                    pv.DESeq_parallel,pv,NULL, 
+                                    bSubControl,bFullLibrarySize,
+                                    bTagwise=bTagwise,bGLM=bGLM,
+                                    filter=filter,filterFun=filterFun)
+    blist <- NULL
+    for(i in 1:length(pv$contrasts)) {
+      if(!is.null(pv$contrasts[[i]]$blocklist)) {
+        blist <- c(blist,i)
       }
-   }
-   
-   if(bParallel) {
-      pv <- dba.parallel(pv)
-      jobs <- NULL
-      blocks <- NULL
-   }
-   
-   fdebug('pv.allDESeq: for each contrast')
-   reslist <- NULL
-   
-   if(bParallel && (pv$config$parallelPackage > 0)) {   
-      params <- dba.parallel.params(pv$config,c('pv.DESeq_parallel','pv.DESeq'))
+    }
+    if(length(blist > 0)) {
+      bres <-  dba.parallel.lapply(pv$config,params,blist,
+                                   pv.DESeq_parallel,pv,TRUE, 
+                                   bSubControl,bFullLibrarySize,
+                                   bTagwise=bTagwise,bGLM=bGLM,
+                                   filter=filter,filterFun=filterFun)
+      for(i in 1:length(blist)) {
+        fdebug(sprintf('pv.allDESeq: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<0.05)))
+        reslist[[blist[i]]]$block <- bres[[i]]
+      }    
+    }     
+  } else { # SERIAL
+    for(i in 1:length(pv$contrast)) { 	
+      res <- pv.DESeq(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
+                      pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
+                      bSubControl=bSubControl,
+                      bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
+                      bGLM=bGLM,filter=filter,filterFun=filterFun)
       
-      reslist  <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),
-                                      pv.DESeq_parallel,pv,NULL, 
-                                      bSubControl,bFullLibrarySize,
-                                      bTagwise=bTagwise,bGLM=bGLM,
-                                      filter=filter,filterFun=filterFun)
-      blist <- NULL
-      for(i in 1:length(pv$contrasts)) {
-         if(!is.null(pv$contrasts[[i]]$blocklist)) {
-            blist <- c(blist,i)
-         }
+      if(!is.null(pv$contrasts[[i]]$blocklist)) {
+        res$block <- pv.DESeq(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
+                              pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
+                              bSubControl=bSubControl,
+                              bFullLibrarySize=bFullLibrarySize,
+                              bTagwise=bTagwise,
+                              blockList=pv$contrasts[[i]]$blocklist,
+                              filter=filter,filterFun=filterFun)   
       }
-      if(length(blist > 0)) {
-         bres <-  dba.parallel.lapply(pv$config,params,blist,
-                                      pv.DESeq_parallel,pv,TRUE, 
-                                      bSubControl,bFullLibrarySize,
-                                      bTagwise=bTagwise,bGLM=bGLM,
-                                      filter=filter,filterFun=filterFun)
-         for(i in 1:length(blist)) {
-            fdebug(sprintf('pv.allDESeq: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<0.05)))
-            reslist[[blist[i]]]$block <- bres[[i]]
-         }    
-      }     
-   } else { # SERIAL
-      for(i in 1:length(pv$contrast)) { 	
-         res <- pv.DESeq(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
-                         pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                         bSubControl=bSubControl,
-                         bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
-                         bGLM=bGLM,filter=filter,filterFun=filterFun)
-         
-         if(!is.null(pv$contrasts[[i]]$blocklist)) {
-            res$block <- pv.DESeq(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
-                                  pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                                  bSubControl=bSubControl,
-                                  bFullLibrarySize=bFullLibrarySize,
-                                  bTagwise=bTagwise,
-                                  blockList=pv$contrasts[[i]]$blocklist,
-                                  filter=filter,filterFun=filterFun)   
-         }
-         reslist <- pv.listadd(reslist,res)   
-      }
-   }  
-   
-   return(reslist)
+      reslist <- pv.listadd(reslist,res)   
+    }
+  }  
+  
+  return(reslist)
 }
 
 pv.DESeq2_parallel <- function(contrast,pv,blockList,bSubControl,
                                bFullLibrarySize,bTagwise=T,bGLM=F,
                                filter=0,filterFun=max) {
-   crec <- pv$contrasts[[contrast]]
-   if(!is.null(blockList)) {
-      blockList <- crec$blocklist
-   }
-   res <- pv.DESeq2(pv,crec$group1,crec$group2,crec$name1,crec$name2,
-                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                    bTagwise=bTagwise,bGLM=bGLM,blockList=blockList,
-                    filter=filter,filterFun=filterFun)
-   pv.gc()
-   return(res)
+  crec <- pv$contrasts[[contrast]]
+  if(!is.null(blockList)) {
+    blockList <- crec$blocklist
+  }
+  res <- pv.DESeq2(pv,crec$group1,crec$group2,crec$name1,crec$name2,
+                   bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                   bTagwise=bTagwise,bGLM=bGLM,blockList=blockList,
+                   filter=filter,filterFun=filterFun)
+  pv.gc()
+  return(res)
 }
 
 pv.allDESeq2 <- function(pv,block,bSubControl=F,bFullLibrarySize=F,
                          bTagwise=T,bGLM=F,bParallel=F,
                          filter=0,filterFun=max) {
-   
-   if (!requireNamespace("DESeq2",quietly=TRUE)) {
-      stop("Package DESeq2 not installed")
-   }
-   
-   if(is.null(pv$contrasts)) {
-      if(missing(block)) {
-         pv <- pv.contrast(pv)
-      } else {
-         pv <- pv.contrast(pv,block=block)
+  
+  if (!requireNamespace("DESeq2",quietly=TRUE)) {
+    stop("Package DESeq2 not installed")
+  }
+  
+  if(is.null(pv$contrasts)) {
+    if(missing(block)) {
+      pv <- pv.contrast(pv)
+    } else {
+      pv <- pv.contrast(pv,block=block)
+    }
+  }
+  
+  if(bParallel) {
+    pv <- dba.parallel(pv)
+    jobs <- NULL
+    blocks <- NULL
+  }
+  
+  fdebug('pv.allDESeq2: for each contrast')
+  reslist <- NULL
+  
+  if(bParallel && (pv$config$parallelPackage > 0)) {   
+    params <- dba.parallel.params(pv$config,c('pv.DESeq2_parallel','pv.DESeq2'))
+    
+    reslist  <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),
+                                    pv.DESeq2_parallel,pv,NULL, 
+                                    bSubControl,bFullLibrarySize,
+                                    bTagwise=bTagwise,bGLM=bGLM,
+                                    filter=filter,filterFun=filterFun)
+    blist <- NULL
+    for(i in 1:length(pv$contrasts)) {
+      if(!is.null(pv$contrasts[[i]]$blocklist)) {
+        blist <- c(blist,i)
       }
-   }
-   
-   if(bParallel) {
-      pv <- dba.parallel(pv)
-      jobs <- NULL
-      blocks <- NULL
-   }
-   
-   fdebug('pv.allDESeq2: for each contrast')
-   reslist <- NULL
-   
-   if(bParallel && (pv$config$parallelPackage > 0)) {   
-      params <- dba.parallel.params(pv$config,c('pv.DESeq2_parallel','pv.DESeq2'))
+    }
+    if(length(blist > 0)) {
+      bres <-  dba.parallel.lapply(pv$config,params,blist,
+                                   pv.DESeq2_parallel,pv,TRUE, 
+                                   bSubControl,bFullLibrarySize,
+                                   bTagwise=bTagwise,bGLM=bGLM,
+                                   filter=filter,filterFun=filterFun)
+      for(i in 1:length(blist)) {
+        fdebug(sprintf('pv.allDESeq2: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<0.05)))
+        reslist[[blist[i]]]$block <- bres[[i]]
+      }    
+    }     
+  } else { # SERIAL
+    for(i in 1:length(pv$contrast)) { 	
+      res <- pv.DESeq2(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
+                       pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
+                       bSubControl=bSubControl,
+                       bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
+                       bGLM=bGLM, filter=filter,filterFun=filterFun)
       
-      reslist  <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),
-                                      pv.DESeq2_parallel,pv,NULL, 
-                                      bSubControl,bFullLibrarySize,
-                                      bTagwise=bTagwise,bGLM=bGLM,
-                                      filter=filter,filterFun=filterFun)
-      blist <- NULL
-      for(i in 1:length(pv$contrasts)) {
-         if(!is.null(pv$contrasts[[i]]$blocklist)) {
-            blist <- c(blist,i)
-         }
+      if(!is.null(pv$contrasts[[i]]$blocklist)) {
+        res$block <- pv.DESeq2(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
+                               pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
+                               bSubControl=bSubControl,
+                               bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
+                               blockList=pv$contrasts[[i]]$blocklist,
+                               filter=filter,filterFun=filterFun)   
       }
-      if(length(blist > 0)) {
-         bres <-  dba.parallel.lapply(pv$config,params,blist,
-                                      pv.DESeq2_parallel,pv,TRUE, 
-                                      bSubControl,bFullLibrarySize,
-                                      bTagwise=bTagwise,bGLM=bGLM,
-                                      filter=filter,filterFun=filterFun)
-         for(i in 1:length(blist)) {
-            fdebug(sprintf('pv.allDESeq2: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<0.05)))
-            reslist[[blist[i]]]$block <- bres[[i]]
-         }    
-      }     
-   } else { # SERIAL
-      for(i in 1:length(pv$contrast)) { 	
-         res <- pv.DESeq2(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
-                          pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                          bSubControl=bSubControl,
-                          bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
-                          bGLM=bGLM, filter=filter,filterFun=filterFun)
-         
-         if(!is.null(pv$contrasts[[i]]$blocklist)) {
-            res$block <- pv.DESeq2(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
-                                   pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
-                                   bSubControl=bSubControl,
-                                   bFullLibrarySize=bFullLibrarySize,bTagwise=bTagwise,
-                                   blockList=pv$contrasts[[i]]$blocklist,
-                                   filter=filter,filterFun=filterFun)   
-         }
-         reslist <- pv.listadd(reslist,res)   
-      }
-   }  
-   
-   return(reslist)
+      reslist <- pv.listadd(reslist,res)   
+    }
+  }  
+  
+  return(reslist)
 }
 
 pv.blockFactors <- function(pv,group1,group2,label1,label2,blockList) {
-   samples <- group1 | group2
-   targets <- NULL
-   for(block in blockList) {
-      samps <- block$samples & samples &  
-         (pv.mask(pv,PV_CALLER,"source") | pv.mask(pv,PV_CALLER,"counts"))
-      IDs   <- pv$class[PV_ID,samps]
-      groups <- NULL
-      wsamps <- which(samps)
-      for(sw in wsamps) {
-         if(group1[sw]) {
-            groups <- c(groups,label1)
-         } else {
-            groups <- c(groups,label2)
-         }   
-      }
-      block <- rep(block$label, sum(samps))
-      block <- cbind(groups,block)
-      rownames(block) <- IDs
-      targets <- rbind(targets,block)
-   }
-   
-   snames <- c(colnames(pv$class[,group1]),colnames(pv$class[,group2]))
-   if(length(unique(snames))!=sum(group1|group2)){
-      warning('Error: all samples must have unique IDs for blocking analysis',call.=FALSE)
-      return(NULL)	
-   }
-   tnames <- rownames(targets)
-   #if(length(snames)!=length(tnames)){
-   #   warning('Error: all samples must be matched for blocking analysis')
-   #   return(res)	
-   #}  	 
-   
-   newt <- targets
-   for(i in 1:nrow(targets)) {
-      idx <- match(tnames[i],snames)
-      newt[idx,] <- targets[i,]	
-   }
-   targets <- newt
-   rownames(targets) <- snames
-   
-   colnames(targets) <- c("group",blockList[[1]]$attribute)
-   
-   targets <- data.frame(targets)
-   targets[[1]] <- factor(targets[[1]])
-   targets[[2]] <- factor(targets[[2]])
-   
-   return(targets)
-   
+  samples <- group1 | group2
+  targets <- NULL
+  for(block in blockList) {
+    samps <- block$samples & samples &  
+      (pv.mask(pv,PV_CALLER,"source") | pv.mask(pv,PV_CALLER,"counts"))
+    IDs   <- pv$class[PV_ID,samps]
+    groups <- NULL
+    wsamps <- which(samps)
+    for(sw in wsamps) {
+      if(group1[sw]) {
+        groups <- c(groups,label1)
+      } else {
+        groups <- c(groups,label2)
+      }   
+    }
+    block <- rep(block$label, sum(samps))
+    block <- cbind(groups,block)
+    rownames(block) <- IDs
+    targets <- rbind(targets,block)
+  }
+  
+  snames <- c(colnames(pv$class[,group1]),colnames(pv$class[,group2]))
+  if(length(unique(snames))!=sum(group1|group2)){
+    warning('Error: all samples must have unique IDs for blocking analysis',call.=FALSE)
+    return(NULL)	
+  }
+  tnames <- rownames(targets)
+  #if(length(snames)!=length(tnames)){
+  #   warning('Error: all samples must be matched for blocking analysis')
+  #   return(res)	
+  #}  	 
+  
+  newt <- targets
+  for(i in 1:nrow(targets)) {
+    idx <- match(tnames[i],snames)
+    newt[idx,] <- targets[i,]	
+  }
+  targets <- newt
+  rownames(targets) <- snames
+  
+  colnames(targets) <- c("group",blockList[[1]]$attribute)
+  
+  targets <- data.frame(targets)
+  targets[[1]] <- factor(targets[[1]])
+  targets[[2]] <- factor(targets[[2]])
+  
+  return(targets)
+  
 }
 
 pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled=F,
                          bCounts=F,bCalledDetail=F,
                          file,initString='reports/DBA',bNormalized=T,ext="csv",
                          minFold=0,bSupressWarning=F,
-                         bFlip=FALSE) {
-   
-   if(contrast > length(pv$contrasts)) {
-      stop('Specified contrast number is greater than number of contrasts')
+                         bFlip=FALSE, precision=2:3) {
+  
+  if(contrast > length(pv$contrasts)) {
+    stop('Specified contrast number is greater than number of contrasts')
+    return(NULL)
+  }
+  con <- pv$contrasts[[contrast]]
+  
+  group1 <- con$group1
+  name1  <- con$name1
+  group2 <- con$group2
+  name2  <- con$name2
+  facs   <- 1:(sum(group1)+sum(group2))
+  if(bFlip) {
+    group1 <- con$group2
+    name1  <- con$name2
+    group2 <- con$group1
+    name2  <- con$name1
+    facs   <- (sum(group2)+1):length(facs)
+    facs   <- c(facs,1:sum(group2))
+  }
+  
+  if(is.null(pv$filter)) {
+    filter    <- 0
+    filterFun <- NULL
+  } else {
+    filter    <- pv$filter
+    filterFun <- pv$filterFun
+  }
+  
+  if(method=='edgeR' || method=='edgeRGLM'){
+    if(is.null(con$edgeR) || class(con$edgeR)=="try-error") {
+      stop('edgeR analysis has not been run for this contrast')
       return(NULL)
-   }
-   con <- pv$contrasts[[contrast]]
-   
-   group1 <- con$group1
-   name1  <- con$name1
-   group2 <- con$group2
-   name2  <- con$name2
-   facs   <- 1:(sum(group1)+sum(group2))
-   if(bFlip) {
-      group1 <- con$group2
-      name1  <- con$name2
-      group2 <- con$group1
-      name2  <- con$name1
-      facs   <- (sum(group2)+1):length(facs)
-      facs   <- c(facs,1:sum(group2))
-   }
-   
-   if(is.null(pv$filter)) {
-      filter    <- 0
-      filterFun <- NULL
-   } else {
-      filter    <- pv$filter
-      filterFun <- pv$filterFun
-   }
-   
-   if(method=='edgeR' || method=='edgeRGLM'){
-      if(is.null(con$edgeR) || class(con$edgeR)=="try-error") {
-         stop('edgeR analysis has not been run for this contrast')
-         return(NULL)
-      }
-      if(is.null(con$edgeR$counts)) {
-         counts <- pv.DEinit(pv,group1,group2,name1,name2,
-                             method='edgeR',
-                             bSubControl=con$edgeR$bSubControl,
-                             bFullLibrarySize=con$edgeR$bFullLibrarySize,
-                             bRawCounts=TRUE,
-                             filter=filter, filterFun=filterFun)
-      } else {
-         counts <- con$edgeR$counts	
-      }
-      if(!is.null(con$edgeR$LRT)) {
-         siteCol <- 1
-         pvCol   <- 5
-         fdrCol  <- 6
-         data <- topTags(con$edgeR$LRT,nrow(counts))$table   	  	
-      } else {
-         siteCol <- 1
-         pvCol   <- 4
-         fdrCol  <- 5
-         data <- topTags(con$edgeR$db,nrow(counts))$table
-      }
-      
-      if(bNormalized){
-         sizes <- con$edgeR$samples$lib.size[facs] * con$edgeR$samples$norm.factors[facs]
-         counts <- t(t(counts)/sizes)
-         counts <- counts * con$edgeR$pseudo.lib.size
-      } 
-   } else if (method=='DESeq1' || method=='DESeq1GLM' || method=='DESeq1Block') {
-      if (!requireNamespace("DESeq",quietly=TRUE)) {
-         stop("Package DESeq not installed")
-      }
-      if(is.null(con$DESeq1) || class(con$DESeq1)=="try-error") {
-         stop('DESeq analysis has not been run for this contrast') 
-         return(NULL) 
-      }
-      siteCol <- 1
-      pvCol   <- 2
-      fdrCol <-  3
+    }
+    if(is.null(con$edgeR$counts)) {
       counts <- pv.DEinit(pv,group1,group2,name1,name2,
-                          method='DESeq1',
-                          bSubControl=con$DESeq1$bSubControl,
-                          bFullLibrarySize=con$DESeq1$bFullLibrarySize,
+                          method='edgeR',
+                          bSubControl=con$edgeR$bSubControl,
+                          bFullLibrarySize=con$edgeR$bFullLibrarySize,
                           bRawCounts=TRUE,
                           filter=filter, filterFun=filterFun)
-      if(method=='DESeq1Block') {
-         data <- con$DESeq1$block$de
-         if(bNormalized){
-            counts <- t(t(counts)/con$DESeq1$block$facs[facs])
-         }      	
-      } else {
-         data <- con$DESeq1$de
-         if(bNormalized){
-            counts <- t(t(counts)/con$DESeq1$facs[facs])
-         }
-      }   
-   } else if(method=='edgeRlm'){
-      if(is.null(con$edgeR$counts)) {
-         counts <- pv.DEinit(pv,group1,group2,name1,name2,
-                             method='edgeR',
-                             bSubControl=con$edgeR$block$bSubControl,
-                             bFullLibrarySize=con$edgeR$block$bFullLibrarySize,
-                             bRawCounts=TRUE,
-                             filter=filter, filterFun=filterFun)
-      } else {
-         counts <- con$edgeR$counts	
-      }
-      
+    } else {
+      counts <- con$edgeR$counts	
+    }
+    if(!is.null(con$edgeR$LRT)) {
       siteCol <- 1
-      pvCol   <- 5  
+      pvCol   <- 5
       fdrCol  <- 6
-      data <- topTags(con$edgeR$block$LRT,nrow(counts))$table
-      
-      if(bNormalized){
-         sizes <- con$edgeR$samples$lib.size[facs] * 
-            con$edgeR$samples$norm.factors[facs]
-         counts <- t(t(counts)/sizes)
-         counts <- counts * con$edgeR$pseudo.lib.size
-      } 
-   } else if (method=='DESeq2' || method=='DESeq2Block') {
-      if (!requireNamespace("DESeq2",quietly=TRUE)) {
-         stop("Package DESeq2 not installed")
-      }
-      if(is.null(con$DESeq2) || class(con$DESeq2)=="try-error") {
-         stop('DESeq2 analysis has not been run for this contrast') 
-         return(NULL) 
-      }
+      data <- topTags(con$edgeR$LRT,nrow(counts))$table   	  	
+    } else {
       siteCol <- 1
-      pvCol   <- 2
-      fdrCol <-  3
+      pvCol   <- 4
+      fdrCol  <- 5
+      data <- topTags(con$edgeR$db,nrow(counts))$table
+    }
+    
+    if(bNormalized){
+      sizes <- con$edgeR$samples$lib.size[facs] * con$edgeR$samples$norm.factors[facs]
+      counts <- t(t(counts)/sizes)
+      counts <- counts * con$edgeR$pseudo.lib.size
+    } 
+  } else if (method=='DESeq1' || method=='DESeq1GLM' || method=='DESeq1Block') {
+    if (!requireNamespace("DESeq",quietly=TRUE)) {
+      stop("Package DESeq not installed")
+    }
+    if(is.null(con$DESeq1) || class(con$DESeq1)=="try-error") {
+      stop('DESeq analysis has not been run for this contrast') 
+      return(NULL) 
+    }
+    siteCol <- 1
+    pvCol   <- 2
+    fdrCol <-  3
+    counts <- pv.DEinit(pv,group1,group2,name1,name2,
+                        method='DESeq1',
+                        bSubControl=con$DESeq1$bSubControl,
+                        bFullLibrarySize=con$DESeq1$bFullLibrarySize,
+                        bRawCounts=TRUE,
+                        filter=filter, filterFun=filterFun)
+    if(method=='DESeq1Block') {
+      data <- con$DESeq1$block$de
+      if(bNormalized){
+        counts <- t(t(counts)/con$DESeq1$block$facs[facs])
+      }      	
+    } else {
+      data <- con$DESeq1$de
+      if(bNormalized){
+        counts <- t(t(counts)/con$DESeq1$facs[facs])
+      }
+    }   
+  } else if(method=='edgeRlm'){
+    if(is.null(con$edgeR$counts)) {
       counts <- pv.DEinit(pv,group1,group2,name1,name2,
-                          method='DESeq2',
-                          bSubControl=con$DESeq2$bSubControl,
-                          bFullLibrarySize=con$DESeq2$bFullLibrarySize,
+                          method='edgeR',
+                          bSubControl=con$edgeR$block$bSubControl,
+                          bFullLibrarySize=con$edgeR$block$bFullLibrarySize,
                           bRawCounts=TRUE,
                           filter=filter, filterFun=filterFun)
-      if(method=='DESeq2Block') {
-         data <- con$DESeq2$block$de
-         if(bNormalized){
-            counts <- t(t(counts)/con$DESeq2$block$facs[facs])
-         }      	
-      } else {
-         data <- con$DESeq2$de
-         if(bNormalized){
-            counts <- t(t(counts)/con$DESeq2$facs[facs])
-         }
-      }   
-   } else {
-      stop('Unknown DE method: ',method)
-      return(NULL)
-   }
-   if(bUsePval) {
-      thCol <- pvCol	
-   } else {
-      thCol <- fdrCol	
-   }
-   
-   x <- which(is.na(data[,pvCol]))
-   if(length(x)>0){
-      data[x,pvCol] <- 1
-   }
-   x <- which(is.na(data[,fdrCol]))
-   if(length(x)>0){
-      data[x,fdrCol] <- 1
-   }
-   
-   keep <-  data[,thCol] <= th
-   sites <- as.numeric(data[keep,siteCol])
-   sites <- match(sites,as.integer(rownames(counts)))
-   if(sum(keep)==0) {
-      if(!bSupressWarning) {
-         warning('No sites above threshold',call.=FALSE)
+    } else {
+      counts <- con$edgeR$counts	
+    }
+    
+    siteCol <- 1
+    pvCol   <- 5  
+    fdrCol  <- 6
+    data <- topTags(con$edgeR$block$LRT,nrow(counts))$table
+    
+    if(bNormalized){
+      sizes <- con$edgeR$samples$lib.size[facs] * 
+        con$edgeR$samples$norm.factors[facs]
+      counts <- t(t(counts)/sizes)
+      counts <- counts * con$edgeR$pseudo.lib.size
+    } 
+  } else if (method=='DESeq2' || method=='DESeq2Block') {
+    if (!requireNamespace("DESeq2",quietly=TRUE)) {
+      stop("Package DESeq2 not installed")
+    }
+    if(is.null(con$DESeq2) || class(con$DESeq2)=="try-error") {
+      stop('DESeq2 analysis has not been run for this contrast') 
+      return(NULL) 
+    }
+    siteCol <- 1
+    pvCol   <- 2
+    fdrCol <-  3
+    counts <- pv.DEinit(pv,group1,group2,name1,name2,
+                        method='DESeq2',
+                        bSubControl=con$DESeq2$bSubControl,
+                        bFullLibrarySize=con$DESeq2$bFullLibrarySize,
+                        bRawCounts=TRUE,
+                        filter=filter, filterFun=filterFun)
+    if(method=='DESeq2Block') {
+      data <- con$DESeq2$block$de
+      if(bNormalized){
+        counts <- t(t(counts)/con$DESeq2$block$facs[facs])
+      }      	
+    } else {
+      data <- con$DESeq2$de
+      if(bNormalized){
+        counts <- t(t(counts)/con$DESeq2$facs[facs])
       }
-      return(NULL)
-   } else if(sum(keep)==1) {
+    }   
+  } else {
+    stop('Unknown DE method: ',method)
+    return(NULL)
+  }
+  if(bUsePval) {
+    thCol <- pvCol	
+  } else {
+    thCol <- fdrCol	
+  }
+  
+  x <- which(is.na(data[,pvCol]))
+  if(length(x)>0){
+    data[x,pvCol] <- 1
+  }
+  x <- which(is.na(data[,fdrCol]))
+  if(length(x)>0){
+    data[x,fdrCol] <- 1
+  }
+  
+  keep <-  data[,thCol] <= th
+  sites <- as.numeric(data[keep,siteCol])
+  sites <- match(sites,as.integer(rownames(counts)))
+  if(sum(keep)==0) {
+    if(!bSupressWarning) {
+      warning('No sites above threshold',call.=FALSE)
+    }
+    return(NULL)
+  } else if(sum(keep)==1) {
+    cnames <- colnames(counts)
+    counts <- matrix(counts[sites,],nrow=1,ncol=ncol(counts))
+    colnames(counts) <- cnames
+    rownames(counts) <- sites
+  } else {
+    counts <- counts[sites,]
+  }
+  
+  if(length(sites)==1) {
+    conc <- log2(mean(counts))
+    if(sum(group1)>1) {
+      con1 <- log2(mean(counts[,1:sum(group1)]))
+    } else {
+      con1 <- log2(counts[,1])
+    }
+    if(sum(group2)>1) {
+      con2 <- log2(mean(counts[,(sum(group1)+1):ncol(counts)]))
+    } else {
+      con2 <- log2(counts[,sum(group1)+1])
+    }        
+  } else {
+    conc <- log2(apply(counts,1,mean))
+    if(sum(group1)>1) {
+      con1 <- log2(apply(counts[,1:sum(group1)],1,mean))
+    } else {
+      con1 <- log2(counts[,1])
+    }
+    if(sum(group2)>1) {
+      con2 <- log2(apply(counts[,(sum(group1)+1):ncol(counts)],1,mean))
+    } else {
+      con2 <- log2(counts[,sum(group1)+1])
+    }
+  }
+  fold <- con1 - con2
+  
+  #sites <- apply(pv$peaks[[which(con$group1)[1]]][data[keep,siteCol],1:3],1,pv.dositename)
+  
+  siteids <- as.numeric(rownames(counts))[1:length(sites)]
+  data <- cbind(pv.getsites(pv,siteids),conc,con1,con2,fold,data[keep,c(pvCol,fdrCol)])
+  
+  conc1 <- sprintf('Conc_%s',name1)
+  conc2 <- sprintf('Conc_%s',name2)
+  
+  colnames(data) <- c('Chr','Start','End','Conc',conc1,conc2,'Fold','p-value','FDR')
+  
+  if(bCalled & !is.null(pv$called)) {
+    Called1 <- apply(pv$called[siteids,group1],1,sum)
+    Called2 <- apply(pv$called[siteids,group2],1,sum)
+    data <- cbind(data,Called1,Called2)
+  }
+  
+  if(bCounts) {
+    counts <- round(counts,2)
+    colnames(counts) <- c(pv$class[PV_ID,group1],pv$class[PV_ID,group2])
+    if(length(sites)>1){
+      data <- cbind(data,counts)
+    } else {
+      dnames <- colnames(data)
       cnames <- colnames(counts)
-      counts <- matrix(counts[sites,],nrow=1,ncol=ncol(counts))
-      colnames(counts) <- cnames
-      rownames(counts) <- sites
-   } else {
-      counts <- counts[sites,]
-   }
-   
-   if(length(sites)==1) {
-      conc <- log2(mean(counts))
-      if(sum(group1)>1) {
-         con1 <- log2(mean(counts[,1:sum(group1)]))
-      } else {
-         con1 <- log2(counts[,1])
-      }
-      if(sum(group2)>1) {
-         con2 <- log2(mean(counts[,(sum(group1)+1):ncol(counts)]))
-      } else {
-         con2 <- log2(counts[,sum(group1)+1])
-      }        
-   } else {
-      conc <- log2(apply(counts,1,mean))
-      if(sum(group1)>1) {
-         con1 <- log2(apply(counts[,1:sum(group1)],1,mean))
-      } else {
-         con1 <- log2(counts[,1])
-      }
-      if(sum(group2)>1) {
-         con2 <- log2(apply(counts[,(sum(group1)+1):ncol(counts)],1,mean))
-      } else {
-         con2 <- log2(counts[,sum(group1)+1])
-      }
-   }
-   fold <- con1 - con2
-   
-   #sites <- apply(pv$peaks[[which(con$group1)[1]]][data[keep,siteCol],1:3],1,pv.dositename)
-   
-   siteids <- as.numeric(rownames(counts))[1:length(sites)]
-   data <- cbind(pv.getsites(pv,siteids),conc,con1,con2,fold,data[keep,c(pvCol,fdrCol)])
-   
-   conc1 <- sprintf('Conc_%s',name1)
-   conc2 <- sprintf('Conc_%s',name2)
-   
-   colnames(data) <- c('Chr','Start','End','Conc',conc1,conc2,'Fold','p-value','FDR')
-   
-   if(bCalled & !is.null(pv$called)) {
-      Called1 <- apply(pv$called[siteids,group1],1,sum)
-      Called2 <- apply(pv$called[siteids,group2],1,sum)
-      data <- cbind(data,Called1,Called2)
-   }
-   
-   if(bCounts) {
-      counts <- round(counts,2)
-      colnames(counts) <- c(pv$class[PV_ID,group1],pv$class[PV_ID,group2])
-      if(length(sites)>1){
-         data <- cbind(data,counts)
-      } else {
-         dnames <- colnames(data)
-         cnames <- colnames(counts)
-         data <- cbind(data,matrix(counts,1,ncol(counts)))
-         colnames(data) <- c(dnames,cnames)
-      }
-   }
-   
-   if(bCalledDetail & !is.null(pv$called)) {
-      newd <- pv$called[siteids,c(which(group1),which(group2))]
-      newd[newd==1] <- '+'
-      newd[newd==0] <- '-'
-      colnames(newd) <- c(pv$class[PV_ID,group1],pv$class[PV_ID,group2])
-      data <- cbind(data,newd)
-   }   
-   
-   if(minFold>0) {
-      data <- data[abs(data$Fold)>=minFold,]
-   }
-   
-   if(bUsePval) {
-     data <- data[order(data$'p-value'),]
-   } else {
-     data <- data[order(data$FDR,data$'p-value'),]
-   }
-   
-   data[,4:7] <- round(data[,4:7],2)
-   data[,8:9] <- signif(data[,8:9],3)
-   
-   if(!missing(file)) {
-      if(!is.null(initString)) {
-         initString <- sprintf("%s_",initString)
-      } else {
-         initString <- ""
-      }
-      if(is.null(file)) {
-         file=sprintf("%s%s_vs_%s_%s.%s",initString,name1,name2,method,ext)
-      } else {
-         file=sprintf("%s%s.%s",initString,file,ext)
-      }
-      write.csv(data,row.names=F,file=file)
-   }
-   
-   return(data)
-   
+      data <- cbind(data,matrix(counts,1,ncol(counts)))
+      colnames(data) <- c(dnames,cnames)
+    }
+  }
+  
+  if(bCalledDetail & !is.null(pv$called)) {
+    newd <- pv$called[siteids,c(which(group1),which(group2))]
+    newd[newd==1] <- '+'
+    newd[newd==0] <- '-'
+    colnames(newd) <- c(pv$class[PV_ID,group1],pv$class[PV_ID,group2])
+    data <- cbind(data,newd)
+  }   
+  
+  if(minFold>0) {
+    data <- data[abs(data$Fold)>=minFold,]
+  }
+  
+  if(bUsePval) {
+    data <- data[order(data$'p-value'),]
+  } else {
+    data <- data[order(data$FDR,data$'p-value'),]
+  }
+  
+  if(length(precision)==2 | precision[1]>0) {
+    data[,4:7] <- round(data[,4:7],precision[1])
+    data[,8:9] <- signif(data[,8:9],precision[2])
+  }
+  
+  if(!missing(file)) {
+    if(!is.null(initString)) {
+      initString <- sprintf("%s_",initString)
+    } else {
+      initString <- ""
+    }
+    if(is.null(file)) {
+      file=sprintf("%s%s_vs_%s_%s.%s",initString,name1,name2,method,ext)
+    } else {
+      file=sprintf("%s%s.%s",initString,file,ext)
+    }
+    write.csv(data,row.names=F,file=file)
+  }
+  
+  return(data)
+  
 }
 
 pv.getsites <- function(pv,sites){
-   if(is.logical(sites)) {
-      sites <- which(sites)
-   }
-   siteNum <- as.integer(sites)
-   idx   <- match(siteNum,rownames(pv$binding))
-   sites <- data.frame(pv$binding[idx,1:3])
-   if(length(idx)==1) {
-      sites <- data.frame(t(sites))
-      rownames(sites) <- siteNum
-   }
-   sites[,1] <- pv$chrmap[sites[,1]]
-   return(sites)
+  if(is.logical(sites)) {
+    sites <- which(sites)
+  }
+  siteNum <- as.integer(sites)
+  idx   <- match(siteNum,rownames(pv$binding))
+  sites <- data.frame(pv$binding[idx,1:3])
+  if(length(idx)==1) {
+    sites <- data.frame(t(sites))
+    rownames(sites) <- siteNum
+  }
+  sites[,1] <- pv$chrmap[sites[,1]]
+  return(sites)
 }
 
 pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
                          bUsePval=F,fold=0,facname="",bNormalized=T,
                          cex=.15,bSignificant=T, bSmooth=T, bFlip=FALSE,
                          xrange, yrange, ...) {
-   
-   if(missing(contrast)){
-      contrast <- 1:length(pv$contrasts)
-   } else {
-      if(contrast > length(pv$contrasts)) {
-         stop('Specified contrast number is greater than number of contrasts')
-         return(NULL)
+  
+  if(missing(contrast)){
+    contrast <- 1:length(pv$contrasts)
+  } else {
+    if(contrast > length(pv$contrasts)) {
+      stop('Specified contrast number is greater than number of contrasts')
+      return(NULL)
+    }
+  }
+  
+  plotfun <- plot
+  if (bSmooth) {
+    plotfun <- smoothScatter
+  }
+  
+  numSites <- nrow(pv$binding)
+  
+  for(con in 1:length(contrast)) {
+    conrec <- pv$contrasts[[contrast[con]]]
+    name1 <- conrec$name1
+    name2 <- conrec$name2
+    if(bFlip) {
+      name1 <- conrec$name2
+      name2 <- conrec$name1   
+    }
+    for(meth in method) {
+      res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=T,
+                          th=100,bNormalized=bNormalized,bFlip=bFlip,precision=0)
+      if(!is.null(res)) {
+        if(bUsePval) {
+          idx <- res$"p-value" <= th
+          tstr <- "p"
+        } else {
+          idx <- res$FDR <= th
+          tstr <- "FDR"
+        }
+        idx <- idx & (abs(res$Fold) >= fold)
+        if(bMA){
+          if(missing(xrange)) {
+            xmin  <- floor(min(res$Conc))
+            xmax  <- ceiling(max(res$Conc))
+          } else {
+            if (length(xrange) != 2) {
+              stop("xrange must be vector of two numbers")
+            }
+            xmin <- xrange[1]
+            xmax <- xrange[2]
+          }
+          if(missing(yrange)) {
+            ymin  <- floor(min(res$Fold))
+            ymax  <- ceiling(max(res$Fold))
+          } else {
+            if (length(yrange) != 2) {
+              stop("yrange must be vector of two numbers")
+            }
+            ymin <- yrange[1]
+            ymax <- yrange[2]
+          }
+          if(bSmooth | !bSignificant) {
+            plotfun(res$Conc,res$Fold,pch=20,cex=cex,col=crukBlue,
+                    #colramp <- colorRampPalette(c("white", crukBlue)),
+                    xaxp=c(xmin,xmax,xmax-xmin),xlim=c(xmin,xmax),
+                    xlab='log concentration',
+                    yaxp=c(ymin,ymax,(ymax-ymin)),ylim=c(ymin,ymax),
+                    ylab=sprintf('log fold change: %s - %s',name1,name2),
+                    main=sprintf('%s Binding Affinity: %s vs. %s (%s %s < %1.3f)',
+                                 facname, name1,name2,sum(idx),tstr,th),...)              	
+          } else {
+            plotfun(res$Conc[!idx],res$Fold[!idx],pch=20,cex=cex, col=crukBlue,
+                    #colramp <- colorRampPalette(c("white", crukBlue)),                          
+                    xaxp=c(xmin,xmax,xmax-xmin),xlim=c(xmin,xmax),
+                    xlab='log concentration',
+                    yaxp=c(ymin,ymax,(ymax-ymin)),ylim=c(ymin,ymax),
+                    ylab=sprintf('log fold change: %s - %s',name1,name2),
+                    main=sprintf('%s Binding Affinity: %s vs. %s (%s %s < %1.3f)',
+                                 facname, name1,name2,sum(idx),tstr,th),...)
+          }
+          if(bSignificant) {
+            points(res$Conc[idx],res$Fold[idx],pch=20,cex=cex,col=crukMagenta)
+          }
+          abline(h=0,col='dodgerblue')
+        }
+        if(bXY){
+          if(missing(xrange)) {
+            xmin  <- floor(min(res[,5]))
+            xmax  <- ceiling(max(res[,5]))
+          } else {
+            if (length(xrange) != 2) {
+              stop("xrange must be vector of two numbers")
+            }
+            xmin <- xrange[1]
+            xmax <- xrange[2]
+          }
+          if(missing(yrange)) {
+            ymin  <- floor(min(res[,6]))
+            ymax  <- ceiling(max(res[,6]))
+          } else {
+            if (length(yrange) != 2) {
+              stop("yrange must be vector of two numbers")
+            }
+            ymin <- yrange[1]
+            ymax <- yrange[2]
+          }
+          xymin <- min(xmin,ymin)
+          xymin <- max(xymin,0)
+          xymax <- max(xmax,ymax)
+          plotfun(res[!idx,6],res[!idx,5],pch=20,cex=cex,col=crukBlue,
+                  xaxp=c(xymin,xymax,xymax-xymin),xlim=c(xymin,xymax),
+                  xlab=sprintf('log concentration :%s',name2),
+                  yaxp=c(xymin,xymax,(xymax-xymin)),ylim=c(xymin,xymax),
+                  ylab=sprintf('log concentration :%s',name1),
+                  main=sprintf('%s Binding Affinity: %s vs. %s (%s %s < %1.3f)',
+                               facname, name1,name2,sum(idx),tstr,th),...)
+          points(res[idx,6],res[idx,5],pch=20,cex=cex,col=crukMagenta)
+          abline(0,1,col='dodgerblue')
+        }
       }
-   }
-   
-   plotfun <- plot
-   if (bSmooth) {
-      plotfun <- smoothScatter
-   }
-   
-   numSites <- nrow(pv$binding)
-   
-   for(con in 1:length(contrast)) {
-      conrec <- pv$contrasts[[contrast[con]]]
-      name1 <- conrec$name1
-      name2 <- conrec$name2
-      if(bFlip) {
-         name1 <- conrec$name2
-         name2 <- conrec$name1   
-      }
-      for(meth in method) {
-         res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=T,
-                             th=100,bNormalized=bNormalized,bFlip=bFlip)
-         if(!is.null(res)) {
-            if(bUsePval) {
-               idx <- res$"p-value" <= th
-               tstr <- "p"
-            } else {
-               idx <- res$FDR <= th
-               tstr <- "FDR"
-            }
-            idx <- idx & (abs(res$Fold) >= fold)
-            if(bMA){
-               if(missing(xrange)) {
-                  xmin  <- floor(min(res$Conc))
-                  xmax  <- ceiling(max(res$Conc))
-               } else {
-                  if (length(xrange) != 2) {
-                     stop("xrange must be vector of two numbers")
-                  }
-                  xmin <- xrange[1]
-                  xmax <- xrange[2]
-               }
-               if(missing(yrange)) {
-                  ymin  <- floor(min(res$Fold))
-                  ymax  <- ceiling(max(res$Fold))
-               } else {
-                  if (length(yrange) != 2) {
-                     stop("yrange must be vector of two numbers")
-                  }
-                  ymin <- yrange[1]
-                  ymax <- yrange[2]
-               }
-               if(bSmooth | !bSignificant) {
-                  plotfun(res$Conc,res$Fold,pch=20,cex=cex,col=crukBlue,
-                          #colramp <- colorRampPalette(c("white", crukBlue)),
-                          xaxp=c(xmin,xmax,xmax-xmin),xlim=c(xmin,xmax),
-                          xlab='log concentration',
-                          yaxp=c(ymin,ymax,(ymax-ymin)),ylim=c(ymin,ymax),
-                          ylab=sprintf('log fold change: %s - %s',name1,name2),
-                          main=sprintf('%s Binding Affinity: %s vs. %s (%s %s < %1.3f)',
-                                       facname, name1,name2,sum(idx),tstr,th),...)              	
-               } else {
-                  plotfun(res$Conc[!idx],res$Fold[!idx],pch=20,cex=cex, col=crukBlue,
-                          #colramp <- colorRampPalette(c("white", crukBlue)),                          
-                          xaxp=c(xmin,xmax,xmax-xmin),xlim=c(xmin,xmax),
-                          xlab='log concentration',
-                          yaxp=c(ymin,ymax,(ymax-ymin)),ylim=c(ymin,ymax),
-                          ylab=sprintf('log fold change: %s - %s',name1,name2),
-                          main=sprintf('%s Binding Affinity: %s vs. %s (%s %s < %1.3f)',
-                                       facname, name1,name2,sum(idx),tstr,th),...)
-               }
-               if(bSignificant) {
-                  points(res$Conc[idx],res$Fold[idx],pch=20,cex=cex,col=crukMagenta)
-               }
-               abline(h=0,col='dodgerblue')
-            }
-            if(bXY){
-               if(missing(xrange)) {
-                  xmin  <- floor(min(res[,5]))
-                  xmax  <- ceiling(max(res[,5]))
-               } else {
-                  if (length(xrange) != 2) {
-                     stop("xrange must be vector of two numbers")
-                  }
-                  xmin <- xrange[1]
-                  xmax <- xrange[2]
-               }
-               if(missing(yrange)) {
-                  ymin  <- floor(min(res[,6]))
-                  ymax  <- ceiling(max(res[,6]))
-               } else {
-                  if (length(yrange) != 2) {
-                     stop("yrange must be vector of two numbers")
-                  }
-                  ymin <- yrange[1]
-                  ymax <- yrange[2]
-               }
-               xymin <- min(xmin,ymin)
-               xymin <- max(xymin,0)
-               xymax <- max(xmax,ymax)
-               plotfun(res[!idx,6],res[!idx,5],pch=20,cex=cex,col=crukBlue,
-                       xaxp=c(xymin,xymax,xymax-xymin),xlim=c(xymin,xymax),
-                       xlab=sprintf('log concentration :%s',name2),
-                       yaxp=c(xymin,xymax,(xymax-xymin)),ylim=c(xymin,xymax),
-                       ylab=sprintf('log concentration :%s',name1),
-                       main=sprintf('%s Binding Affinity: %s vs. %s (%s %s < %1.3f)',
-                                    facname, name1,name2,sum(idx),tstr,th),...)
-               points(res[idx,6],res[idx,5],pch=20,cex=cex,col=crukMagenta)
-               abline(0,1,col='dodgerblue')
-            }
-         }
-      }      	
-   }	
+    }      	
+  }	
 }
 
 pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
@@ -1281,240 +1283,240 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
                               bLabels=FALSE,maxLabels=50,
                               dotSize=1,bSignificant=T, bFlip=FALSE,
                               xrange,yrange) {
-   
-   if(missing(contrast)){
-      contrast <- 1:length(pv$contrasts)
-   } else {
-      if(contrast > length(pv$contrasts)) {
-         stop('Specified contrast number is greater than number of contrasts')
-         return(NULL)
+  
+  if(missing(contrast)){
+    contrast <- 1:length(pv$contrasts)
+  } else {
+    if(contrast > length(pv$contrasts)) {
+      stop('Specified contrast number is greater than number of contrasts')
+      return(NULL)
+    }
+  }
+  
+  for(con in 1:length(contrast)) {
+    conrec <- pv$contrasts[[contrast[con]]]
+    name1 <- conrec$name1
+    name2 <- conrec$name2
+    if(bFlip) {
+      name1 <- conrec$name2
+      name2 <- conrec$name1   
+    }
+    for(meth in method) {
+      res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=T,
+                          th=100,bNormalized=TRUE,bFlip=bFlip,precision=0)
+      
+      if(!is.null(res)) {
+        if(bUsePval) {
+          vals <- res$"p-value" 
+          idx  <- vals <= th
+          tstr <- "p"
+          res = mutate(res,
+                       Legend=ifelse(res$"p-value"<=th,
+                                     sprintf(" p-val<=%1.2f",th),
+                                     sprintf(" p-val >%1.2f",th)))
+        } else {
+          vals <- res$FDR 
+          idx  <- vals <= th
+          tstr <- "FDR"
+          res = mutate(res,
+                       Legend=ifelse(res$FDR<th,
+                                     sprintf(" FDR<=%1.2f",th),
+                                     sprintf(" FDR >%1.2f",th)))
+        }
+        
+        res$Legend[idx & abs(res$Fold) < fold] <- 
+          sprintf("abs(Fold)<%1.2f",2^fold)
+        idx <- idx & abs(res$Fold) >= fold 
+        
+        # if(missing(xrange)) {
+        #    xmin  <- floor(min(res$Fold))
+        #    xmax  <- ceiling(max(res$Fold))
+        # } else {
+        #    if (length(xrange) != 2) {
+        #       stop("xrange must be vector of two numbers")
+        #    }
+        #    xmin <- xrange[1]
+        #    xmax <- xrange[2]
+        # }
+        # if(missing(yrange)) {
+        #    ymin  <- floor(min(vals))
+        #    ymax  <- ceiling(max(vals))
+        # } else {
+        #    if (length(yrange) != 2) {
+        #       stop("yrange must be vector of two numbers")
+        #    }
+        #    ymin <- yrange[1]
+        #    ymax <- yrange[2]
+        # }
+        
+        sigSites <- res[idx,]
+        rownames(sigSites) <- 1:sum(idx)
+        
+        res <- cbind(0,res)
+        colnames(res)[1] <- "SiteNum"
+        res[idx,1] <- 1:sum(idx)
+        
+        plotTitle <- sprintf('%s Contrast: %s vs. %s [%s %s<=%1.3f',
+                             facname, name1,name2,sum(idx),tstr,th)
+        if(fold>0) {
+          plotTitle <- sprintf("%s & abs(Fold)>=%1.2f]",
+                               plotTitle, 2^fold)
+        } else {
+          plotTitle <- sprintf("%s]",plotTitle)
+        }
+        xLabel <- sprintf('log2(%s) - log2(%s)',name1,name2)
+        yLabel <- sprintf("-log10(%s)",tstr)
+        
+        p <- ggplot(res,aes(Fold,-log10(vals))) +
+          geom_point(aes(col=Legend),size=dotSize) +
+          scale_color_manual(values=c(crukBlue,crukMagenta,crukGrey)) + 
+          labs(title=plotTitle,x=xLabel,y=yLabel)
+        
+        if(bLabels) {
+          maxLabels <- min(sum(idx),maxLabels)
+          if(maxLabels > 0) {
+            xx <-  which(idx)[1:maxLabels]
+            p <- p + geom_text_repel(data=sigSites[1:maxLabels,],
+                                     aes(x=Fold, 
+                                         y = -log10(vals[xx]),
+                                         label=rownames(sigSites)[1:maxLabels]))
+          }
+        }
+        plot(p)
       }
-   }
-   
-   for(con in 1:length(contrast)) {
-      conrec <- pv$contrasts[[contrast[con]]]
-      name1 <- conrec$name1
-      name2 <- conrec$name2
-      if(bFlip) {
-         name1 <- conrec$name2
-         name2 <- conrec$name1   
-      }
-      for(meth in method) {
-         res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=T,
-                             th=100,bNormalized=TRUE,bFlip=bFlip)
-         
-         if(!is.null(res)) {
-            if(bUsePval) {
-               vals <- res$"p-value" 
-               idx  <- vals <= th
-               tstr <- "p"
-               res = mutate(res,
-                            Legend=ifelse(res$"p-value"<=th,
-                                          sprintf(" p-val<=%1.2f",th),
-                                          sprintf(" p-val >%1.2f",th)))
-            } else {
-               vals <- res$FDR 
-               idx  <- vals <= th
-               tstr <- "FDR"
-               res = mutate(res,
-                            Legend=ifelse(res$FDR<th,
-                                          sprintf(" FDR<=%1.2f",th),
-                                          sprintf(" FDR >%1.2f",th)))
-            }
-            
-            res$Legend[idx & abs(res$Fold) < fold] <- 
-               sprintf("abs(Fold)<%1.2f",2^fold)
-            idx <- idx & abs(res$Fold) >= fold 
-            
-            # if(missing(xrange)) {
-            #    xmin  <- floor(min(res$Fold))
-            #    xmax  <- ceiling(max(res$Fold))
-            # } else {
-            #    if (length(xrange) != 2) {
-            #       stop("xrange must be vector of two numbers")
-            #    }
-            #    xmin <- xrange[1]
-            #    xmax <- xrange[2]
-            # }
-            # if(missing(yrange)) {
-            #    ymin  <- floor(min(vals))
-            #    ymax  <- ceiling(max(vals))
-            # } else {
-            #    if (length(yrange) != 2) {
-            #       stop("yrange must be vector of two numbers")
-            #    }
-            #    ymin <- yrange[1]
-            #    ymax <- yrange[2]
-            # }
-            
-            sigSites <- res[idx,]
-            rownames(sigSites) <- 1:sum(idx)
-            
-            res <- cbind(0,res)
-            colnames(res)[1] <- "SiteNum"
-            res[idx,1] <- 1:sum(idx)
-            
-            plotTitle <- sprintf('%s Contrast: %s vs. %s [%s %s<=%1.3f',
-                                 facname, name1,name2,sum(idx),tstr,th)
-            if(fold>0) {
-               plotTitle <- sprintf("%s & abs(Fold)>=%1.2f]",
-                                    plotTitle, 2^fold)
-            } else {
-               plotTitle <- sprintf("%s]",plotTitle)
-            }
-            xLabel <- sprintf('log2(%s) - log2(%s)',name1,name2)
-            yLabel <- sprintf("-log10(%s)",tstr)
-            
-            p <- ggplot(res,aes(Fold,-log10(vals))) +
-               geom_point(aes(col=Legend),size=dotSize) +
-               scale_color_manual(values=c(crukBlue,crukMagenta,crukGrey)) + 
-               labs(title=plotTitle,x=xLabel,y=yLabel)
-            
-            if(bLabels) {
-               maxLabels <- min(sum(idx),maxLabels)
-               if(maxLabels > 0) {
-                  xx <-  which(idx)[1:maxLabels]
-                  p <- p + geom_text_repel(data=sigSites[1:maxLabels,],
-                                      aes(x=Fold, 
-                                          y = -log10(vals[xx]),
-                                          label=rownames(sigSites)[1:maxLabels]))
-               }
-            }
-            plot(p)
-         }
-      }
-   }
-   return(sigSites[,-10])
+    }
+  }
+  return(sigSites[,-10])
 }
 
 pv.normTMM <- function(pv,bMinus=TRUE,bFullLib=FALSE,bCPM=FALSE){
-   
-   if(length(pv$peaks)<2) {
-      warning('Unable to TMM normalize -- not enough peaksets',call.=FALSE)
-      return(pv)	
-   }
-   
-   vColors <- pv.colsv
-   
-   g1     <- rep(F,length(pv$peaks))
-   g1[1]  <- T
-   
-   savenames <- pv$class[PV_ID,]
-   pv$class[PV_ID,] <- 1:ncol(pv$class)
-   res    <- pv.DEedgeR(pv,g1,!g1,"1","2",bSubControl=bMinus,bFullLibrarySize=bFullLib,bNormOnly=T)
-   #res    <- estimateCommonDisp(res)
-   counts <- res$counts
-   sizes  <- res$samples$lib.size * res$samples$norm.factors
-   counts <- t(t(counts)/sizes)
-   
-   if(bCPM) {
-      counts <- counts * 1E06     
-   } else {
-      counts <- counts * mean(res$samples$lib.size)
-   }
-   
-   colnames(counts) <- savenames
-   return(counts)
-   
+  
+  if(length(pv$peaks)<2) {
+    warning('Unable to TMM normalize -- not enough peaksets',call.=FALSE)
+    return(pv)	
+  }
+  
+  vColors <- pv.colsv
+  
+  g1     <- rep(F,length(pv$peaks))
+  g1[1]  <- T
+  
+  savenames <- pv$class[PV_ID,]
+  pv$class[PV_ID,] <- 1:ncol(pv$class)
+  res    <- pv.DEedgeR(pv,g1,!g1,"1","2",bSubControl=bMinus,bFullLibrarySize=bFullLib,bNormOnly=T)
+  #res    <- estimateCommonDisp(res)
+  counts <- res$counts
+  sizes  <- res$samples$lib.size * res$samples$norm.factors
+  counts <- t(t(counts)/sizes)
+  
+  if(bCPM) {
+    counts <- counts * 1E06     
+  } else {
+    counts <- counts * mean(res$samples$lib.size)
+  }
+  
+  colnames(counts) <- savenames
+  return(counts)
+  
 }
 
 pv.normFactors <- function(pv,bMinus=F,bFullLib=T) {
-   if(length(pv$peaks)<2) {
-      warning('Unable to TMM normalize -- not enough peaksets',call.=FALSE)
-      return(pv)   
-   }
-   g1     <- rep(F,length(pv$peaks))
-   g1[1]  <- T
-   
-   savenames <- pv$class[PV_ID,]
-   pv$class[PV_ID,] <- 1:ncol(pv$class)
-   res    <- pv.DEedgeR(pv,g1,!g1,"1","2",bSubControl=bMinus,bFullLibrarySize=bFullLib,bNormOnly=T)
-   return(res$samples$norm.factors)
+  if(length(pv$peaks)<2) {
+    warning('Unable to TMM normalize -- not enough peaksets',call.=FALSE)
+    return(pv)   
+  }
+  g1     <- rep(F,length(pv$peaks))
+  g1[1]  <- T
+  
+  savenames <- pv$class[PV_ID,]
+  pv$class[PV_ID,] <- 1:ncol(pv$class)
+  res    <- pv.DEedgeR(pv,g1,!g1,"1","2",bSubControl=bMinus,bFullLibrarySize=bFullLib,bNormOnly=T)
+  return(res$samples$norm.factors)
 }
 
 pv.stripDBA <- function(conrec) {
-   conrec$edgeR  <- pv.stripEdgeR(conrec$edgeR)
-   conrec$DESeq1 <- pv.stripDESeq1(conrec$DESeq1)
-   conrec$DESeq2 <- pv.stripDESeq2(conrec$DESeq2)
-   return(conrec)
+  conrec$edgeR  <- pv.stripEdgeR(conrec$edgeR)
+  conrec$DESeq1 <- pv.stripDESeq1(conrec$DESeq1)
+  conrec$DESeq2 <- pv.stripDESeq2(conrec$DESeq2)
+  return(conrec)
 }
 
 pv.stripEdgeR <- function(erec) {
-   if(!is.null(erec)) {
-      erec$counts     <- NULL
-      erec$pseudo.alt <- NULL
-      erec$conc       <- NULL
-      #erec$genes      <- NULL
-      erec$all.zeros  <- NULL
-      erec$tagwise.dispersion <- NULL
-      
-      if(!is.null(erec$GLM)) {
-         erec$GLM <- pv.stripEdgeRGLM(erec$GLM)
-      }
-      if(!is.null(erec$LRT)) {
-         erec$LRT <- pv.stripEdgeRLRT(erec$LRT)
-      }
-      if(!is.null(erec$block)) {
-         erec$block <- pv.stripEdgeR(erec$block)
-      }
-      if(!is.null(erec$db)) {
-         erec$db <- pv.stripEdgeR(erec$db)
-      }      
-   }
-   return(erec)
+  if(!is.null(erec)) {
+    erec$counts     <- NULL
+    erec$pseudo.alt <- NULL
+    erec$conc       <- NULL
+    #erec$genes      <- NULL
+    erec$all.zeros  <- NULL
+    erec$tagwise.dispersion <- NULL
+    
+    if(!is.null(erec$GLM)) {
+      erec$GLM <- pv.stripEdgeRGLM(erec$GLM)
+    }
+    if(!is.null(erec$LRT)) {
+      erec$LRT <- pv.stripEdgeRLRT(erec$LRT)
+    }
+    if(!is.null(erec$block)) {
+      erec$block <- pv.stripEdgeR(erec$block)
+    }
+    if(!is.null(erec$db)) {
+      erec$db <- pv.stripEdgeR(erec$db)
+    }      
+  }
+  return(erec)
 }
 
 pv.stripEdgeRGLM <- function(grec) {
-   if(!is.null(grec)) {
-      grec$counts       <- NULL
-      grec$fitted.values= NULL
-      grec$offset       <- NULL
-      grec$coefficients <- NULL
-      grec$deviance     <- NULL
-      grec$df.residual  <- NULL
-      grec$abundance    <- NULL
-      #grec$genes        <- NULL
-   }
-   return(grec)
+  if(!is.null(grec)) {
+    grec$counts       <- NULL
+    grec$fitted.values= NULL
+    grec$offset       <- NULL
+    grec$coefficients <- NULL
+    grec$deviance     <- NULL
+    grec$df.residual  <- NULL
+    grec$abundance    <- NULL
+    #grec$genes        <- NULL
+  }
+  return(grec)
 }
 
 pv.stripEdgeRLRT <- function(lrec) {
-   if(!is.null(lrec)) {
-      lrec <- pv.stripEdgeR(lrec)
-      lrec <- pv.stripEdgeRGLM(lrec)
-      lrec$GLM <- pv.stripEdgeRGLM(lrec$GLM)
-      
-      lrec$dispersion.used   <- NULL
-   }
-   return(lrec)
+  if(!is.null(lrec)) {
+    lrec <- pv.stripEdgeR(lrec)
+    lrec <- pv.stripEdgeRGLM(lrec)
+    lrec$GLM <- pv.stripEdgeRGLM(lrec$GLM)
+    
+    lrec$dispersion.used   <- NULL
+  }
+  return(lrec)
 }      
 
 pv.stripDESeq1 <- function(drec) {
-   if(!is.null(drec)) {
-      drec$counts     <- NULL
-      drec$DEdata     <- NULL
-      drec$fullFit    <- NULL
-      drec$reducedFit <- NULL
-      
-      if(!is.null(drec$block)) {
-         drec$block <- pv.stripDESeq1(drec$block)	
-      }	
-   }
-   return(drec)
+  if(!is.null(drec)) {
+    drec$counts     <- NULL
+    drec$DEdata     <- NULL
+    drec$fullFit    <- NULL
+    drec$reducedFit <- NULL
+    
+    if(!is.null(drec$block)) {
+      drec$block <- pv.stripDESeq1(drec$block)	
+    }	
+  }
+  return(drec)
 }
 
 pv.stripDESeq2 <- function(drec) {
-   if(!is.null(drec)) {
-      drec$counts     <- NULL
-      drec$DEdata     <- NULL
-      drec$fullFit    <- NULL
-      drec$reducedFit <- NULL
-      
-      if(!is.null(drec$block)) {
-         drec$block <- pv.stripDESeq2(drec$block)	
-      }	
-   }
-   return(drec)
+  if(!is.null(drec)) {
+    drec$counts     <- NULL
+    drec$DEdata     <- NULL
+    drec$fullFit    <- NULL
+    drec$reducedFit <- NULL
+    
+    if(!is.null(drec$block)) {
+      drec$block <- pv.stripDESeq2(drec$block)	
+    }	
+  }
+  return(drec)
 }
 
 

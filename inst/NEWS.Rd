@@ -2,6 +2,19 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.7.6}{
+
+   \itemize{
+      \item{make plots use same precision as reports when thresholding}
+      \item{modify example in dba.report man page to be clearer}
+      \item{add precision option to dba.report}
+      \item{add dir option to dba}
+      \item{update vignette to not change dir}
+      \item{update dba man page to not change dir}
+   }
+}
+
+
 \section{Version 2.7.5}{
 Bug Fixes
 

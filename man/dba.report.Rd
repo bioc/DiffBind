@@ -10,7 +10,7 @@ Generates a report for a differential binding affinity analysis
 \usage{
 dba.report(DBA, contrast, method=DBA$config$AnalysisMethod, 
            th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
-           fold=0, bNormalized=TRUE, bFlip=FALSE,
+           fold=0, bNormalized=TRUE, bFlip=FALSE, precision,
            bCalled=FALSE, bCounts=FALSE, bCalledDetail=FALSE,
            bDB, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
            file,initString=DBA$config$reportInit,ext='csv',DataType=DBA$config$DataType) 
@@ -58,6 +58,14 @@ logical indicating that normalized data (using normalization factors computed by
  \item{bFlip}{
 logical indicating that order of groups in contrast should be "flipped", allowing control of which sample group
 will have positive and which will have negative fold changes.
+}
+ \item{precision}{
+If present, alters the default precision for the Concentration, Fold, p-value, and FDR values in the returned report.
+A value of \code{0} indicates maximum precision. 
+Otherwise, it should be a 2-value vector. 
+The first value controls how many digits to the right of the decimal to include for concentration and fold values. 
+These second value control how many digits to the right of the decimal to include for the p-value and FDRs.
+Default is precision=2:3, unless \code{DataType=DBA_DATA_SUMMARIZED_EXPERIMENT}, in which case the default is 0 (full precision).
 }
 
 \item{bCalled}{
@@ -178,7 +186,7 @@ data(tamoxifen_counts)
 tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION, block=tamoxifen$masks$MCF7)
 tamoxifen <- dba.analyze(tamoxifen,bCorPlot=FALSE)
 tamoxifen.DB <- dba.report(tamoxifen,method=c(DBA_DESEQ2,DBA_DESEQ2_BLOCK),
-                          bDB=TRUE, bGain=TRUE, bLoss=TRUE)
+                          bDB=TRUE, bGain=TRUE, bLoss=TRUE, bAll=FALSE)
 dba.plotVenn(tamoxifen.DB,1:4,label1="Single Factor GAIN",label2="Single Factor LOSS",
                              label3="Blocking Factor GAIN",label4="Blocking Factor LOSS")
 }
