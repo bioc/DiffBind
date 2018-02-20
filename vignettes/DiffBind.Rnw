@@ -32,7 +32,7 @@ BiocStyle::latex()
    University of Cambridge
 }
 
-\date{Edited: January 19, 2018; Compiled: \today}
+\date{Edited: February 19, 2018; Compiled: \today}
 
 \maketitle
 
@@ -905,11 +905,13 @@ For each contrast, a separate analysis is performed.
 First, a matrix of counts is constructed for the contrast, with columns for all the samples in the first group, followed by columns for all the samples in the second group. 
 The raw read count is used for this matrix; if the \Rcode{bSubControl} parameter is set to \Rcode{TRUE} (as it is by default), the raw number of reads in the control sample (if available) will be subtracted.
 Next the library size is computed for each sample for use in subsequent normalization. 
-By default, this is the total number of reads in peaks (the sum of each column). 
-Alternatively, if the \Rcode{bFullLibrarySize} parameter is set to TRUE, the total number of reads in the library (calculated from the source BAM/BED file) is used. 
+By default, this is the total number of reads in the library 
+(calculated from the source BAM/BED file). 
+Alternatively, if the \Rcode{bFullLibrarySize} parameter is set to FALSE, 
+the total number of reads in peaks (the sum of each column) is used. 
 The first step concludes with a call to \Biocpkg{DESeq2}'s \Rfunction{DESeqDataSetFromMatrix} function, which returns a \Rclass{DESeqDataSet} object. 
 
-If \Rcode{bFullLibrarySize} is set to TRUE, then \Rfunction{sizeFactors} is called with the number of reads in the BAM/BED files for each ChIP sample, divided by the minimum of these; otherwise, \Rfunction{estimateSizeFactors} is invoked. 
+If \Rcode{bFullLibrarySize} is set to TRUE (default), then \Rfunction{sizeFactors} is called with the number of reads in the BAM/BED files for each ChIP sample, divided by the minimum of these; otherwise, \Rfunction{estimateSizeFactors} is invoked. 
 
 \Rfunction{estimateDispersions} is then called with the \Rclass{DESeqDataSet} object and \Rcode{fitType} set to \Rcode{local}. Next the model is fitted and tested using \Rfunction{nbinomWaldTest}.
 The final results (as a \Rclass{DESeqDataSet}) are accessible within the \Rclass{DBA} object as 

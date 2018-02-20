@@ -2,6 +2,15 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.7.7}{
+Documentation Fixes
+
+   \itemize{
+      \item{Vignette: change default to bFullLibrarSize=TRUE in descrption of DESeq2 analysis}
+      \item{man page for dba.report: clean up description of bCalled}
+   }
+}
+
 \section{Version 2.7.6}{
 
    \itemize{

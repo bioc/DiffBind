@@ -69,7 +69,7 @@ Default is precision=2:3, unless \code{DataType=DBA_DATA_SUMMARIZED_EXPERIMENT},
 }
 
 \item{bCalled}{
-logical indicating that peak caller status should be included (if available from a previous call to  \code{\link{dba.count}(bCalledMasks=TRUE)}). This will add a column for each group, each indicating the number of samples in the group identified as a peak in the original peaksets.
+logical indicating that peak caller status should be included. This will add a column for each group, each indicating the number of samples in the group identified as a peak in the original peaksets. Note that this option is only available if the consensus peakset was calculated by \code{\link{dba.count}}; if a consensus peakset was passed in explcictly using the \code{peaks} parameter, original peak origins are lost.
 }
 \item{bCounts}{
 logical indicating that count data for individual samples should be reported as well as group statistics. Columns are added for each sample in the first group, followed by columns for each sample in the second group.
