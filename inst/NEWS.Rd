@@ -2,76 +2,42 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.7.7}{
-Documentation Fixes
+\section{Version 2.8.0}{
+Minor features, documentation updates, bug fixes:
 
-   \itemize{
-      \item{Vignette: change default to bFullLibrarSize=TRUE in descrption of DESeq2 analysis}
-      \item{man page for dba.report: clean up description of bCalled}
-   }
-}
-
-\section{Version 2.7.6}{
-
-   \itemize{
-      \item{make plots use same precision as reports when thresholding}
-      \item{modify example in dba.report man page to be clearer}
-      \item{add precision option to dba.report}
-      \item{add dir option to dba}
-      \item{update vignette to not change dir}
-      \item{update dba man page to not change dir}
-   }
-}
-
-
-\section{Version 2.7.5}{
-Bug Fixes
-
-   \itemize{
-      \item{Sort report by FDR instead of p_value}
-   }
-}
-
-\section{Version 2.7.4}{
-Bug Fixes
-
-   \itemize{
-      \item{fix bug when adding consensus peaks with chromosomes not present in some peaksets}
-   }
-}
-
-\section{Version 2.7.3}{
-Bug Fixes
-
-   \itemize{
-      \item{fix bug when recentering passed-in peaks}
-   }
-}
-
-\section{Version 2.7.2}{
-Bug Fixes
-
-   \itemize{
-      \item{dontrun example code for dba.save writing into LIB}
-      \item{dontrun example code for dba setting wd to LIB}
-      \item{fix bug in dba.report when using filtering from dba.analyze}
-      \item{fix bug in dba.count when passing in peaks using factors}
-   }
-}
-
-
-\section{Version 2.7.1}{
-Changes are (so far) bug fixes.
-
-   \itemize{
-      \item{Bug Fixes}
-         \itemize{
-             \item{Bug in dba.count caused by not registering one of the C
-                   routines correctly.}
-         }
+  \itemize{
+    \item{Features}    
+      \itemize{
+        \item{dba.report: add precision option to dba.report}
+        \item{dba.plot*: make plots use same precision as reports when thresholding}
+        \item{dba: add dir option to dba}
       }
+      
+    \item{Documentation updates}
+      \itemize{
+        \item{Vignette: change default to bFullLibrarySize=TRUE in 
+              description of DESeq2 analysis}
+         \item{Vignette: update vignette to not change dir}
+         \item{dba.report: clean up description of bCalled in man page}
+         \item{dba.report: modify example inman page to be clearer}
+         \item{dba: update man page to not change dir}
+         \item{dba.save: dontrun example code for dba.save writing into LIB}
+         \item{dba: dontrun example code for dba setting wd to LIB}
+      }
+      
+    \item{Bug fixes}
+      \itemize{
+        \item{dba.report: Sort report by FDR instead of p_value}
+        \item{dba.peakset: fix bug when adding consensus peaks with chromosomes 
+              not present in some peaksets}
+        \item{dba.count: fix bug when recentering passed-in peaks}
+        \item{dba.report: fix bug when using filtering from dba.analyze}
+        \item{dba.count: fix bug when passing in peaks using factors}
+        \item{dba.count: fix bug caused by not registering one of the C
+              routines correctly.}
+      }
+   }
 }
-
 
 \section{Version 2.6.0}{
 Changes since last release include bug fixes and some minor feature refinements.
@@ -81,8 +47,6 @@ Changes since last release include bug fixes and some minor feature refinements.
          \itemize{
             \item{Change sortFun parameter in dba.plotHeatmap to default sd, with
                   FALSE as option for no sorting}
-             \item{Change sortFun parameter in dba.plotHeatmap to default sd, with
-                   FALSE as option for no sorting}
              \item{Sort peaks when adding directly via dba.peakset}
              \item{don't add _ if no initString in dba.report}
              \item{Internal feature: alternate peak counts: pv.resetCounts}
