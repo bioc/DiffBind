@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string>
 #include <zlib.h>
-#include <samtools/sam.h>
-#include <samtools/bam.h>
+#include <sam.h>
+#include <bam.h>
 #include <R.h>
 
 #include "interval.h"

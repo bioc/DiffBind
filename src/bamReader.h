@@ -1,7 +1,7 @@
 #ifndef __BAMREADER_H
 #define __BAMREADER_H
 
-#include <samtools/sam.h>
+#include <sam.h>
 
 #include "interval.h"
 #include "reader.h"
