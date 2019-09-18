@@ -1030,7 +1030,7 @@ pv.plotPCA <-
     if (b3D) {
       if (requireNamespace("rgl",quietly = TRUE)) {
         rgl::plot3d(
-          pc$rotation[,compnums[c(1,3,2)]],
+          pc$x[,compnums[c(1,3,2)]],
           col = pv.colorv(classvec,vColors),type = 's',size = sval,
           xlab = sprintf('PC #%d [%2.0f%%]',c1,c1p),
           ylab = sprintf('PC #%d [%2.0f%%]',c3,c3p),
@@ -1072,7 +1072,7 @@ pv.doPCAplot <-
   function(pc,classvec,c1,c2,sval,vColors,thetitle,c1p,c2p,
            addlabels = NULL,labelSize = .8,labelCols = "black",...) {
     
-    plotData <- as.data.frame(pc$rotation[,c(c1,c2)])
+    plotData <- as.data.frame(pc$x[,c(c1,c2)])
     colnames(plotData) <- c("PC1","PC2")
     p <- xyplot(
       PC2 ~ PC1,
