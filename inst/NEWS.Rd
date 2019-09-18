@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.13.1}{
+   \itemize{
+      \item{Change dba.plotPCA to use proper loading}
+    }
+}
+
 \section{Version 2.8.0}{
 Minor features, documentation updates, bug fixes:
 
