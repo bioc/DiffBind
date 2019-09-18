@@ -1227,7 +1227,8 @@ pv.pcmask <- function(pv,numSites, mask, sites,removeComps,cor=F,bLog=T){
    }
    
    if(nrow(pv$values) >= sum(mask)) {
-      res$pc <- prcomp(pv$values) #,cor=cor)
+      #res$pc <- prcomp(pv$values) #,cor=cor)
+     res$pc <- prcomp(t(pv$values))
    }
    res$mask <- mask
    
