@@ -33,7 +33,7 @@ mask of samples in second group (when adding a specific contrast). See \code{\li
 label for samples in first group (when adding a specific contrast). 
 }
   \item{name2}{
-label for samples in second group (when adding a specific contrast). 
+label for samples in second group (when adding a specific contrast). C
 }
   \item{minMembers}{
 when automatically generating contrasts, minimum number of unique samples in a group. Must be at least 2, as replicates are strongly advised. If you wish to do an analysis with no replicates, you can set the group1 and group2 parameters explicitly.
@@ -128,7 +128,8 @@ tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION, block=DBA_TISSUE)
 tamoxifen
 
 tamoxifen$contrasts=NULL
-tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION, block=list(c(3,4,5,8,9),c(1,2,10,11)))
+tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION, 
+                          block=list(c(3,4,5,8,9),c(1,2,10,11)))
 tamoxifen
 
 tamoxifen$contrasts=NULL

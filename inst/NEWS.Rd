@@ -2,7 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 3.13.1}{
+\section{Version 2.15.1}{
+   \itemize{
+      \item{Fix issue when extracing SummarizedExperiment from DBA}
+    }
+}
+
+
+\section{Version 2.13.1}{
    \itemize{
       \item{Change dba.plotPCA to use proper loading}
     }

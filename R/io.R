@@ -16,16 +16,13 @@ pv.load <- function(file='model',dir='Robjects',pre='pv_',ext='RData') {
    return(DBAobject)
 }
 
-
-
-
 ## pv.writePeakset --- write out vectorized peaks as a bed file for external 
 pv.writePeakset <- function(pv,fname,peaks,numCols=4){
    
    if(missing(peaks)) {
       peaks <- rep(T,nrow(pv$binding))
    } else {
-      if(class(peaks)=='logical') {
+      if(sum(class(peaks)=='logical')) {
          peaks <- which(peaks)[1]	
       }	
    }
@@ -34,7 +31,7 @@ pv.writePeakset <- function(pv,fname,peaks,numCols=4){
       fname <- NULL
    }
    
-   if((class(peaks)=='numeric') || (class(peaks)=='integer')) {
+   if(sum((class(peaks)=='numeric')) || sum((class(peaks)=='integer'))) {
       peaks=pv$peaks[[peaks]]
    }           
    
