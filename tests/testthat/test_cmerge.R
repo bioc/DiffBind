@@ -104,14 +104,14 @@ test_that("merge scores with multiple incoming peak sets",{
   expect_equal(b$included,c(1,0,0,0,0))
 })
 
-test_that("merge scores with non-numeric arguments",{
-  x <- data.frame(c("chr1","chr2","chr2","chr2","chr4"),c(20,100,150,200,40),c(40,120,170,220,60))
-  s <- c(20,30,40,50,60)
-  y <- data.frame(c('chr1','chr2','chr2','chr4'),c(20,100,155,40),c(30,120,165,60),c(21,29,100,100))
-  z <- mergeScores(x,s,y)
-  expect_equal(z$score,c(21,30,100,50,100))
-  expect_equal(z$included,c(1,1,1,0,1))
-})
+#test_that("merge scores with non-numeric arguments",{
+#  x <- data.frame(c("chr1","chr2","chr2","chr2","chr4"),c(20,100,150,200,40),c(40,120,170,220,60))
+#  s <- c(20,30,40,50,60)
+#  y <- data.frame(c('chr1','chr2','chr2','chr4'),c(20,100,155,40),c(30,120,165,60),c(21,29,100,100))
+#  z <- mergeScores(x,s,y)
+#  expect_equal(z$score,c(21,30,100,50,100))
+#  expect_equal(z$included,c(1,1,1,0,1))
+#})
 
 test_that("merge scores with integers",{
   aa <- as.integer(c(1,2,2,2,5))
