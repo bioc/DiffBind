@@ -18,12 +18,9 @@
 ## pv.whichSites    -- create a mask of sites belonging to specific peakset(s)
 
 ## pv.plotClust     -- hierarchical cluster plot
-## pv.plotPCA       -- interactive 3D PCA plot
-## pv.plotHeatmap   -- plot a binding site heatmap w/ hierarchical clustering
 ## pv.sort          -- sort binding sites (e.g. for heatmap)
 
 ## pv.overlap       -- generate overlapping/unique peaksets
-## pv.plotVenn      -- draw venn diagrams
 
 ## pv.occupancy     -- generate occupancy statistics for peaksets in a model
 ## pv.plotScatter   -- scatter plots of contrasts
@@ -460,11 +457,14 @@ pv.vectors <-
 ## pv.list -- list attributes of samples in model
 pv.deflist <- c(
   PV_ID,PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT,
-  PV_REPLICATE,PV_CALLER,PV_INTERVALS,PV_SN_RATIO
+  PV_REPLICATE,PV_CALLER,PV_INTERVALS,PV_READS,PV_SN_RATIO
 )
+
 pv.list <-
-  function(pv,mask,bContrasts = F,attributes = pv.deflist,th = 0.05,bUsePval =
-             F) {
+  function(pv,mask,bContrasts = FALSE, bDesign=FALSE,
+           attributes = pv.deflist,
+           th = 0.05) {
+    
     if (!missing(mask)) {
       if (!is.logical(mask)) {
         tmp  <- rep (F,length(pv$peaks))
@@ -474,7 +474,16 @@ pv.list <-
     }
     
     if (bContrasts) {
-      return(pv.listContrasts(pv,th = th,bUsePval = bUsePval))
+      return(pv.listContrasts(pv,th = th))
+    }
+    
+    if (bDesign) {
+      if(is.null(pv$design)) {
+        warning("No design present.")
+        return(NULL)
+      } else {
+        return(pv$design)
+      }
     }
     
     if (missing(attributes)) {
@@ -519,6 +528,13 @@ pv.list <-
       }
       res <- cbind(res,intervals)
       colnames(res)[ncol(res)] <- 'Intervals'
+    }
+    
+    if(PV_READS %in% attributes) {
+      movecol <- which(attributes %in% PV_READS)
+      res <- cbind(res,res[,movecol])
+      res <- res[,-movecol]
+      colnames(res)[ncol(res)] <- "Reads"
     }
     
     if (bSN) {
@@ -888,416 +904,7 @@ pv.plotClust <-
     return(pv$hc)
   }
 
-## pv.plotPCA -- 3D plot of PCA
-pv.plotPCA <-
-  function(pv,attributes = PV_ID,second,third,fourth,size,mask,
-           numSites,sites,cor = F,comps=1:3, b3D = T,vColors,
-           label = NULL,bLog = T,labelSize = .8,labelCols = "black",...) {
-    
-    pv <- pv.check(pv)
-    
-    if(length(comps)==1) {
-      c1 <- comps
-      c2 <- comps+1
-      c3 <- comps+2
-    } else{
-      c1 <- comps[1]
-      c2 <- comps[2]         
-      if(length(comps)==2) {
-        c3 <- comps[2]+1
-      } else {
-        c3 <- comps[3]
-      }
-    }
-    compnums <- c(c1,c2,c3)
-    
-    class  <- attributes[1]
-    if (length(attributes) > 1) {
-      second <- attributes[2]
-      if (length(attributes) > 2) {
-        third <- attributes[3]
-      }
-      if (length(attributes) > 3) {
-        fourth <- attributes[4]
-      }
-    }
-    
-    if (missing(sites))
-      sites <- NULL
-    
-    if (missing(numSites)) {
-      numSites <- nrow(pv$binding)
-    }
-    
-    config <- pv$config
-    
-    if (!missing(mask) || !missing(numSites)) {
-      if (missing(mask)) {
-        mask <- rep(T,ncol(pv$class))
-      }
-      pv <-
-        pv.pcmask(pv,numSites,mask,sites,cor = cor,bLog = bLog)
-    }
-    pv$config <- config
-    pc <- pv$pc
-    
-    if (is.null(pc)) {
-      warning("Unable to perform PCA. Make sure there aren't fewer sites than there are samples.",
-              call. = FALSE)
-      return(NULL)
-    }
-    
-    #if(!is.null(pv$mask)) {
-    #   classes <- pv$class[,which(pv$mask)]
-    #} else {
-    classes <- pv$class[,mask]
-    #}
-    
-    if (max(class) > nrow(classes)) {
-      return(F)
-    }
-    
-    vr <- rep(0,length(pc$sdev))
-    for (i in 1:length(vr)) {
-      vr[i] <- pc$sdev[i] ^ 2
-    }
-    
-    if (b3D) {
-      #startComp <- 1
-      pvar <- sum(vr[compnums[1:3]]) / sum(vr) * 100
-    } else {
-      pvar <- sum(vr[compnums[1:2]]) / sum(vr) * 100
-    }
-    c1p <- vr[c1] / sum(vr) * 100
-    c2p <- vr[c2] / sum(vr) * 100
-    c3p <- vr[c3] / sum(vr) * 100
-    
-    if (!missing(second)) {
-      if (!missing(third)) {
-        if (!missing(fourth)) {
-          classvec <-
-            sprintf("%s:%s:%s:%s",classes[class,],classes[second,],classes[third,],classes[fourth,])
-          thetitle <-
-            sprintf(
-              "PCA: %s+%s+%s+%s",pv.attname(class,pv),
-              pv.attname(second,pv),
-              pv.attname(third,pv),
-              pv.attname(fourth,pv),pvar
-            )
-        } else {
-          classvec <-
-            sprintf("%s:%s:%s",classes[class,],classes[second,],classes[third,])
-          thetitle <-
-            sprintf(
-              "PCA: %s+%s+%s",pv.attname(class,pv),
-              pv.attname(second,pv),
-              pv.attname(third,pv),pvar
-            )
-        }
-      } else {
-        classvec <- sprintf("%s:%s",classes[class,],classes[second,])
-        thetitle <- sprintf("PCA: %s+%s",pv.attname(class,pv),
-                            pv.attname(second,pv),pvar)
-      }
-    } else {
-      classvec <- classes[class,]
-      thetitle <- sprintf("PCA: %s",pv.attname(class,pv),pvar)
-    }
-    
-    if (!is.null(label)) {
-      addlabels <- classes[label,]
-    } else
-      addlabels <- NULL
-    
-    numsamps <- ncol(classes)
-    if (numsamps <= 10) {
-      sval <- 2.25
-    } else if (numsamps <= 25) {
-      sval <- 1.75
-    } else {
-      sval <- 1.5
-    }
-    if (!missing(size)) {
-      if (!is.null(size)) {
-        sval <- size
-      }
-    }
-    
-    if (missing(vColors)) {
-      vColors <- pv.colsv
-    }
-    
-    if (b3D) {
-      if (requireNamespace("rgl",quietly = TRUE)) {
-        rgl::plot3d(
-          pc$x[,compnums[c(1,3,2)]],
-          col = pv.colorv(classvec,vColors),type = 's',size = sval,
-          xlab = sprintf('PC #%d [%2.0f%%]',c1,c1p),
-          ylab = sprintf('PC #%d [%2.0f%%]',c3,c3p),
-          zlab = sprintf('PC #%d [%2.0f%%]',c2,c2p),
-          aspect = c(1,1,1),main = thetitle,...
-        )
-        uclass <- unique(classvec)
-        p <- matrix(vColors[1:length(uclass)],length(uclass),1)
-        rownames(p) <- uclass
-        colnames(p) <- "Legend"
-        for (i in 1:nrow(p)) {
-          if (p[i] == crukBlue)
-            p[i] <- "crukBlue"
-          if (p[i] == crukMagenta)
-            p[i] <- "crukMagenta"
-          if (p[i] == crukCyan)
-            p[i] <- "crukCyan"
-        }
-        print(p)
-      } else {
-        warning("Package rgl not installed")
-        p <-
-          pv.doPCAplot(pc,classvec,c1,c2,sval,vColors,thetitle,c1p,c2p,addlabels,...)
-      }
-    } else {
-      if (!missing(size)) {
-        #sval <- sval + .5
-      }
-      p <-
-        pv.doPCAplot(
-          pc,classvec,c1,c2,sval,vColors,thetitle,c1p,c2p,
-          addlabels,labelSize,labelCols,...
-        )
-    }
-    return(p)
-  }
 
-pv.doPCAplot <-
-  function(pc,classvec,c1,c2,sval,vColors,thetitle,c1p,c2p,
-           addlabels = NULL,labelSize = .8,labelCols = "black",...) {
-    
-    plotData <- as.data.frame(pc$x[,c(c1,c2)])
-    colnames(plotData) <- c("PC1","PC2")
-    p <- xyplot(
-      PC2 ~ PC1,
-      #groups=classvec,
-      data = plotData,
-      pch = 16, cex = sval,aspect = 1,
-      col = pv.colorv(classvec,vColors),
-      xlab = sprintf('Principal Component #%d [%2.0f%%]',c1,c1p),
-      ylab = sprintf('Principal Component #%d [%2.0f%%]',c2,c2p),
-      main = thetitle,
-      key = list(
-        space = "right",
-        rect = list(col = unique(pv.colorv(classvec,vColors))[1:length(unique(classvec))]),
-        text = list(unique(classvec)),
-        rep = FALSE
-      ),
-      ...
-    )
-    
-    if (!is.null(addlabels)) {
-      if (length(labelCols) > 1) {
-        newcols <- rep("",length(addlabels))
-        colvals <- unique(addlabels)
-        for (i in 1:length(colvals)) {
-          newcols[addlabels %in% colvals[i]] <- labelCols[i]
-        }
-        labelCols <- newcols
-      }
-      p <- update(
-        p, panel = function(x, y, ...) {
-          lattice::panel.xyplot(x, y, ...);
-          lattice::ltext(
-            x = x, y = y, labels = as.character(addlabels), pos = 1,
-            offset = 1, cex = labelSize,col = labelCols
-          )
-        }
-      )
-    }
-    print(p)
-  }
-
-## pv.plotHeatmap -- draw a heatmap using a subset of binding sites
-PV_ONLYA <- 3
-PV_ONLYB <- 4
-PV_INALL <- 5
-PV_COR   <- 6
-PV_OLAP  <- 7
-PV_TOTAL <- 0
-pv.plotHeatmap <-
-  function(pv,numSites = 1000,attributes = pv$attributes,mask,sites,contrast,
-           overlaps, olmask, olPlot = PV_COR,divVal,RowAttributes,ColAttributes,rowSideCols,colSideCols,
-           bTop = T,minval,maxval,bReorder = F,ColScheme =
-             "Greens",distMeth = "pearson",...) {
-    pv <- pv.check(pv)
-    
-    if (missing(mask)) {
-      mask <- rep(T,ncol(pv$class))
-    } else if (is.null(mask)) {
-      mask <- rep(T,ncol(pv$class))
-    }
-    
-    ocm <- NULL
-    if (!missing(overlaps)) {
-      cres  <- overlaps
-      if (!missing(olmask)) {
-        cres <- cres[olmask,]
-      }
-      if (is.null(nrow(cres))) {
-        cres <- matrix(cres,1,length(cres))
-      }
-      #cres <- pv.overlapToLabels(pv,cres,attributes)
-      if (missing(divVal)) {
-        ocm <- pv.occ2matrix(cres,olPlot)
-      } else {
-        ocm <- pv.occ2matrix(cres,olPlot,divVal)
-      }
-      labels <- pv.nums2labels(pv,rownames(ocm),attributes)
-      rowlab <- collab <- labels
-      rownames(ocm) <- labels
-      colnames(ocm) <- labels
-      domap <- ocm
-      
-    } else {
-      if (missing(sites)) {
-        sites <- 1:nrow(pv$binding)
-        numSites <- min(length(sites),numSites)
-      } else {
-        if (sum(sites) <= length(sites)) {
-          numSites <- min(sum(sites),numSites)
-          sites <- which(sites)
-        } else {
-          numSites <- length(sites)
-        }
-      }
-      
-      if (bTop == T) {
-        sites <- sites[1:numSites]
-      } else {
-        tsites <- length(sites)
-        sites <- sites[(tsites - numSites + 1):tsites]
-      }
-      colnames <- NULL
-      for (i in 1:ncol(pv$class)) {
-        colnames <-
-          c(colnames,pv.namestrings(pv$class[attributes,i])$tstring)
-      }
-      domap <- matrix(0.1,length(sites),sum(mask))
-      for (i in 1:ncol(domap)) {
-        domap[,i] <- as.numeric(pv$binding[sites,c(F,F,F,mask)][,i])
-      }
-      rowlab <- ""
-      collab <- colnames[mask]
-    }
-    
-    if (!missing(minval)) {
-      domap[domap < minval] <- minval
-    }
-    if (!missing(maxval)) {
-      domap[domap > maxval] <- maxval
-    }
-    
-    if (missing(overlaps)) {
-      for (i in 1:ncol(domap)) {
-        if (sum(domap[,i] == 0) == nrow(domap)) {
-          domap[1,i] <- 0.000001
-        }
-      }
-    }
-    
-    domap <- domap[rowSums(domap)!=0,]
-    
-    if (length(ColScheme) == 1) {
-      cols <- colorRampPalette(brewer.pal(9,ColScheme))(256)
-    } else
-      cols <- ColScheme
-    
-    if (missing(rowSideCols)) {
-      rowSideCols <- pv.colsv
-    }
-    rowatts <- NULL
-    rowcols <- 0
-    if (missing(RowAttributes)) {
-      if (!missing(contrast)) {
-        if (sum(pv$contrasts[[contrast]]$group1) ||
-            sum(pv$contrasts[[contrast]]$group1)) {
-          rowatts <-
-            pv.attributematrix(pv,mask,contrast = contrast,PV_GROUP,rowSideCols)
-          rowcols <- length(unique(as.vector(rowatts)))
-        }
-      }
-    } else if (!is.null(RowAttributes)) {
-      rowatts <-
-        pv.attributematrix(
-          pv,mask,contrast = contrast,RowAttributes,rowSideCols,bReverse = T
-        )
-      rowcols <- length(unique(as.vector(rowatts)))
-    }
-    
-    if (missing(colSideCols)) {
-      colSideCols <- pv.colsv
-    }
-    if (missing(ColAttributes)) {
-      colatts <-
-        pv.attributematrix(pv,mask,contrast = contrast,NULL,colSideCols,bAddGroup =
-                             is.null(ocm))
-      colcols <- length(unique(as.vector(colatts)))
-    } else if (!is.null(ColAttributes)) {
-      colatts <-
-        pv.attributematrix(pv,mask,contrast = contrast,ColAttributes,colSideCols)
-      colcols <- length(unique(as.vector(colatts)))
-    } else {
-      colatts <- NULL
-      colcols <- 0
-    }
-    
-    if (is.null(ocm)) {
-      if (!missing(RowAttributes)) {
-        warning("Row color bars not permitted for peak score heatmaps.",call. =
-                  F)
-      }
-      heatmap.3(
-        domap,labCol = collab,col = cols,trace = "none",labRow = rowlab,KeyValueName =
-          "Score",
-        distfun = function(x)
-          Dist(x,method = distMeth),
-        ColSideColors = colatts,NumColSideColors = colcols,
-        ...
-      )
-    } else {
-      res <-
-        heatmap.3(
-          domap,labCol = collab,col = cols,trace = "none",labRow = rowlab, 
-          KeyValueName ="Correlation",
-          distfun = function(x)
-            Dist(x,method = distMeth),symm = T,revC = T,Colv = T,
-          RowSideColors = rowatts,ColSideColors = colatts,NumRowSideColors =
-            rowcols,NumColSideColors = colcols,
-          ...
-        )
-      if (bReorder) {
-        if (length(unique(rownames(ocm))) == nrow(ocm)) {
-          ocm <- pv.reorderM(ocm,res$rowDendrogram)
-        } else {
-          warning("Unable to re-order returned correlation matrix as labels are non-unique")
-        }
-      }
-      ocm <- signif(ocm,2) 
-      return(ocm)
-    }
-    
-  }
-
-## pv.sort  - sort binding sites (e.g. for heatmap)
-pv.sort <- function(pv,fun = sd,mask,...) {
-  if (missing(mask)) {
-    mask <- rep(T,ncol(pv$class))
-  }
-  
-  scores <- apply(pv$binding[,c(F,F,F,mask)],1,fun,...)
-  ranked <- order(scores,decreasing = T)
-  
-  pv$binding   <- pv$binding[ranked,]
-  
-  return(pv)
-}
 ## pv.overlap -- generate overlapping/unique peaksets
 pv.overlap <- function(pv,mask,bFast = F,minVal = 0) {
   if (!missing(mask)) {
@@ -1357,6 +964,21 @@ pv.overlap <- function(pv,mask,bFast = F,minVal = 0) {
   return(res)
 }
 
+
+## pv.sort  - sort binding sites (e.g. for heatmap)
+pv.sort <- function(pv,fun = sd,mask,...) {
+  if (missing(mask)) {
+    mask <- rep(T,ncol(pv$class))
+  }
+  
+  scores <- apply(pv$binding[,c(F,F,F,mask)],1,fun,...)
+  ranked <- order(scores,decreasing = T)
+  
+  pv$binding   <- pv$binding[ranked,]
+  
+  return(pv)
+}
+
 pv.overlapRate <- function(pv,mask = mask) {
   if (!missing(mask)) {
     if (!is.null(mask)) {
@@ -1372,22 +994,6 @@ pv.overlapRate <- function(pv,mask = mask) {
   return(res)
 }
 
-## pv.plotVenn -- draw venn diagrams
-pv.plotVenn <-
-  function(ovrec,label1 = "A",label2 = "B",label3 = "C",label4 = "D",
-           main = "",sub = "") {
-    if (length(ovrec) == 3) {
-      pv.venn2(ovrec,label1,label2,main,sub)
-    }
-    
-    if (length(ovrec) == 7) {
-      pv.venn3(ovrec,label1,label2,label3,main,sub)
-    }
-    
-    if (length(ovrec) == 15) {
-      pv.venn4(ovrec,label1,label2,label3,label4,main,sub)
-    }
-  }
 
 ## pv.occupancy-- generate co-occupancy stats from peaksets in a model
 pv.occupancy <-
@@ -1465,257 +1071,6 @@ pv.occupancy <-
     return(res)
   }
 
-
-## pv.plotBoxplot -- Boxplots
-pv.plotBoxplot <-
-  function(DBA, contrast, method=DBA_DESEQ2, th=0.05, bUsePval=F, bNormalized =
-             T, attribute=DBA_GROUP,
-           bAll, bAllIncreased, bAllDecreased, bDB, bDBIncreased, bDBDecreased,
-           pvalMethod=wilcox.test,  bReversePos=FALSE, attribOrder, vColors, varwidth =
-             T, notch=T, ...) {
-    if (missing(bAll) &&
-        missing(bAllIncreased) && missing(bAllDecreased)) {
-      bMissingAll <- T
-    } else
-      bMissingAll <- F
-    
-    if (missing(bDB) &&
-        missing(bDBIncreased) && missing(bDBDecreased)) {
-      bMissingDB <- T
-    } else
-      bMissingDB <- F
-    
-    if (missing(contrast)) {
-      if (bMissingAll) {
-        bAll          <- T
-        bAllIncreased <- F
-        bAllDecreased <- F
-        bDB           <- F
-        bDBIncreased  <- F
-        bDBDecreased  <- F
-      }
-    } else {
-      if (bMissingAll && bMissingDB) {
-        bAll          <- F
-        bAllIncreased <- F
-        bAllDecreased <- F
-        bDB           <- T
-        bDBIncreased  <- F
-        bDBDecreased  <- F
-      }
-    }
-    
-    if (missing(vColors)) {
-      vColors <- pv.colsv
-      #vColors <- vColors[2:length(vColors)]
-    }
-    
-    if (attribute == DBA_GROUP) {
-      numPlots <- 2
-      cols <- vColors[1:2]
-      groups <-
-        list(DBA$class[PV_ID,DBA$contrasts[[contrast]]$group1],DBA$class[PV_ID,DBA$contrasts[[contrast]]$group2])
-      names <-
-        c(DBA$contrasts[[contrast]]$name1,DBA$contrasts[[contrast]]$name2)
-      if (!missing(attribOrder)) {
-        if (attribOrder[1] == 2 & attribOrder[2] == 1) {
-          groups <-
-            list(DBA$class[PV_ID,DBA$contrasts[[contrast]]$group2],DBA$class[PV_ID,DBA$contrasts[[contrast]]$group1])
-          names <-
-            c(DBA$contrasts[[contrast]]$name2,DBA$contrasts[[contrast]]$name1)
-        }
-      }
-    } else {
-      samples <-
-        which(DBA$contrasts[[contrast]]$group1 |
-                DBA$contrasts[[contrast]]$group2)
-      classes <- DBA$class[, samples]
-      names <- unique(classes[attribute,])
-      numPlots <- length(names)
-      if (!missing(attribOrder)) {
-        if (length(attribOrder < numPlots)) {
-          neworder <- 1:numPlots
-          neworder[1:length(attribOrder)] <- attribOrder
-          attribOrder <- neworder
-        }
-        names  <- names[attribOrder[1:numPlots]]
-      }
-      cols <- vColors[1:numPlots]
-      groups <- NULL
-      for (name in names) {
-        groups <-
-          pv.listadd(groups,classes[PV_ID, classes[attribute,] == name])
-      }
-    }
-    
-    subtitle <- FALSE
-    
-    if (bAll | bAllIncreased | bAllDecreased) {
-      report <-
-        pv.DBAreport(
-          DBA, contrast=contrast, method=method,th=1,
-          bNormalized=bNormalized,bCounts = TRUE, precision=0
-        )
-      if (bReversePos) {
-        increase <- report$Fold > 0
-        posgroup <- DBA$contrasts[[contrast]]$name1
-        neggroup <- DBA$contrasts[[contrast]]$name2
-      } else {
-        increase <- report$Fold < 0
-        posgroup <- DBA$contrasts[[contrast]]$name2
-        neggroup <- DBA$contrasts[[contrast]]$name1
-      }
-      if (bUsePval) {
-        DB <- report$p <= th
-      } else {
-        DB <- report$FDR <= th
-      }
-    } else {
-      report <- NULL
-    }
-    
-    toplot <- NULL
-    vcols  <- NULL
-    vnames <- NULL
-    
-    if (bAll) {
-      res       <- lapply(groups,pv.box,report)
-      for (i in 1:length(res)) {
-        names(res)[i] <- sprintf("%s",names[i])
-      }
-      toplot   <- c(toplot,res)
-      vnames   <- c(vnames,names)
-      vcols    <- c(vcols,cols)
-    }
-    
-    if (bAllIncreased) {
-      res       <- lapply(groups,pv.box,report[increase,])
-      for (i in 1:length(res)) {
-        names(res)[i] <- sprintf("%s+",names[i])
-      }
-      toplot   <- c(toplot,res)
-      vnames   <- c(vnames,rep("+",numPlots))
-      vcols    <- c(vcols,cols)
-      subtitle <- TRUE
-    }
-    
-    if (bAllDecreased) {
-      res       <- lapply(groups,pv.box,report[!increase,])
-      for (i in 1:length(res)) {
-        names(res)[i] <- sprintf("%s-",names[i])
-      }
-      toplot   <- c(toplot,res)
-      vnames   <- c(vnames,rep("-",numPlots))
-      vcols    <- c(vcols,cols)
-      subtitle <- TRUE
-    }
-    
-    
-    if (is.null(report)) {
-      report <-
-        pv.DBAreport(
-          DBA, contrast=contrast, method=method,th=th,bUsePval=bUsePval,
-          bNormalized=bNormalized,bCounts=TRUE, precision=0
-        )
-    } else {
-      report <- report[DB,]
-    }
-    
-    if (nrow(report) == 1) {
-      stop('Need more than one DB site for boxplot')
-    }
-    
-    if (bReversePos) {
-      increase <- report$Fold > 0
-      posgroup <- DBA$contrasts[[contrast]]$name1
-      neggroup <- DBA$contrasts[[contrast]]$name2
-    } else {
-      increase <- report$Fold < 0
-      posgroup <- DBA$contrasts[[contrast]]$name2
-      neggroup <- DBA$contrasts[[contrast]]$name1
-    }
-    
-    if (bDB) {
-      res       <- lapply(groups,pv.box,report)
-      for (i in 1:length(res)) {
-        names(res)[i] <- sprintf("%s.DB",names[i])
-      }
-      toplot   <- c(toplot,res)
-      vnames   <- c(vnames,names)
-      vcols    <- c(vcols,cols)
-    }
-    
-    if (bDBIncreased) {
-      res <- lapply(groups,pv.box,report[increase,])
-      for (i in 1:length(res)) {
-        names(res)[i] <- sprintf("%s.DB+",names[i])
-      }
-      toplot <- c(toplot,res)
-      vnames <- c(vnames,rep("+",numPlots))
-      vcols  <- c(vcols,cols)
-      subtitle <- TRUE
-    }
-    
-    if (bDBDecreased) {
-      res <- lapply(groups,pv.box,report[!increase,])
-      for (i in 1:length(res)) {
-        names(res)[i] <- sprintf("%s.DB-",names[i])
-      }
-      toplot <- c(toplot,res)
-      vnames <- c(vnames,rep("-",numPlots))
-      vcols <- c(vcols,cols)
-      subtitle <- TRUE
-    }
-    
-    if (bNormalized == T) {
-      ystr <- "log2 normalized reads in binding sites"
-    } else {
-      ystr <- "log2 reads in binding sites"
-    }
-    
-    if (subtitle == T) {
-      subt <-
-        sprintf(
-          "+ indicates sites with increased affinity in %s\n- indicates sites with increased affinity in %s",
-          posgroup,neggroup
-        )
-    } else {
-      subt <- ""
-    }
-    boxplot(
-      toplot,notch=notch, varwidth=varwidth,
-      col=vcols,names=vnames,main="Binding affinity",
-      sub=subt,ylab=ystr
-    )
-    
-    if (!is.null(pvalMethod)) {
-      pvals <- matrix(1,length(toplot),length(toplot))
-      rownames(pvals) <- names(toplot)
-      colnames(pvals) <- names(toplot)
-      for (i in 1:(length(toplot) - 1)) {
-        for (j in (i + 1):length(toplot)) {
-          if (length(toplot[[i]]) == length(toplot[[j]])) {
-            pvals[i,j] <-
-              pvalMethod(toplot[[i]],toplot[[j]],paired=TRUE)$p.value
-          } else {
-            pvals[i,j] <-
-              pvalMethod(toplot[[i]],toplot[[j]],paired=FALSE)$p.value
-          }
-          pvals[j,i] <- pvals[i,j]
-        }
-      }
-    } else {
-      pvals <- NULL
-    }
-    pvals <- signif(pvals,3)
-    return(pvals)
-  }
-
-pv.box <- function(ids,report) {
-  idx <- match(ids,colnames(report))
-  res <- log2(apply(report[,idx],1,mean))
-  return(res)
-}
 
 pv.isConsensus <- function(DBA) {
   if(is.null(DBA$class)) {

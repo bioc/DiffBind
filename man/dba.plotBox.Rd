@@ -10,7 +10,7 @@ Boxplots for read count distributions within differentially bound sites
 \usage{
 dba.plotBox(DBA, contrast=1, method=DBA$config$AnalysisMethod, 
             th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
-            bNormalized=TRUE, attribute=DBA_GROUP, 
+            bNormalized=TRUE, attribute=DBA_GROUP, mask,
             bAll=FALSE, bAllIncreased=FALSE, bAllDecreased=FALSE, 
             bDB=TRUE, bDBIncreased=TRUE, bDBDecreased=TRUE,
             pvalMethod=wilcox.test,  bReversePos=FALSE, attribOrder, 
@@ -34,41 +34,50 @@ number of contrast to use for boxplot.
 \item{method}{
 method used for analysis (used in conjunction with contrast):
 \itemize{ 
-\item \link{DBA_DESEQ2}
-\item \link{DBA_DESEQ2_BLOCK}
-\item \link{DBA_EDGER}
-\item \link{DBA_EDGER_BLOCK}
+\item \code{\link{DBA_DESEQ2}}
+\item \code{\link{DBA_DESEQ2_BLOCK}}
+\item \code{\link{DBA_EDGER}}
+\item \code{\link{DBA_EDGER_BLOCK}}
 }
 }
 \item{th}{
-significance threshold; all sites with FDR (or p-values, see bUsePval) less than or equal to this value will be included in the boxplot.
+significance threshold; all sites with FDR (or p-values, see bUsePval) 
+less than or equal to this value will be included in the boxplot.
 }
 \item{bUsePval}{
 logical indicating whether to use FDR (FALSE) or p-value (TRUE) for thresholding.
 }
 
 \item{bNormalized}{
-logical indicating that normalized data (using normalization factors computed by differential analysis method) should be plotted. FALSE uses raw count data.
+logical indicating that normalized data (using normalization factors computed by differential analysis method) 
+should be plotted. \code{FALSE} uses raw count data.
 }
 
 
 \item{attribute}{
-attribute to use for determining groups of samples. Default (DBA_GROUP) plots the two groups used in the contrast. Possible values:
+attribute to use for determining groups of samples. 
+Default (\code{DBA_GROUP}) plots the two groups used in the contrast, if available. 
+Possible values:
 \itemize{ 
-\item \link{DBA_GROUP}
-\item \link{DBA_ID}
-\item \link{DBA_TISSUE}
-\item \link{DBA_FACTOR}
-\item \link{DBA_CONDITION}
-\item \link{DBA_TREATMENT}
-\item \link{DBA_REPLICATE}
-\item \link{DBA_CONSENSUS}
-\item \link{DBA_CALLER}
+\item \code{\link{DBA_GROUP}}
+\item \code{\link{DBA_ID}}
+\item \code{\link{DBA_TISSUE}}
+\item \code{\link{DBA_FACTOR}}
+\item \code{\link{DBA_CONDITION}}
+\item \code{\link{DBA_TREATMENT}}
+\item \code{\link{DBA_REPLICATE}}
+\item \code{\link{DBA_CONSENSUS}}
+\item \code{\link{DBA_CALLER}}
 }
 }
 
+\item{mask}{
+logical mask of samples to include when no groups are present.
+}
+
 \item{bAll}{
-logical indicating if plot should include a set of boxplots using all counts, regardless of whether or not they pass the significance threshold.
+logical indicating if plot should include a set of boxplots using all counts, 
+regardless of whether or not they pass the significance threshold.
 }
 \item{bAllIncreased}{
 logical indicating if plot should include a set of boxplots using all counts that increase in affinity, regardless of whether or not they pass the significance threshold.
@@ -88,7 +97,8 @@ logical indicating if plot should include a set of boxplots using all counts  in
 }
 
 \item{pvalMethod}{
-method to use when computing matrix of p-values. If NULL, no matrix is computed, and NULL is returned; this may speed up processing if there are many boxplots.
+method to use when computing matrix of p-values. 
+If \code{NULL}, no matrix is computed, and NULL is returned; this may speed up processing if there are many boxplots.
 }
 
 \item{bReversePos}{
@@ -98,7 +108,7 @@ logical indicating if the default definition of positive affinity (higher affini
 
 \item{attribOrder}{
 vector of group numbers used to change the order that groups are plotted. 
-If NULL, default order is used (group order for DBA_GROUP, and the order the attribute values appear for other values of attribute).
+If \code{NULL}, default order is used (group order for \code{DBA_GROUP}, and the order the attribute values appear for other values of attribute).
 }
 
 \item{vColors}{
@@ -117,11 +127,14 @@ other arguments passed to boxplot
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 Draws a boxplot showing distributions of read counts for various groups of samples under various conditions.
-In default mode, draws six boxes: one pair of boxes showing the distribution of read counts within all significantly differentially bound sites (one box for each sample group), one pair of boxes showing the distribution of read counts for significantly differentially bound sites that increase affinity in the second group, 
-and a second pair of boxes showing the distribution of read counts for significantly differentially bound sites that have higher mean affinity in the first group. 
+In default mode, draws six boxes: one pair of boxes showing the distribution of read counts within all
+significantly differentially bound sites (one box for each sample group), one pair of boxes showing the
+distribution of read counts for significantly differentially bound sites that increase affinity in 
+the second group, and a second pair of boxes showing the distribution of read counts 
+for significantly differentially bound sites that have higher mean affinity in the first group. 
 }
 \value{
-if pvalMethod is not NULL, returns a matrix of p-values indicating the significance of the difference between each pair of distributions.
+if \code{pvalMethod} is not \code{NULL}, returns a matrix of p-values indicating the significance of the difference between each pair of distributions.
 }
 %\references{
 %% ~put references to the literature/web site here ~

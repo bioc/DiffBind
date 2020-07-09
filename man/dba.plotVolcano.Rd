@@ -25,24 +25,26 @@ DBA object, on which  \code{\link{dba.analyze}} should have been successfully ru
 }
 %\subsection{Optional/defaulted arguments}{}
  \item{contrast}{
-number of contrast to report on. See  \code{\link{dba.show}(DBA, bContrast=TRUE)} to get contrast numbers.
+number of contrast to report on. 
+See  \code{\link{dba.show}(DBA, bContrast=TRUE)} to get contrast numbers.
 }
 \item{method}{
  method or vector of methods to plot results for:
 \itemize{ 
-\item \link{DBA_DESEQ2}
-\item \link{DBA_DESEQ2_BLOCK}
-\item \link{DBA_EDGER}
-\item \link{DBA_EDGER_BLOCK}
+\item \code{\link{DBA_DESEQ2}}
+\item \code{\link{DBA_DESEQ2_BLOCK}}
+\item \code{\link{DBA_EDGER}}
+\item \code{\link{DBA_EDGER_BLOCK}}
 }
 }
 
 
 \item{th}{
-significance threshold; sites with FDR (or p-values, see \code{bUsePval}) less than or equal to this value will be colored red in the plot
+significance threshold; sites with FDR (or p-values, see \code{bUsePval})
+less than or equal to this value will be colored red in the plot
 }
   \item{bUsePval}{
-logical indicating whether to use FDR (FALSE) or p-value (TRUE) for thresholding.
+logical indicating whether to use FDR (\code{FALSE}) or p-value (\code{TRUE}) for thresholding.
 }
   \item{fold}{
 will only include sites with fold change greater than this as significant (colored red).
@@ -53,14 +55,15 @@ string to be prepended to plot main title; e.g. factor name.
 }
 
  \item{bFlip}{
-logical indicating that order of groups in contrast should be "flipped", allowing control of which sample group
+logical indicating that order of groups in contrast should be "flipped", 
+allowing control of which sample group
 will have positive and which will have negative fold changes.
 }
 
  \item{bLabels}{
 logical indicating that labels should be drawn on the plot.
 The labels are the site numbers, the row index in the (silently) returned set of
-significant sites. The maximim number of sites can be specified 
+significant sites. The maximum number of sites can be specified 
 using \code{maxLabels}.
 }
 
@@ -75,10 +78,10 @@ size of points on plot.
 }
 
 \details{
-Makes a volcal plot.
+Makes a volcano plot.
 }
 \value{
-silently returns a \code{GRanges} object of the sites higlighted in red.
+silently returns a \code{GRanges} object of the sites highlighted in red.
 }
 %\references{
 %% ~put references to the literature/web site here ~
@@ -102,11 +105,11 @@ data(tamoxifen_analysis)
 # default volcano plot
 dba.plotVolcano(tamoxifen)
 
-# only highlight significant sites with at least 10x Fold Change
-sigSites <- dba.plotVolcano(tamoxifen, fold=log2(10))
+# only highlight significant sites with at least 5x Fold Change
+sigSites <- dba.plotVolcano(tamoxifen, fold=log2(5))
 
 # use labels to find outlier sites
-sigSites <- dba.plotVolcano(tamoxifen, fold=5,bLabels=TRUE)
+sigSites <- dba.plotVolcano(tamoxifen, fold=log2(10),bLabels=TRUE)
 sigSites
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

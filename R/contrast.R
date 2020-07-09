@@ -1,11 +1,67 @@
-
-
-pv.contrast <- function(pv,group1,group2=!group1,name1="group1",name2="group2",
-                        minMembers=3,categories,bMulti=T,block, bNot=FALSE) {
+pv.contrast <- function(pv,group1,group2=!group1,name1,name2,
+                        minMembers=3,categories,bMulti=FALSE,block, bNot=FALSE,
+                        design=TRUE, contrast, bGetNames=FALSE) {
    
    numStart <- length(pv$contrasts)
    
-   if(missing(group1)) {    
+   if(bGetNames) {
+      if(!is.logical(design)) {
+         pv$design <- design
+         pv$DESeq2 <- NULL
+         pv$edgeR  <- NULL
+      }
+      return(pv.DESeq2ResultsNames(pv))
+   }
+   
+   if(missing(block)) {
+      doBlock <- FALSE
+   } else {
+      doBlock <- TRUE
+   }
+   
+   generateDesign <- FALSE
+   if(design!=FALSE) {
+      if(design[1] == TRUE) {
+         if (!missing(group1)) {
+            stop("Can not specify groups when design is TRUE, specify contrast.")
+         } else {
+            if (bMulti) {
+               warning("bComplex ignored when design is TRUE.")
+               bMulti <- FALSE
+            }
+            if(bNot) {
+               warning("bNot ignored when design is TRUE")
+               bNot <- FALSE
+            }
+            generateDesign <- TRUE
+         }
+      }
+      
+      if(!missing(block)) {
+         warning("block ignored when design is used.")
+         doBlock <- FALSE
+      }
+      
+      if(!missing(group1)) {
+         warning("groups ignored when design is used.")
+      }
+      
+      if(!generateDesign || !missing(contrast)) {
+         res <- pv.contrastDesign(pv=pv, design=design, contrast=contrast, 
+                                  name1=name1, name2=name2, 
+                                  bGetNames=bGetNames)
+         return(res)
+      }
+   }
+   
+   if(missing(name1)) {
+      name1="Group1"
+   }
+   if(missing(name2)) {
+      name2="Group2"
+   }
+   
+   if(missing(group1)) { # Automatically Generate Contrasts}
       
       if( (sum(pv.mask(pv,PV_CALLER,'source'))==0) &
           (sum(pv.mask(pv,PV_CALLER,'counts'))==0) ) {
@@ -13,14 +69,20 @@ pv.contrast <- function(pv,group1,group2=!group1,name1="group1",name2="group2",
          return(pv)
       }
       
-      pv$contrasts <- NULL # clear existing contrasts
+      if(!is.null(pv$contrasts)) {
+         message("Clearing existing contrasts.")
+         pv$contrasts <- NULL # clear existing contrasts
+      }
+      pv$design <- NULL
+      pv$DESeq2 <- NULL
+      pv$edgeR  <- NULL
       
       if(missing(categories)) {
          attributes <- c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT)
       } else {
          attributes=categories
       }
-      if(missing(block)) {
+      if(!doBlock) {
          res <- pv.getContrasts(pv,minMembers=minMembers,attributes=attributes,bNot=bNot)
          if(bMulti) {
             res <- pv.listaddto(res,pv.contrastPairs(pv,minMembers=minMembers,attributes=attributes,conlist=res,bNot=bNot))  
@@ -36,7 +98,7 @@ pv.contrast <- function(pv,group1,group2=!group1,name1="group1",name2="group2",
       } else {
          warning("No contrasts added. Perhaps try more categories, or lower value for minMembers.",call.=F)	
       }
-      if(!missing(block)){
+      if(doBlock){
          problem <- NULL
          issues <- 0
          for(i in 1:length(res)){
@@ -56,9 +118,28 @@ pv.contrast <- function(pv,group1,group2=!group1,name1="group1",name2="group2",
             x <- pv.checkBlock(problem)		
          }      	
       }
+      
+      if(generateDesign) {
+         pv$contrasts <- res
+         olddesign <- pv$design
+         pv <- pv.generateDesignFromContrasts(pv, attributes=attributes,bGetNames=bGetNames)
+         if(is.null(olddesign)){
+            pv$edgeR <- NULL
+         } else {
+            if(olddesign != pv$design) {
+               pv$edgeR <- NULL
+            }
+         }
+         if(bGetNames) {
+            return(pv$DESeq2$names)
+         } else {
+            return(pv)
+         }
+      }
+      
    } else {
       res <- pv.addContrast(pv,group1,group2,name1,name2)
-      if(!missing(block)) {
+      if(doBlock) {
          res$contrasts[[length(res$contrasts)]]$blocklist <- pv.BlockList(pv,block)
          if(!pv.checkBlock(res$contrasts[[length(res$contrasts)]])) {
             #warning("Blocking factor has unmatched sample(s).")
@@ -264,9 +345,15 @@ pv.contrastDups <- function(clist) {
       crec <- clist[[i]]
       for(j in (i+1):numc) {
          rec2 <- clist[[j]]
-         if ( (identical(crec$group1,rec2$group1) && identical(crec$group2,rec2$group2)) ||
-              (identical(crec$group1,rec2$group2) && identical(crec$group2,rec2$group1)) ){
-            res[j] <- F   
+         if(!is.null(crec$contrast) && !is.null(rec2$contrast)) {
+            if(identical(crec$contrast,rec2$contrast)) {
+               res[j] <- FALSE
+            }
+         } else if (is.null(crec$contrast) && is.null(rec2$contrast)) {
+            if ( (identical(crec$group1,rec2$group1) && identical(crec$group2,rec2$group2)) ||
+                 (identical(crec$group1,rec2$group2) && identical(crec$group2,rec2$group1)) ){
+               res[j] <- FALSE   
+            }
          }
       }      	
    }
@@ -284,8 +371,8 @@ pv.BlockList <- function(pv,attribute=PV_REPLICATE) {
    
    if(is.numeric(attribute)) {
       if(length(attribute)>1) {
-         vec <- rep(F,length(pv$peaks))
-         vec[attribute]=T
+         vec <- rep(FALSE,length(pv$peaks))
+         vec[attribute]=TRUE
          attribute=vec	
       }
    }
@@ -392,54 +479,99 @@ pv.checkBlock <- function(contrast,bCheckBalanced=F,bCheckMultiple=T,bCheckCross
    return(TRUE)
 }
 
-EDGER_COL_PVAL <- 4
-EDGER_COL_FDR  <- 5
 pv.listContrasts <- function(pv,th=0.05,bUsePval=F) {
+   
    if(is.null(pv$contrasts)) {
       return(NULL)
-      clist <- pv.contrast(pv)   
    } else {
       clist <- pv$contrasts
    }
-   if(is.null(clist)) {
+   
+   types  <- pv.contrastTypes(clist)
+   groups <- pv.contrastGroups(clist)
+   coeffs <- pv.contrastCoeffs(clist, pv)
+   blocks <- pv.contrastBlocks(clist)
+   sdbs   <- pv.contrastSDBs(clist,th=th)
+   
+   res <- NULL
+   if(!is.null(types)) {
+      res <- matrix(types,length(types),1)
+      colnames(res) <- "Factor"
+      res <- cbind(res,groups)
+   } else {
+      res <- groups
+   }
+   if(!is.null(coeffs)) {
+      res <- cbind(res,coeffs)
+   }
+   if(!is.null(blocks)) {
+      res <- cbind(res,blocks)
+   }
+   if(!is.null(sdbs)) {
+      res <- cbind(res,sdbs)
+   }
+   
+   rownames(res) <- 1:nrow(res)
+   return(data.frame(res))
+   
+}
+
+pv.contrastTypes <- function(contrasts) {
+   res <- NULL
+   for(cres in contrasts) {
+      type <- cres$contrastType
+      if(is.null(type)) {
+         type <- ""
+      } else if (type =="simple") {
+         type <- cres$contrast[1]
+      } else if (type =="byname") {
+         type <- "Name"
+      } else if (type =="byresults1" || type=="byresults2") {
+         type <- "Results"
+      } else if (type =="bycolumn") {
+         type <- "Coefficient"
+      }
+      res <- c(res,type)
+   }
+   if(sum(res==rep("",length(res))) != length(res)) {
+      return(res)
+   } else {
       return(NULL)
    }
+}
+
+pv.contrastGroups <- function(contrasts) {
+   
    res <- NULL
-   edger    <- F
-   deseq1   <- F
-   deseq2   <- F
-   edgerlm  <- F
-   deseq1lm <- F
-   deseq2lm <- F
-   maxbvals <- 0
-   for(crec in clist) {
-      newrec <- c(crec$name1,sum(crec$group1),crec$name2,sum(crec$group2))
-      bvals <- 0
-      if(!is.null(crec$blocklist)) {
-         for(brec in crec$blocklist) {
-            bvals <- bvals+1
-            newrec <- c(newrec,brec$label,sum(brec$samples&(crec$group1|crec$group2)))
+   for(crec in contrasts) {
+      simple <- FALSE
+      if(!is.null(crec$contrastType)) {
+         if(crec$contrastType == 'simple') {
+            simple <- TRUE
+         }
+      } else {
+         simple <- TRUE
+      }
+      
+      if(simple) {
+         newrec <- c(crec$name1,sum(crec$group1),crec$name2,sum(crec$group2))
+      } else { # complex contrast
+         if(crec$contrastType=='byname') {
+            newrec <- crec$contrast
+         } else if(crec$contrastType=="byresults1") {
+            newrec <- c(crec$contrast[[1]])
+         } else if(crec$contrastType=="byresults2") {
+            newrec <- c(crec$contrast[[1]],"",crec$contrast[[2]])
+         } else if(crec$contrastType=="bycolumn") {
+            newrec <- paste(crec$contrast,collapse=",")
+         } else {
+            stop('Invalid contrast type')
+         }
+         while(length(newrec)<4){
+            newrec <- c(newrec,"")
          }
       }
-      maxbvals <- max(bvals,maxbvals)
-      if(!is.null(crec$edgeR)) {
-         edger <- T
-      }
-      if(!is.null(crec$edgeR$block)) {
-         edgerlm <- T
-      }
-      if(!is.null(crec$DESeq1)) {
-         deseq1 <- T
-      }
-      if(!is.null(crec$DESeq1$block)) {
-         deseq1lm <- T
-      }
-      if(!is.null(crec$DESeq2)) {
-         deseq2 <- T
-      }
-      if(!is.null(crec$DESeq2$block)) {
-         deseq2lm <- T
-      }
+      
       if(!is.null(res)) {
          if(length(newrec)>ncol(res)) {
             res <- cbind(res,matrix("-",nrow(res),length(newrec)-ncol(res)))	
@@ -449,131 +581,187 @@ pv.listContrasts <- function(pv,th=0.05,bUsePval=F) {
       }
       res <- rbind(res,newrec)
    }
-   cvec <- c("Group1","Members1","Group2","Members2")
-   if(maxbvals > 0) {
-      for(i in 1:maxbvals) {
-         cvec <- c(cvec,sprintf("Block%sVal",i),sprintf("InBlock%i",i))
-      }
-   }
-   eres <- NULL
-   if(edger) {
-      for(crec in clist) {
-         if(!is.null(names(crec$edgeR))){
-            if(is.null(crec$edgeR$LRT)) {  
-               if(bUsePval) {
-                  eres <- c(eres,sum(topTags(crec$edgeR$db,
-                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_PVAL] <= th,na.rm=T))
-               } else {
-                  eres <- c(eres,sum(topTags(crec$edgeR$db,
-                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR] <= th,na.rm=T))
-               } 
-            } else {
-               if(bUsePval) {
-                  eres <- c(eres,sum(topTags(crec$edgeR$LRT,
-                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_PVAL+1] <= th,na.rm=T))
-               } else {
-                  eres <- c(eres,sum(topTags(crec$edgeR$LRT,
-                                             nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR+1] <= th,na.rm=T))
-               } 
-            }
+   
+   numCons <- length(contrasts)
+   rownames(res) <- 1:numCons
+   colnames(res) <- c("Group","Samples","Group2","Samples2")
+   
+   res <- pv.keepMeta(res, "")
+   
+   return(res)
+}
+
+pv.contrastCoeffs <- function(contrasts, pv) {
+   coeffs <- cons <- NULL
+   for(i in 1:length(contrasts)) {
+      if(!is.null(contrasts[[i]]$contrastType)) {
+         if(contrasts[[i]]$contrastType == "bycolumn") {
+            coeffs <- c(coeffs,i)
          } else {
-            eres <- c(eres,"-")   
+            cons <- c(cons,i)
          }
-      }
-      res <- cbind(res,eres)
-      cvec <- c(cvec,'DB edgeR')
+      }   
+   }
+   if(is.null(coeffs)) {
+      return(NULL)
    }
    
-   eres <- NULL
-   if(edgerlm) {
-      for(crec in clist) {
-         if(!is.null(names(crec$edgeR$block))){
-            if(bUsePval) {
-               eres <- c(eres,sum(topTags(crec$edgeR$block$LRT,
-                                          nrow(crec$edgeR$block$counts))$table[,EDGER_COL_PVAL+1] <= th,na.rm=T))
-            } else {
-               eres <- c(eres,sum(topTags(crec$edgeR$block$LRT,
-                                          nrow(crec$edgeR$block$counts))$table[,EDGER_COL_FDR+1] <= th,na.rm=T))
-            }
-         } else {
-            eres <- c(eres,"-")   
-         }
-      }
-      res <- cbind(res,eres)
-      cvec <- c(cvec,'DB edgeR-block')
-   }
+   numContrasts <- length(contrasts)
    
-   eres <- NULL
-   if(deseq1) {
-      for(crec in clist) {
-         if(!is.null(names(crec$DESeq1)) && (class(crec$DESeq1) != "try-error") ){
-            if(bUsePval) {
-               eres <- c(eres,sum(crec$DESeq1$de$pval <= th,na.rm=T))
-            } else {
-               eres <- c(eres,sum(crec$DESeq1$de$padj <= th,na.rm=T))
-            }
-         } else {
-            eres <- c(eres,"-")   
-         }
-      }
-      res <- cbind(res,eres)
-      cvec <- c(cvec,'DB DESeq')
-   }
+   coeffNames <- dba.contrast(pv,bGetCoefficients=TRUE)
    
-   eres <- NULL
-   if(deseq1lm) {
-      for(crec in clist) {
-         if(!is.null(names(crec$DESeq1$block)) && (class(crec$DESeq1) != "try-error") ){
-            if(bUsePval) {
-               eres <- c(eres,sum(crec$DESeq1$block$de$pval <= th,na.rm=T))
-            } else {
-               eres <- c(eres,sum(crec$DESeq1$block$de$padj <= th,na.rm=T))
-            }
-         } else {
-            eres <- c(eres,"-")   
-         }
-      }
-      res <- cbind(res,eres)
-      cvec <- c(cvec,'DB DESeq-block')
-   }
+   res <- matrix("_",numContrasts,length(coeffNames))
+   colnames(res) <- coeffNames
+   rownames(res) <- 1:numContrasts
    
-   eres <- NULL
-   if(deseq2) {
-      for(crec in clist) {
-         if(!is.null(names(crec$DESeq2)) && (class(crec$DESeq2) != "try-error") ){
-            if(bUsePval) {
-               eres <- c(eres,sum(crec$DESeq2$de$pval <= th,na.rm=T))
-            } else {
-               eres <- c(eres,sum(crec$DESeq2$de$padj <= th,na.rm=T))
-            }
-         } else {
-            eres <- c(eres,"-")   
-         }
-      }
-      res <- cbind(res,eres)
-      cvec <- c(cvec,'DB DESeq2')
-   }
-   
-   eres <- NULL
-   if(deseq2lm) {
-      for(crec in clist) {
-         if(!is.null(names(crec$DESeq2$block)) && (class(crec$DESeq2) != "try-error") ){
-            if(bUsePval) {
-               eres <- c(eres,sum(crec$DESeq2$block$de$pval <= th,na.rm=T))
-            } else {
-               eres <- c(eres,sum(crec$DESeq2$block$de$padj <= th,na.rm=T))
-            }
-         } else {
-            eres <- c(eres,"-")   
-         }
-      }
-      res <- cbind(res,eres)
-      cvec <- c(cvec,'DB DESeq2-block')
+   for(i in coeffs) {
+      res[i,] <- contrasts[[i]]$contrast
    }  
    
+   if(!is.null(cons)) {
+      edgeRsave <- pv$edgeR
+      pv$edgeR$design <- pv.edgeRdesign.matrix(pv,pv$design)
+      for(i in cons) {
+         con <- contrasts[[i]]
+         coeffs <- pv.getCoeffs(con,pv)
+         if(!is.null(coeffs)){
+            res[i,] <- coeffs
+         }
+      }
+      pv$edgeR <- edgeRsave
+   }
+   
+   return(res)
+}
+
+pv.contrastBlocks <- function(contrasts) {
+   
+   res <- NULL
+   maxbvals <- 0
+   for(crec in contrasts) {
+      bvals <- 0
+      newrec <- NULL
+      if(!is.null(crec$blocklist)) {
+         for(brec in crec$blocklist) {
+            bvals <- bvals+1
+            newrec <- c(newrec,brec$label,sum(brec$samples&(crec$group1|crec$group2)))
+         }
+      }
+      if(is.null(newrec)) {
+         newrec <- "_"
+      }
+      maxbvals <- max(bvals,maxbvals)
+      if(!is.null(res)) {
+         if(length(newrec)>ncol(res)) {
+            res <- cbind(res,matrix("-",nrow(res),length(newrec)-ncol(res)))
+         } else if (length(newrec)<ncol(res)) {
+            newrec <- c(newrec,rep("-",ncol(res)-length(newrec)))
+         }
+      }
+      res <- rbind(res,newrec)
+   }
+   
+   if(maxbvals==0) {
+      return(NULL)
+   } else {
+      cvec <- NULL
+      for(i in 1:maxbvals) {
+         cvec <- c(cvec,paste("Block",i,sep=""),paste("Blk",i,"Samps",sep=""))
+      }
+      colnames(res) <- cvec
+      return(res)
+   }
+}
+
+EDGER_COL_PVAL <- 4
+EDGER_COL_FDR  <- 5
+pv.contrastSDBs <- function(contrasts,th=th) {
+   res  <- NULL
+   cvec <- NULL
+   eres <- NULL
+   for(crec in contrasts) {
+      if(!is.null(names(crec$edgeR))){
+         if(class(crec$edgeR)!="DGEList") {
+            eres <- c(eres,sum(crec$edgeR$de$padj <= th))
+         } else {
+            if(is.null(crec$edgeR$LRT)) {
+               eres <- c(eres,sum(topTags(crec$edgeR$db,
+                                          nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR] <= th,na.rm=T))
+            } else {
+               eres <- c(eres,sum(topTags(crec$edgeR$LRT,
+                                          nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR+1] <= th,na.rm=T))
+            }
+         }
+      } else {
+         eres <- c(eres,"-")
+      }
+   }
+   res <- cbind(res,eres)
+   cvec <- c(cvec,'DB edgeR')
+   
+   eres <- NULL
+   for(crec in contrasts) {
+      if(!is.null(names(crec$edgeR$block))){
+         eres <- c(eres,sum(topTags(crec$edgeR$block$LRT,
+                                    nrow(crec$edgeR$block$counts))$table[,EDGER_COL_FDR+1] <= th,na.rm=T))
+      } else {
+         eres <- c(eres,"-")
+      }
+   }
+   res <- cbind(res,eres)
+   cvec <- c(cvec,'DB edgeR-block')
+   
+   eres <- NULL
+   for(crec in contrasts) {
+      if(!is.null(names(crec$DESeq2)) && (class(crec$DESeq2) != "try-error") ){
+         eres <- c(eres,sum(crec$DESeq2$de$padj <= th,na.rm=T))
+      } else {
+         eres <- c(eres,"-")
+      }
+   }
+   res <- cbind(res,eres)
+   cvec <- c(cvec,'DB DESeq2')
+   
+   eres<- NULL
+   for(crec in contrasts) {
+      if(!is.null(names(crec$DESeq2$block)) && (class(crec$DESeq2) != "try-error") ){
+         eres <- c(eres,sum(crec$DESeq2$block$de$padj <= th,na.rm=T))
+      } else {
+         eres <- c(eres,"-")
+      }
+   }
+   res <- cbind(res,eres)
+   cvec <- c(cvec,'DB DESeq2-block')
    colnames(res) <- cvec
-   rownames(res) <- 1:nrow(res)
-   return(data.frame(res))
+   
+   res <- pv.keepMeta(res,"-")
+   
+   return(res)
+}
+
+pv.keepMeta <- function(res, noval="")
+{
+   numContrasts <- nrow(res)
+   cvec <- colnames(res)
+   
+   keep  <- NULL
+   keepc <- NULL
+   for(i in 1:ncol(res)) {
+      if(sum(res[,i]==rep(noval,numContrasts)) != numContrasts) {
+         keep  <- cbind(keep,res[,i])
+         keepc <- c(keepc,cvec[i])
+      }
+   }
+   
+   if(is.null(keep)) {
+      return(NULL)
+   }
+   
+   res <- data.frame(keep)
+   rownames(res) <- 1:numContrasts
+   colnames(res) <- keepc
+   
+   return(res)
 }
 
 pv.design <- function(DBA,categories=c(DBA_CONDITION,DBA_TREATMENT,DBA_TISSUE,DBA_FACTOR,DBA_REPLICATE)) {
@@ -621,143 +809,292 @@ pv.design <- function(DBA,categories=c(DBA_CONDITION,DBA_TREATMENT,DBA_TISSUE,DB
    return(design)   	
 }
 
-pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
-                          th=0.05,bUsePval=F,fold=0,
-                          bDB=T,bNotDB=F,bUp=F,bDown=F,bAll=T,
-                          bFlip=FALSE) {
+pv.FactorNames <- c("Tissue","Factor","Condition","Treatment","Caller","Replicate")
+pv.FactorVals  <- c(PV_TISSUE, PV_FACTOR, PV_CONDITION,PV_TREATMENT,PV_CALLER,PV_REPLICATE)
+
+pv.contrastDesign <- function(pv, design, contrast, name1, name2, bGetNames=FALSE){
    
-   if(missing(contrasts)) {
-      contrasts <- 1:length(DBA$contrasts)
-   }
-   
-   res <- NULL
-   for(contrast in contrasts) {
-      for(method in methods) {
-         res <- pv.doResults(res,DBA,contrast,method,th,bUsePval,fold,
-                             bDB=bDB,bNotDB=bNotDB,bUp=bUp,bDown=bDown,bAll=bAll,
-                             bFlip=bFlip)		
+   # Check if contrast already exists
+   if(!missing(contrast)) {
+      for(con in pv$contrasts){
+         if(identical(con$contrast,contrast)) {
+            message("Contrast already present.")
+            return(pv)
+         }
       }
    }
    
-   if(is.null(res)) {
-      warning('No valid contrasts/methods specified.',call.=F)	
+   # Check if design already exists
+   newdesign <- FALSE
+   if(!missing(design)) {
+      if(is.logical(design)) {
+         if(is.character(contrast) && length(contrast)==3) {
+            design <- pv.generateSimpleDesign(pv,addfactor=contrast[1])
+         } else {
+            design <- pv$design
+         }
+      } 
+      if(!is.null(pv$design)) {
+         if(design != pv$design) {
+            if(!is.null(pv$DESeq2)) {
+               newdesign <- TRUE
+               if(!is.null(pv$DESeq2$DEdata)) {
+                  message("Replacing design and removing analysis.")
+               } else {
+                  message("Replacing design.")
+               }
+               pv$DESeq2 <- NULL
+               pv$edgeR  <- NULL
+            } else {
+               message("Replacing design.")
+            }
+         }
+      }
+   } else {
+      if(is.null(pv$design)) {
+         stop("No design specified.")
+      } else {
+         design <- pv$design
+      }
    }
    
-   return(res)	
+   varnames <-  pv.checkDesign(design)
+   pv$design <- design
    
+   if(is.null(pv$DESeq2$names)) {
+      pv$DESeq2$names <- pv.DESeq2ResultsNames(pv)
+   }
+   
+   # Check if contrasts exist and are compatible with design
+   if(!is.null(pv$contrasts)) {
+      for(i in 1:length(pv$contrasts)) {
+         if(!is.null(pv$contrasts[[i]]$contrast)) {
+            pv$contrasts[[i]]$contrastType <- 
+               pv.checkContrast(pv,varnames,pv$contrasts[[i]]$contrast)
+            if(newdesign) {
+               pv$contrasts[[i]]$DESeq2 <- NULL
+               pv$contrasts[[i]]$edgeR  <- NULL
+            }
+         }
+      }
+   }
+   
+   if(bGetNames) {
+      if(is.null(pv$design)) {
+         stop("Can't get names: no design.")
+      }
+      return(pv$DESeq2$names)
+   }
+   
+   # Check new contrast and add   
+   if(!missing(contrast)) {
+      crec <- NULL
+      crec$contrastType <- pv.checkContrast(pv,varnames,contrast)
+      if(!is.null(crec$contrastType)) {
+         crec$contrast <- contrast
+         if(missing(name1)) {
+            if(crec$contrastType=='simple') {
+               crec$name1 = contrast[2]
+            } else if(crec$contrastType=='byname') {
+               crec$name1 = contrast[1]
+            } else if(crec$contrastType=='byresults1' || crec$contrastType=='byresults2') {
+               crec$name1 = contrast[[1]]
+            }
+         } else crec$name1 <- name1
+         if(missing(name2)) {
+            if(crec$contrastType=='simple') {
+               crec$name2 = contrast[3]
+            } else if(crec$contrastType=='byresults2') {
+               crec$name2 = contrast[[2]]
+            }
+         } else crec$name2 <- name2
+         if(crec$contrastType=='simple') {
+            crec$group1 <- pv.getSamplesForFactorVal(pv,contrast[1],contrast[2])
+            crec$group2 <- pv.getSamplesForFactorVal(pv,contrast[1],contrast[3])    
+         }   
+         pv$contrasts <- pv.listadd(pv$contrasts,crec) 
+      } else {
+         warning("Empty contrast")
+      }
+   }
+   
+   # Return DBA object
+   return(pv)
 }
 
-pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
-                         fold=0,bDB=T,bNotDB=F,bAll=F,bUp=F,bDown=F,
-                         bFlip=FALSE) {
-   
-   if(method=='edgeR' || method=="edgeRGLM") {
-      if(is.null(DBA$contrasts[[contrast]]$edgeR)) {
-         return(res)	
-      }
-      methname <- "edgeR"
-      block <- ""
+pv.checkDesign <- function(design) {
+   if(is.null(design)) {
+      return(NULL)
    }
-   if (method=='edgeRlm') {
-      if(is.null(DBA$contrasts[[contrast]]$edgeR$block)) {
-         return(res)	
-      }
-      methname="edgeR"
-      block="block"	
+   varnames <- all.vars(formula(design))
+   matches <- varnames %in% pv.FactorNames
+   if(sum(matches) != length(varnames)) {
+      message <- paste("Invalid factors in design:",paste(varnames[!matches],collapse=','))
+      stop(message)
    }
-   if(method=='DESeq1' || method=='DESeq1GLM') {
-      if(is.null(DBA$contrasts[[contrast]]$DESeq1)) {
-         return(res)	
-      }      
-      methname <- "DESeq"
-      block <- ""
-   }
-   if (method=='DESeq1Block') {
-      if(is.null(DBA$contrasts[[contrast]]$DESeq1$block)) {
-         return(res)	
-      }           
-      methname="DESeq"
-      block="block"	
-   }
-   if(method=='DESeq2' || method=='DESeq2GLM') {
-      if(is.null(DBA$contrasts[[contrast]]$DESeq2)) {
-         return(res)  
-      }      
-      methname <- "DESeq2"
-      block <- ""
-   }
-   if (method=='DESeq2Block') {
-      if(is.null(DBA$contrasts[[contrast]]$DESeq2$block)) {
-         return(res)	
-      }           
-      methname="DESeq2"
-      block="block"	
-   }
-   
-   if(bNotDB) {
-      useth <- 1
-   } else {
-      useth <- th
-   }
-   
-   rep <- suppressWarnings(dba.report(DBA,contrast=contrast,method=method,
-                                      th=useth,bUsePval=bUsePval,fold=0,
-                                      bFlip=bFlip,
-                                      DataType=DBA_DATA_FRAME))
-   
-   if(is.null(rep)) {
-      return(res)	
-   }
-   
-   rep <- rep[order(as.integer(rownames(rep))),]
-   
-   id <- sprintf("%s_vs_%s",DBA$contrast[[contrast]]$name1,DBA$contrast[[contrast]]$name2)
-   
-   if(bUsePval) {
-      scores <- rep$"p-value"
-   } else {
-      scores <- rep$FDR
-   }    
-   
-   db <- (scores <= th) & (abs(rep$Fold) >= fold)
-   up <- rep$Fold >= 0
-   peaks <- cbind(rep[,1:3],abs(rep$Fold))
-   
-   if(bDB) {
-      if(bAll) {
-         if(sum(db)) {
-            res <- pv.peakset(res,peaks=peaks[db,],sampID=id,factor="DB",tissue="All",condition=methname,treatment=block)	
-         }
-      }
-      if(bUp) {
-         if(sum(db&up)) {	
-            res <- pv.peakset(res,peaks=peaks[db&up,],sampID=id, factor ="DB", tissue ="Gain",condition=methname,treatment=block)	
-         }
-      }
-      if(bDown) {
-         if(sum(db&!up)) {
-            res <- pv.peakset(res,peaks=peaks[db&!up,],sampID=id, factor ="DB", tissue ="Loss",condition=methname,treatment=block)	
-         }
-      }		
-   }
-   if(bNotDB) {
-      if(bAll) {
-         if(sum(!db)) {
-            res <- pv.peakset(res,peaks=peaks[!db,],sampID=id, factor ="!DB", tissue ="All",condition=methname,treatment=block)	
-         }
-      }
-      if(bUp) {
-         if(sum(!db&up)) {
-            res <- pv.peakset(res,peaks=peaks[!db&up,],sampID=id, factor ="!DB", tissue ="Gain",condition=methname,treatment=block)	
-         }
-      }
-      if(bDown) {
-         if(sum(!db&!up)) {
-            res <- pv.peakset(res,peaks=peaks[!db&!up,],sampID=id, factor ="!DB", tissue ="Loss",condition=methname,treatment=block)	
-         }
-      }		
-   }    
-   
-   return(res)	
+   return(varnames)
 }
+
+pv.DESeq2ResultsNames <- function(pv) {
+   if(is.null(pv$design)) {
+      stop('No design specified')
+   }
+   if(is.null(pv$DESeq2$names)) {
+      message("Computing results names...")
+      res <- suppressMessages(pv.DEinitDESeq2(pv,numReads=10))
+      DESeq2::sizeFactors(res) <- rep(1,ncol(res))
+      res <- suppressWarnings(suppressMessages(
+         DESeq2::estimateDispersions(res,fitType='local')))
+      res <- suppressWarnings(suppressMessages(
+         DESeq2::nbinomWaldTest(res)))      
+      names <- DESeq2::resultsNames(res)
+   } else {
+      names <- pv$DESeq2$names
+   }
+   return(names)
+}
+
+pv.checkContrast <- function(pv,varnames,contrast) {
+   
+   # What type of contrast description is this?
+   simple <- byname <- bycolumn <- byresults1 <- byresults2 <- FALSE
+   if(class(contrast)=="character") {
+      if(length(contrast) == 3) {
+         simple <- TRUE
+      } else if (length(contrast)== 1) {
+         byname <- TRUE
+      } else {
+         stop('Invalid contrast. Character vector must be length 1 or 3.')
+      }
+   } else if(class(contrast)=="numeric" || class(contrast)=="integer" ) {
+      bycolumn <- TRUE
+   } else if(class(contrast)=="list" ) { 
+      if(length(contrast)==1) {
+         byresults1 <- TRUE    
+      } else if (length(contrast)==2) {
+         byresults2 <- TRUE
+      } else {
+         stop('Invalid contrast. List must be length 1 or 2.')
+      }
+   } else {
+      stop('Invalid contrast.')
+   }
+   
+   if(simple) {
+      facName <- contrast[1]
+      if(!facName %in% varnames) {
+         message <- paste("Contrast factor not present in design:",contrast[1])
+         stop(message)
+      }
+      for(facVal in contrast[2:3]) {
+         if (!sum(facVal %in% pv$class[facName,])) {
+            message <- paste("Contrast value not valid for factor:",facVal)
+         }
+      }
+      return('simple')
+   } else {
+      names <- pv.DESeq2ResultsNames(pv)
+      if(byname) {
+         if (!contrast %in% names ) {
+            stop('Invalid contrast. Single name must match one of design column names.')
+         }
+         return('byname')
+      } else if(bycolumn) {
+         if(length(contrast) != length(names)) {
+            stop('Invalid contrast. Numeric vector must be same length as number of columns in design.')
+         }
+         return('bycolumn')
+      } else if(byresults1 || byresults2) {
+         if(!contrast[[1]] %in% names) {
+            stop('Invalid contrast. Names in list must match one of design column names.')
+         }  
+         if(byresults1) {
+            return('byresults1')
+         } else if(byresults2) {
+            if(!contrast[[2]] %in% names) {
+               stop('Invalid contrast. Names in list must match one of design column names.')
+            }  
+            return('byresults2')
+         } 
+      }
+   }
+   
+   return(NULL)
+}
+
+pv.getSamplesForFactorVal <- function(pv,facID,facVal){
+   samples <-  pv$class[facID,] %in% facVal
+   names(samples) <- pv$class[PV_ID,]
+   return(samples)
+}
+
+pv.generateDesignFromContrasts <- function(pv,attributes=pv.FactorVals,
+                                           bGetNames=FALSE,addfac=NULL) {
+   factors <- addfac
+   for(con in 1:length(pv$contrasts)) {
+      cont <- pv$contrasts[[con]]
+      factor1 <- NULL
+      factor2 <- NULL
+      for(fac in attributes) {
+         if(cont$name1 %in% pv$class[fac,]) {
+            factor1 <- fac
+         }
+         if(cont$name2 %in% pv$class[fac,]) {
+            factor2 <- fac
+         }
+      }
+      if(is.null(factor1) || is.null(factor2)) {
+         stop('Unable to generate design, unknown values')
+      }
+      if(factor1 != factor2) {
+         stop('Unable to generate design, unknown values')            
+      }
+      factors <- unique(c(factors,factor1))
+      pv$contrasts[[con]]$contrast <- c(pv.FactorNames[match(factor1,pv.FactorVals)],
+                                        cont$name1,cont$name2)
+      pv$contrasts[[con]]$contrastType <- 'simple'
+   }
+   
+   factors <- pv.FactorNames[match(factors,pv.FactorVals)]
+   pv$design <- paste("~",paste(factors,collapse =" + "),sep="")
+   #if(bGetNames) {
+   pv$DESeq2$names <- pv.DESeq2ResultsNames(pv)
+   #}
+   return(pv)
+}
+
+pv.generateSimpleDesign <- function(pv,addfactor) {
+   if(!is.null(pv$design)) {
+      varnames <- pv.checkDesign(pv$design)
+   } else {
+      varnames <- NULL
+   }
+   if(addfactor %in% varnames) {
+      return(pv$design)
+   }
+   varnames <- unique(c(varnames,addfactor))
+   design <- paste("~",paste(varnames,collapse =" + "),sep="")
+   return(design)
+}
+
+pv.getContrastString <- function(conrec) {
+   if(!is.null(conrec$contrastType)) {
+      constr <- conrec$contrast
+      if(conrec$contrastType=='bycolumn') {
+         constr <- paste(constr,collapse="-")
+      } else if(conrec$contrastType=='byresults1') {
+         constr <- constr[[1]]
+      } else if(conrec$contrastType=='byresults2') {
+         constr <- paste(constr[[1]],"vs.",constr[[2]])
+      } else if(length(constr) == 2) {
+         constr <- paste(constr[1],"vs.",constr[2])      
+      } else if(length(constr) == 3)  {
+         constr <- paste(constr[2],"vs.",constr[3])      
+      }
+   } else {
+      constr <- paste(conrec$name1, "vs.", conrec$name2)
+   }
+   return(constr)
+}
+
 

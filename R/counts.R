@@ -264,20 +264,13 @@ pv.model <- function(model,mask,minOverlap=2,
 }
 
 pv.getMethod <- function(str) {   
-  if (str == "DBA_EDGER") {
+  if (str == "DBA_EDGER" || str == DBA_EDGER) {
     ret=DBA_EDGER
-  } else if (str == "DBA_DESEQ") {
-    ret=DBA_DESEQ  
-  } else if (str == "DBA_EDGER_CLASSIC") {
-    ret=DBA_EDGER_CLASSIC
-  } else if (str == "DBA_DESEQ_CLASSIC") {
-    ret=DBA_DESEQ_CLASSIC  
-  } else if (str == "DBA_EDGER_GLM") {
+  } else if (str == "DBA_EDGER_GLM" || str == DBA_EDGER_GLM) {
     ret=DBA_EDGER_GLM  
-  } else if (str == "DBA_DESEQ_GLM") {
-    ret=DBA_DESEQ_GLM  
+  } else  if (str == "DBA_DESEQ2" || str == DBA_DESEQ2) {
+    ret=DBA_DESEQ2 
   } else ret <- NULL
-  
   return(ret)
 }
 
@@ -301,6 +294,10 @@ PV_SCORE_TMM_MINUS_FULL_CPM       <- 10
 PV_SCORE_TMM_MINUS_EFFECTIVE_CPM  <- 11
 PV_SCORE_TMM_READS_FULL_CPM       <- 12
 PV_SCORE_TMM_READS_EFFECTIVE_CPM  <- 13
+PV_SCORE_READS_FULL               <- 14
+PV_SCORE_READS_EFFECTIVE          <- 15
+PV_SCORE_READS_MINUS_FULL         <- 16
+PV_SCORE_READS_MINUS_EFFECTIVE    <- 17
 PV_SCORE_SUMMIT                   <- 101
 PV_SCORE_SUMMIT_ADJ               <- 102
 PV_SCORE_SUMMIT_POS               <- 103
@@ -328,7 +325,10 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
   }
   
   bRecenter <- FALSE
-  if(!missing(summits)) {
+  if(is.logical(summits) && summits==FALSE) {
+    summits <- -1
+  } 
+  if(summits != -1) {
     if(bLowMem==TRUE) {
       stop("Can not compute summits when bUseSummarizeOverlaps is TRUE in dba.count",call.=FALSE)
     }
@@ -352,7 +352,10 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
           peaks[,1] <- factor(peaks[,1],pv$chrmap)
         }
       } else { # peaks based on mask
-        tmp <- dba(pv,mask=peaks,minOverlap=minOverlap,bCorPlot=FALSE)
+        saveCorPlot <- pv$config$bCorPlot
+        pv$config$bCorPlot <- FALSE
+        tmp <- dba(pv,mask=peaks,minOverlap=minOverlap)
+        pv$config$bCorPlot <- saveCorPlot 
         pv$chrmap <- tmp$chrmap
         bed <- tmp$binding[,1:3]
         called <- tmp$called[pv.overlaps(tmp,minOverlap),]
@@ -561,7 +564,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
         scores <- reads_minus
       }
       
-      if (!missing(summits)) {
+      if (summits != -1) {
         res <- cbind(bed,scores,cond$rpkm,cond$counts,cont$rpkm,cont$counts,cond$summits,cond$heights)
         colnames(res) <- c("Chr","Start","End","Score","RPKM","Reads","cRPKM","cReads","Summits","Heights")
       } else {
@@ -591,7 +594,6 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
   if(bOnlyCounts) {
     numpeaks <- length(pv$peaks)
     if(bRecenter) {
-      message('Re-centering peaks...')
       res <- pv.Recenter(pv,summits,(numpeaks-numAdded+1):numpeaks,called)
       if(redoScore>0) {
         defaultScore <- redoScore
@@ -686,6 +688,7 @@ pv.checkExists <- function(filelist){
 pv.do_getCounts <- function(countrec,intervals,bWithoutDupes=F,
                             bLowMem=F,yieldSize,mode,singleEnd,scanbamparam,
                             fileType=0,summits,fragments,minMappingQuality=0) {
+  
   res <- pv.getCounts(bamfile=countrec$bamfile,intervals=intervals,insertLength=countrec$insert,
                       bWithoutDupes=bWithoutDupes,
                       bLowMem=bLowMem,yieldSize=yieldSize,mode=mode,singleEnd=singleEnd,
@@ -698,7 +701,7 @@ pv.do_getCounts <- function(countrec,intervals,bWithoutDupes=F,
 }
 pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=F,
                          bLowMem=F,yieldSize,mode,singleEnd,scanbamparam,
-                         fileType=0,summits,fragments,minMappingQuality=0) {
+                         fileType=0,summits=-1,fragments,minMappingQuality=0) {
   
   bufferSize <- 1e6
   fdebug(sprintf('pv.getCounts: ENTER %s',bamfile))
@@ -710,10 +713,6 @@ pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=F,
     res <- pv.getCountsLowMem(bamfile,intervals,bWithoutDupes,mode,yieldSize,singleEnd,fragments,
                               scanbamparam)
     return(res)
-  }
-  
-  if(missing(summits)) {
-    summits=0
   }
   
   fdebug("Starting croi_count_reads...")
@@ -763,8 +762,10 @@ pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=F,
 pv.Recenter <- function(pv,summits,peakrange,called=NULL) {
   peaklist <- pv$peaks[peakrange]
   if(is.null(peaklist[[1]]$Summits)) {
-    stop('Summits not available; re-run dba.count with summits=0')   
+    stop('Summits not available; re-run dba.count with summits=TRUE')   
   }
+  
+  message('Re-centering peaks...')
   
   positions <- sapply(peaklist,function(x)x$Summits)
   heights   <- sapply(peaklist,function(x) pmax.int(1,x$Heights))

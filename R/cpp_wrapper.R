@@ -15,7 +15,7 @@ cpp_count_reads <- function(bamfile,insertLength,fileType,bufferSize,
                             intervals,bWithoutDupes,summits,minMappingQual=0) {
   icount <- length(intervals[[1]])
   counts <- vector(mode="integer",length=icount)
-  if (!missing(summits)) {
+  if (summits >= 0) { # RJS 2/7/2020: change from !missing(summits)) {
     summits.vec <- vector(mode="integer",length=icount)
     heights.vec <- vector(mode="integer",length=icount)
     bSummits = TRUE
@@ -41,12 +41,12 @@ cpp_count_reads <- function(bamfile,insertLength,fileType,bufferSize,
                    summits.vec,
                    heights.vec)
   counts[counts==0]=1
-
+  
   widths = intervals[,3] - intervals[,2]
   rpkm = (counts/(widths/1000))/(libsize/1E6)
-
+  
   result <- list(counts=counts,rpkm=rpkm,libsize=libsize)
-  if (bSummits==T) {
+  if (bSummits==TRUE) {
     result$summits <- summits.vec;
     result$heights <- heights.vec;
   }

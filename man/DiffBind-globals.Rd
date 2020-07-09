@@ -8,6 +8,7 @@
 \alias{DBA_CALLER}
 \alias{DBA_CONSENSUS}
 \alias{DBA_CONTROL}
+\alias{DBA_READS}
 \alias{DBA_ALL_ATTRIBUTES}
 \alias{DBA_INTERVALS}
 \alias{DBA_FRIP}
@@ -20,6 +21,10 @@
 \alias{DBA_INALL}
 \alias{DBA_SCORE_READS}
 \alias{DBA_SCORE_READS_MINUS}
+\alias{DBA_SCORE_READS_FULL}
+\alias{DBA_SCORE_READS_MINUS_FULL}
+\alias{DBA_SCORE_READS_EFFECTIVE}
+\alias{DBA_SCORE_READS_MINUS_EFFECTIVE}
 \alias{DBA_SCORE_READS_FOLD}
 \alias{DBA_SCORE_RPKM}
 \alias{DBA_SCORE_RPKM_FOLD}
@@ -38,15 +43,10 @@
 \alias{DBA_READS_BAM}
 \alias{DBA_READS_BED}
 \alias{DBA_EDGER}
-\alias{DBA_DESEQ}
 \alias{DBA_DESEQ2}
 \alias{DBA_EDGER_BLOCK}
-\alias{DBA_DESEQ_BLOCK}
 \alias{DBA_DESEQ2_BLOCK}
-\alias{DBA_EDGER_CLASSIC}
-\alias{DBA_DESEQ_CLASSIC}
 \alias{DBA_EDGER_GLM}
-\alias{DBA_DESEQ_GLM}
 \alias{DBA_ALL_METHODS}
 \alias{DBA_ALL_BLOCK}
 \alias{DBA_ALL_METHODS_BLOCK}
@@ -73,6 +73,7 @@ DBA_REPLICATE
 DBA_CALLER
 DBA_CONSENSUS
 DBA_CONTROL
+DBA_READS
 DBA_ALL_ATTRIBUTES
 
 DBA_INTERVALS
@@ -90,6 +91,10 @@ DBA_INALL
 
 DBA_SCORE_READS
 DBA_SCORE_READS_MINUS
+DBA_SCORE_READS_FULL
+DBA_SCORE_READS_MINUS_FULL
+DBA_SCORE_READS_EFFECTIVE
+DBA_SCORE_READS_MINUS_EFFECTIVE
 DBA_SCORE_READS_FOLD
 DBA_SCORE_RPKM
 DBA_SCORE_RPKM_FOLD
@@ -110,15 +115,10 @@ DBA_READS_BAM
 DBA_READS_BED
 
 DBA_EDGER
-DBA_DESEQ
 DBA_DESEQ2
 DBA_EDGER_BLOCK
-DBA_DESEQ_BLOCK
 DBA_DESEQ2_BLOCK
-DBA_EDGER_CLASSIC
-DBA_DESEQ_CLASSIC
 DBA_EDGER_GLM
-DBA_DESEQ_GLM
 DBA_ALL_METHODS
 DBA_ALL_BLOCK
 DBA_ALL_METHODS_BLOCK
@@ -158,6 +158,9 @@ DBA peakset metadata: Is this a consensus peakset?
 }
 \item{DBA_CONTROL}{
 DBA peakset metadata: ID of Control sample
+}
+\item{DBA_READS}{
+Number of reads counted in BAM file.
 }
 \item{DBA_ALL_ATTRIBUTES}{
 DBA peakset metadata: all attributes that can be used in certain plot labels (cf \code{\link{dba.plotVenn}}), equivalent to \code{c(DBA_ID, DBA_TISSUE, DBA_FACTOR, DBA_CONDITION,DBA_TREATMENT, DBA_REPLICATE, DBA_CALLER)} 
@@ -202,6 +205,20 @@ dba.count score is number of reads in ChIP divided by number of reads in Control
 \item{DBA_SCORE_READS_MINUS}{
 dba.count score is number of reads in ChIP minus  number of reads in Control
 }
+
+\item{DBA_SCORE_READS_FULL}{
+dba.count score is normalized ChIP read counts, using Full Library size
+}
+\item{DBA_SCORE_READS_MINUS_FULL}{
+dba.count score is normalized ChIP read counts minus Control read counts, using Full Library size
+}
+\item{DBA_SCORE_READS_EFFECTIVE}{
+dba.count score is normalized ChIP read counts, using Effective Library size
+}
+\item{DBA_SCORE_READS_MINUS_EFFECTIVE}{
+dba.count score is normalized ChIP read counts minus Control read counts, using Effective Library size
+}
+
 \item{DBA_SCORE_RPKM}{
 dba.count score is RPKM of ChIP 
 }
@@ -264,23 +281,9 @@ differential analysis method: edgeR with blocking factors (GLM)
 \item{DBA_DESEQ2_BLOCK}{
 differential analysis method: DESeq2 with blocking factors (GLM)
 }
-\item{DBA_DESEQ}{
-differential analysis method: DESeq (default: DBA_DESEQ_CLASSIC)
-}
-\item{DBA_DESEQ_BLOCK}{
-differential analysis method: DESeq with blocking factors (GLM)
-}
-\item{DBA_EDGER_CLASSIC}{
-differential analysis method: "classic" edgeR for two-group comparisons
-}
-\item{DBA_DESEQ_CLASSIC}{
-differential analysis method: "classic" DESeq for two-group comparisons
-}
+
 \item{DBA_EDGER_GLM}{
 differential analysis method: use GLM in edgeR for two-group comparisons
-}
-\item{DBA_DESEQ_GLM}{
-differential analysis method: use GLM in DESeq for two-group comparisons
 }
 \item{DBA_ALL_METHODS}{
 use both analysis methods: \code{c(DBA_EDGER, DBA_DESEQ2)}
@@ -320,7 +323,7 @@ Return a result-based DBA object from \code{\link{dba.plotVenn}}.
 Rory Stark
 }
 \note{
-Variables with ALL CAP names are used as constants within DiffBind.
+Variables with ALL CAP names are used as constants within \code{DiffBind}.
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~

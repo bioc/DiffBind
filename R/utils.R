@@ -74,163 +74,20 @@ pv.DataType2Peaks <- function(RDpeaks){
    } else {
       res <- RDpeaks
    }
-  if(class(res)=="data.frame") {
-    res[,1] <- as.character(res[,1])
-  }
+   if(class(res)=="data.frame") {
+      res[,1] <- as.character(res[,1])
+   }
    return(res)
 }
 
-pv.getPlotData <- function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,th=0.05,
-                           bUsePval=FALSE,bNormalized=T,report,
-                           bPCA=F,bLog=T,minval,maxval,mask,fold=0,
-                           bFlip=FALSE, precision=2:3) {
-   
-   if(contrast > length(pv$contrasts)) {
-      stop('Specified contrast number is greater than number of contrasts')
-      return(NULL)
-   }
-   
-   con <- pv$contrasts[[contrast]]
-   
-   if(missing(report)) {
-      report <- pv.DBAreport(pv,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
-                             bNormalized=bNormalized,bCounts=T,bSupressWarning=T,
-                             minFold=fold,bFlip=bFlip,precision=precision)
-      if(is.null(report)) {
-         stop('Unable to plot -- no sites within threshold')	
-      }
-   } else {
-      report <- report[abs(report$Fold)>=fold,]
-   }
-   
-   if(nrow(report)==1) {
-      stop("Only one site to plot -- need at least 2!")   
-   }
-   
-   if(!missing(mask)){
-      if (!is.logical(mask)) {
-         if (max(mask) > length(pv$peaks)) {
-            stop("Invalid sample number in mask.",call.=F)
-         }
-         temp <- rep(F, length(pv$peaks))
-         temp[mask] <- T
-         mask <- temp
-      }
-      if(!bFlip) {
-         group1 <- con$group1 & mask
-         group2 <- con$group2 & mask
-      } else {
-         group1 <- con$group2 & mask
-         group2 <- con$group1 & mask
-      }
-      sites <- as.numeric(rownames(report))
-      extra <- mask & !(group1 | group2)
-      allsamps <- c(which(group1), which(group2), which(extra))
-      numsamps <- length(allsamps)
-      domap <- matrix(0,length(sites),0)
-      if(sum(group1)) {     
-         domap <- cbind(domap,pv$binding[sites,3+which(group1)])
-      }
-      if(sum(group2)) {
-         domap <- cbind(domap,pv$binding[sites,3+which(group2)])
-      }
-      if(sum(extra)) {
-         domap <- cbind(domap,pv$binding[sites,3+which(extra)])
-      }
-      rownames(domap) <- rownames(report)
-      colnames(domap) <- pv$class[PV_ID,allsamps] 
-      con$group1 <- group1
-      con$group2 <- group2
-      peaks <- pv$peaks[allsamps]
-      for(i in 1:length(peaks)){
-         peaks[[i]] <- peaks[[i]][sites,]
-      }  
-   } else {
-      if(!bFlip) {
-         group1 <- con$group1 
-         group2 <- con$group2 
-      } else {
-         group1 <- con$group2 
-         group2 <- con$group1 
-      }
-      allsamps <- c(which(group1),which(group2))
-      extra <- rep(F,ncol(pv$class)) 
-      repcols <- colnames(report)
-      numsamps <- sum(group1)+sum(group2)
-      if(length(repcols) < (numsamps+9)) {
-         stop('Report does not have count data, re-run dba.report with bCounts=TRUE')
-      }
-      first <- 10
-      if(repcols[10]=="Called1") {
-         if(length(repcols) < (numsamps+11)) {
-            stop('Report does not have count data, re-run dba.report with bCounts=TRUE')
-         }
-         first <- 12	 
-      }
-      domap <- report[,first:(first+numsamps-1)]
-      group1 <- rep(F,numsamps)
-      group2 <- rep(T,numsamps)
-      group1[1:sum(con$group1)] <- T
-      group2[1:sum(con$group1)] <- F
-      con$group1 <- group1
-      con$group2 <- group2
-      
-      sites <- as.numeric(rownames(report))
-      peaks <- pv$peaks[allsamps]
-      for(i in 1:length(peaks)){
-         peaks[[i]] <- peaks[[i]][sites,]
-      }  
-   }
-   
-   if(bLog) {
-      domap[domap<=0]=1
-      domap <- log2(domap)
-      if(missing(minval)) {
-         minval <- 0
-      } else {
-         minval <- max(0,minval)
-      }
-   }
-   
-   if(!missing(minval)) {
-      domap[domap< minval]= minval
-   }
-   if(!missing(maxval)) {
-      domap[domap>maxval] <- maxval
-   }
-   
-   pv$binding <- cbind(report[,1:3],domap)
-   pv$class <- pv$class[,allsamps]
-   pv$peaks <- peaks
-   pv$called <- pv$called[sites,allsamps]
-   pv$merged <- pv$binding[,1:3]
-   pv$totalMerged <- nrow(pv$merged)
-   pv$contrasts <- list(pv$contrasts[[contrast]])
-   pv$contrasts[[1]]$group1 <- rep(F,ncol(pv$class))
-   pv$contrasts[[1]]$group2 <- rep(F,ncol(pv$class))
-   if(sum(con$group1)) {
-      pv$contrasts[[1]]$group1[1:sum(con$group1)]=T
-   }
-   if(sum(con$group2)) {
-      pv$contrasts[[1]]$group2[(sum(con$group1)+1):(sum(con$group1)+sum(con$group2))]=T   
-   }
-   
-   if(bPCA)  {
-      
-      #pv$pc <- princomp(domap,cor=bPCAcor)
-      
-      if(attributes[1] == PV_GROUP) {
-         pv$class[PV_ID,] <- c( rep(con$name1,sum(con$group1)), rep(con$name2,sum(con$group2)), rep("other",sum(extra)) )
-      }
-   } 
-   
-   return(pv)     
-}
 
-
-pv.get_reads <- function(pv,peaksets,bSubControl=T){
+pv.get_reads <- function(pv,peaksets,bSubControl=T,numReads){
+   
    if(is.null(bSubControl)) {
-      bSubControl <- T
+      bSubControl <- TRUE
+   }
+   if(missing(peaksets)) {
+      peaksets <- rep(TRUE,length(pv$peaks))
    }
    reads <- NULL
    if(!is.null(pv$peaks_alt)) {
@@ -238,14 +95,33 @@ pv.get_reads <- function(pv,peaksets,bSubControl=T){
    } else {
       peaklist <- pv$peaks
    }
-   for(peakset in peaksets) {
-      reads <- cbind(reads,peaklist[[peakset]]$Reads)
-      if(bSubControl) {
-         reads[,ncol(reads)] <- reads[,ncol(reads)] - peaklist[[peakset]]$cReads
+   
+   if(is.logical(peaksets)) {
+      peaksets <- which(peaksets)
+   }
+   
+   if(!missing(numReads)) {
+      numReads <- min(length(peaklist[[1]]$Reads),numReads)
+      for(peakset in peaksets) {
+         reads <- cbind(reads,as.integer(peaklist[[peakset]]$Reads[1:numReads]))
+         if(bSubControl) {
+            reads[,ncol(reads)] <- reads[,ncol(reads)] - 
+               as.integer(peaklist[[peakset]]$cReads[1:numReads])
+         }
+      }
+   } else {
+      for(peakset in peaksets) {
+         reads <- cbind(reads,as.integer(peaklist[[peakset]]$Reads))
+         if(bSubControl) {
+            reads[,ncol(reads)] <- reads[,ncol(reads)] - 
+               as.integer(peaklist[[peakset]]$cReads)
+         }
       }
    }
    
    reads[reads<1]=1
+   
+   rownames(reads) <- 1:nrow(reads)
    
    return(reads)
 }
@@ -462,6 +338,14 @@ pv.attname <- function(attribute,pv=NULL) {
       }
       return("Caller")
    }
+   if(attribute == PV_READS) {
+      if(!is.null(pv)) {
+         if(!is.null(pv$config$reads)) {
+            return(pv$config$reads)
+         }
+      }
+      return("Reads")
+   }
    
    if(!is.null(pv)) {
       if(!is.null(pv$config$group)) {
@@ -569,11 +453,14 @@ pv.checkValue <- function(val,check) {
 }
 
 pv.setMask <- function(pv,mask,contrast) {
-   if(missing(contrast)) {
-      newmask <- rep(T,length(pv$peaks))
-   } else {
+   
+   newmask <- rep(T,length(pv$peaks))
+   
+   if(!missing(contrast)) {
       if(contrast <= length(pv$contrasts)) {
-         newmask <- pv$contrasts[[contrast]]$group1 | pv$contrasts[[contrast]]$group2
+         if(!is.null(pv$contrasts[[contrast]]$group1)) {
+            newmask <- pv$contrasts[[contrast]]$group1 | pv$contrasts[[contrast]]$group2
+         }
       } else {
          stop('Invalid contrast',call.=FALSE)
       }

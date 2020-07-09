@@ -32,46 +32,51 @@ number of contrast to report on. See  \code{\link{dba.show}(DBA, bContrast=TRUE)
 \item{method}{
  method or vector of methods to plot results for:
 \itemize{ 
-\item \link{DBA_DESEQ2}
-\item \link{DBA_DESEQ2_BLOCK}
-\item \link{DBA_EDGER}
-\item \link{DBA_EDGER_BLOCK}
+\item \code{\link{DBA_DESEQ2}}
+\item \code{\link{DBA_DESEQ2_BLOCK}}
+\item \code{\link{DBA_EDGER}}
+\item \code{\link{DBA_EDGER_BLOCK}}
 }
 }
 
 
 \item{th}{
-significance threshold; all sites with FDR (or p-values, see \code{bUsePval}) less than or equal to this value will be colored red in the plot
+significance threshold; all sites with FDR (or p-values, see \code{bUsePval}) 
+less than or equal to this value will be colored red in the plot
 }
   \item{bUsePval}{
-logical indicating whether to use FDR (FALSE) or p-value (TRUE) for thresholding.
+logical indicating whether to use FDR (\code{FALSE}) or p-value (\code{TRUE}) for thresholding.
 }
   \item{fold}{
 will only include sites with fold change greater than this as significant (colored red).
 }
   \item{bNormalized}{
-logical indicating whether to plot normalized data using normalization factors computed by differential analysis method (TRUE) or raw read counts (FALSE).
+logical indicating whether to plot normalized data using normalization factors computed by 
+differential analysis method (\code{TRUE}) or raw read counts (\code{FALSE}).
 }
  \item{factor}{
 string to be prepended to plot main title; e.g. factor name.
 }
  \item{bFlip}{
-logical indicating that order of groups in contrast should be "flipped", allowing control of which sample group
+logical indicating that order of groups in contrast should be "flipped", 
+allowing control of which sample group
 will have positive and which will have negative fold changes.
 }
 \item{bXY}{
-logical indicating whether to draw MA plot (FALSE) or XY scatter plot (TRUE).
+logical indicating whether to draw MA plot (\code{FALSE}) or XY scatter plot (\code{TRUE}).
 }
 
   \item{dotSize}{
-size of points on plot (cex).
+size of points on plot (\code{cex}).
 }
   \item{bSignificant}{
 Logical indicating if points corresponding to significantly differentially bound sites 
-(based on \code{contrast}, \code{th}, \code{bUsePval}, and \code{fold} parameters) should be overlaid in red.
+(based on \code{contrast}, \code{th}, \code{bUsePval}, and \code{fold} parameters) 
+should be overlaid in red.
 }
   \item{bSmooth}{
-logical indicating that basic plot should be plotted using \code{smooth Scatter}. Note that overlaid significant sites will be not plotted using a smoothing function.
+logical indicating that basic plot should be plotted using \code{\link{smoothScatter}}.
+Note that overlaid significant sites will be not plotted using a smoothing function.
 }
 
   \item{xrange}{
@@ -83,7 +88,7 @@ vector of length 2 containing the desired minimum and maximum fold changes to pl
 }
 
   \item{\dots}{
-passed to plot.
+passed to underlying plotting functions.
 }
 }
 %\details{

@@ -145,7 +145,8 @@ pv.version <- function(pv,v1,v2,v3){
    
    if(!is.null(pv$contrasts)) {
       for(i in 1:length(pv$contrasts)) {
-         if(!is.null(pv$contrasts[[i]]$DESeq) & is.null(pv$contrasts[[i]]$DESeq1) & is.null(pv$contrasts[[i]]$DESeq2)) {
+         if(!is.null(pv$contrasts[[i]]$DESeq) & is.null(pv$contrasts[[i]]$DESeq1)
+            & is.null(pv$contrasts[[i]]$DESeq2)) {
             pv$contrasts[[i]]$DESeq1 <- pv$contrasts[[i]]$DESeq
             pv$contrasts[[i]]$DESeq  <- NULL
          }
@@ -241,46 +242,59 @@ pv.setScore <- function(pv,score,bLog=F,minMaxval,rescore=TRUE,filterFun=max,
             pv$peaks[[i]]$Score <- pv$binding[,colnum]
          }
          
-      } else {	
+      } else {
          
-         for(i in 1:length(pv$peaks)) {
-            colnum <- 3+i
-            if(score == PV_SCORE_RPKM) {
-               pv$binding[,colnum] <- pv$peaks[[i]]$RPKM	
-            }   		
-            if(score == PV_SCORE_RPKM) {
-               pv$binding[,colnum] <- pv$peaks[[i]]$RPKM	
-            } else if(score == PV_SCORE_RPKM_FOLD) {
-               pv$binding[,colnum] <- pv$peaks[[i]]$RPKM/pv$peaks[[i]]$cRPKM
-               if(bLog) {
-                  pv$binding[,colnum] <- log2(pv$binding[,colnum])	
-               }
-            } else if(score == PV_SCORE_READS) {
-               pv$binding[,colnum] <- pv$peaks[[i]]$Reads	
-            } else if(score == PV_SCORE_READS_FOLD) {
-               pv$binding[,colnum] <- pv$peaks[[i]]$Reads/pv$peaks[[i]]$cReads	
-               if(bLog) {
-                  pv$binding[,colnum] <- log2(pv$binding[,colnum])	
-               }
-            } else if(score == PV_SCORE_READS_MINUS) {
-               pv$binding[,colnum] <- pv$peaks[[i]]$Reads-pv$peaks[[i]]$cReads	
-            } else if(score == PV_SCORE_SUMMIT || score == PV_SCORE_SUMMIT_ADJ) {
-               if(is.null(pv$peaks[[i]]$Heights)) {
-                  warning('DBA_SCORE_SUMMIT not available; re-run dba.count with summits=0')   
-               } else {
-                  pv$binding[,colnum] <- pv$peaks[[i]]$Heights
-                  if (score == PV_SCORE_SUMMIT_ADJ) {
-                     pv$binding[,colnum] <- pv$binding[,colnum] * pv.normFactors(pv)[i]   
+         if(score %in% c(PV_SCORE_READS_FULL,PV_SCORE_READS_MINUS_FULL, 
+                         PV_SCORE_READS_EFFECTIVE, PV_SCORE_READS_MINUS_EFFECTIVE)) {
+            
+            pv$binding[,4:ncol(pv$binding)] <- pv.normLibsize(pv,score)
+            
+            for(i in 1:length(pv$peaks)) {
+               colnum <- 3+i
+               pv$peaks[[i]]$Score <- pv$binding[,colnum]
+            }
+            
+         } else {
+            
+            for(i in 1:length(pv$peaks)) {
+               colnum <- 3+i
+               if(score == PV_SCORE_RPKM) {
+                  pv$binding[,colnum] <- pv$peaks[[i]]$RPKM	
+               }   		
+               if(score == PV_SCORE_RPKM) {
+                  pv$binding[,colnum] <- pv$peaks[[i]]$RPKM	
+               } else if(score == PV_SCORE_RPKM_FOLD) {
+                  pv$binding[,colnum] <- pv$peaks[[i]]$RPKM/pv$peaks[[i]]$cRPKM
+                  if(bLog) {
+                     pv$binding[,colnum] <- log2(pv$binding[,colnum])	
+                  }
+               } else if(score == PV_SCORE_READS) {
+                  pv$binding[,colnum] <- pv$peaks[[i]]$Reads	
+               } else if(score == PV_SCORE_READS_FOLD) {
+                  pv$binding[,colnum] <- pv$peaks[[i]]$Reads/pv$peaks[[i]]$cReads	
+                  if(bLog) {
+                     pv$binding[,colnum] <- log2(pv$binding[,colnum])	
+                  }
+               } else if(score == PV_SCORE_READS_MINUS) {
+                  pv$binding[,colnum] <- pv$peaks[[i]]$Reads-pv$peaks[[i]]$cReads	
+               } else if(score == PV_SCORE_SUMMIT || score == PV_SCORE_SUMMIT_ADJ) {
+                  if(is.null(pv$peaks[[i]]$Heights)) {
+                     warning('DBA_SCORE_SUMMIT not available; re-run dba.count with summits=TRUE')   
+                  } else {
+                     pv$binding[,colnum] <- pv$peaks[[i]]$Heights
+                     if (score == PV_SCORE_SUMMIT_ADJ) {
+                        pv$binding[,colnum] <- pv$binding[,colnum] * pv.normFactors(pv)[i]   
+                     }
+                  }
+               } else if(score == PV_SCORE_SUMMIT_POS) {
+                  if(is.null(pv$peaks[[i]]$Summits)) {
+                     warning('DBA_SCORE_SUMMIT_POS not available; re-run dba.count with summits=TRUE')   
+                  } else {
+                     pv$binding[,colnum] <- pv$peaks[[i]]$Summits
                   }
                }
-            } else if(score == PV_SCORE_SUMMIT_POS) {
-               if(is.null(pv$peaks[[i]]$Summits)) {
-                  warning('DBA_SCORE_SUMMIT_POS not available; re-run dba.count with summits=0')   
-               } else {
-                  pv$binding[,colnum] <- pv$peaks[[i]]$Summits
-               }
+               pv$peaks[[i]]$Score <- pv$binding[,colnum]
             }
-            pv$peaks[[i]]$Score <- pv$binding[,colnum]
          }
       }
    }
@@ -1129,29 +1143,6 @@ pv.normalize <- function(peaks,pCol,zeroVal=-1,bLog=F,bDensity=F){
    return(res)
 }
 
-crukMagenta=rgb(236,0,140,maxColorValue=255) #CRUK Magenta
-crukBlue=rgb(46,0,139,maxColorValue=255) #CRUK Blue
-crukGrey='grey'#rgb(200,201,199,maxColorValue=255) #CRUK grey
-crukCyan=rgb(0,182,237,maxColorValue=255) #CRUK light blue
-
-pv.colsv <- c(crukBlue, crukMagenta, crukCyan,crukGrey,
-              "lightgreen", "orange","rosybrown",
-              "black","red","dodgerblue","darkgreen",
-              "yellow","grey50","purple3",
-              "sienna","limegreen","lightblue",
-              "violet","seagreen1",
-              "lavender","olivedrab")
-
-pv.colorv <- function(classes,cols=pv.colsv){
-   
-   colv <- rep(0,length(classes))
-   uv <- unique(classes)
-   for(i in 1:length(uv)){
-      colv[classes==uv[i]] <- cols[i]
-   }
-   return(colv)	
-} 
-
 pv.activefun <- function(x){
    if(sum(x>0)>0){
       return(TRUE)
@@ -1228,92 +1219,13 @@ pv.pcmask <- function(pv,numSites, mask, sites,removeComps,cor=F,bLog=T){
    
    if(nrow(pv$values) >= sum(mask)) {
       #res$pc <- prcomp(pv$values) #,cor=cor)
-     res$pc <- prcomp(t(pv$values))
+      res$pc <- prcomp(t(pv$values))
    }
    res$mask <- mask
    
    return(res)
 }
 
-pv.venn2 <- function(mrec,n1,n2,...){
-   #require(limma)
-   
-   res <- NULL
-   res <- pv.addrow(res,c(1,0),mrec$onlyA)
-   res <- pv.addrow(res,c(0,1),mrec$onlyB)
-   res <- pv.addrow(res,c(1,1),mrec$inAll)   
-   
-   vennDiagram(res,names=c(n1,n2), circle.col=2:3,counts.col=1,...)
-}
-
-pv.venn2 <- function(olaps,l1,l2,main="",sub="") {
-   
-   counts <- c(nrow(olaps$onlyA),
-               nrow(olaps$onlyB),
-               nrow(olaps$inAll))
-   names(counts) <- c("A","B","A_B")		
-   counts <- list(counts)
-   vennPlot(counts,setlabels=c(l1,l2),mysub=sub,mymain=main)
-   
-}
-
-pv.venn3 <- function(m3way,n1,n2,n3,...){
-   #require(limma)
-   
-   res <- NULL
-   res <- pv.addrow(res,c(1,0,0),m3way$onlyA)
-   res <- pv.addrow(res,c(0,1,0),m3way$onlyB)
-   res <- pv.addrow(res,c(0,0,1),m3way$onlyC)
-   
-   res <- pv.addrow(res,c(1,1,0),m3way$notC)
-   res <- pv.addrow(res,c(1,0,1),m3way$notB)
-   res <- pv.addrow(res,c(0,1,1),m3way$notA)
-   
-   res <- pv.addrow(res,c(1,1,1),m3way$inAll)   
-   
-   vennDiagram(res,names=c(n1,n2,n3), circle.col=2:4,counts.col=1,...)
-}
-
-pv.venn3 <- function(olaps,l1,l2,l3,main="",sub="") {
-   
-   counts <- c(nrow(olaps$onlyA),
-               nrow(olaps$onlyB),
-               nrow(olaps$onlyC),	
-               nrow(olaps$notC),
-               nrow(olaps$notB),
-               nrow(olaps$notA),
-               nrow(olaps$inAll))
-   names(counts) <- c("A","B","C","A_B","A_C","B_C","A_B_C")		
-   counts <- list(counts)
-   vennPlot(counts,setlabels=c(l1,l2,l3),mysub=sub,mymain=main)
-   
-}
-
-
-pv.venn4 <- function(olaps,l1,l2,l3,l4,main="",sub="") {
-   
-   counts <- c(nrow(olaps$onlyA),
-               nrow(olaps$onlyB),
-               nrow(olaps$onlyC),	
-               nrow(olaps$onlyD),
-               nrow(olaps$AandB),
-               nrow(olaps$AandC),
-               nrow(olaps$AandD),
-               nrow(olaps$BandC),
-               nrow(olaps$BandD),
-               nrow(olaps$CandD),
-               nrow(olaps$notD),
-               nrow(olaps$notC),
-               nrow(olaps$notB),
-               nrow(olaps$notA),
-               nrow(olaps$inAll))
-   names(counts) <- c("A","B","C","D","A_B","A_C","A_D","B_C","B_D","C_D",
-                      "A_B_C","A_B_D","A_C_D","B_C_D","A_B_C_D")		
-   counts <- list(counts)
-   
-   vennPlot(counts,setlabels=c(l1,l2,l3,l4),mysub=sub,mymain=main)
-   
-}
 
 pv.Signal2Noise <- function(pv) {
    sns <- rep("",length(pv$peaks))

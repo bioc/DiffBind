@@ -62,11 +62,16 @@ when deriving a peakset/sample mask, and an existing mask is supplied, this spec
 }
 }
 \item{bApply}{
-when deriving a peakset/sample mask, a logical indicating that a new DBA object with the mask applied will be returned.
+when deriving a peakset/sample mask, a logical indicating that a new DBA object 
+with the mask applied will be returned.
 }
 
 \item{peakset}{
-when deriving a peak/site mask, this specifies a peakset number, or a vector of peakset numbers. The resulting mask will indicate which of the overall sites were called as peaks in this peakset or set of peaksets. If a vector, the masks for each of the peaksets will be combined using the method specified in the combine parameter.
+when deriving a peak/site mask, this specifies a peakset number, or a vector of peakset numbers. 
+The resulting mask will indicate which of the overall sites were called as peaks 
+in this peakset or set of peaksets. 
+If a vector, the masks for each of the peaksets will be combined using the method 
+specified in the combine parameter.
 }
 
 \item{minValue}{
@@ -79,14 +84,14 @@ when deriving a peak/site mask, scores greater than this value will be considere
 
 MODE: Derive a a mask of peaksets/samples:
 
-dba.mask(DBA, attribute, value, combine, mask, merge, bApply)
+\code{dba.mask(DBA, attribute, value, combine, mask, merge, bApply)}
 
 MODE: Derive a mask of peaks/sites:
 
-dba.mask(DBA, combine, mask, merge,bApply, peakset, minValue)
+\code{dba.mask(DBA, combine, mask, merge,bApply, peakset, minValue)}
 }
 \value{
-either a logical mask, or new DBA object if bApply is TRUE.
+either a logical mask, or new DBA object if \code{bApply} is \code{TRUE}.
 }
 %\references{
 %% ~put references to the literature/web site here ~
@@ -96,7 +101,7 @@ Rory Stark
 }
 \note{
 %%  ~~further notes~~
-dba automatically generates masks for each unique value of DBA_TISSUE, DBA_FACTOR, DBA_CONDITION, DBA_TREATMENT,  DBA_CALLER, and DBA_REPLICATE. These are accessible using masks field of the DBA object (DBA$masks), and can be viewed using names(DBA$masks).
+dba automatically generates masks for each unique value of \code{DBA_TISSUE}, \code{DBA_FACTOR}, \code{DBA_CONDITION}, \code{DBA_TREATMENT},  \code{DBA_CALLER}, and \code{DBA_REPLICATE}. These are accessible using masks field of the DBA object (\code{DBA$masks)}, and can be viewed using \code{names(DBA$masks)}.
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~

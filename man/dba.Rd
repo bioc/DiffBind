@@ -10,15 +10,16 @@ Constructs a new DBA object from a sample sheet,  or based on an existing DBA ob
 \usage{
 dba(DBA,mask, minOverlap=2,
     sampleSheet="dba_samples.csv", 
-    config=data.frame(RunParallel=TRUE, reportInit="DBA", DataType=DBA_DATA_GRANGES, 
-                      AnalysisMethod=DBA_DESEQ2, minQCth=15, fragmentSize=125, 
-                      bCorPlot=FALSE, th=0.05, bUsePval=FALSE),
+    config=data.frame(AnalysisMethod=DBA_DESEQ2,th=0.05,
+                      DataType=DBA_DATA_GRANGES, RunParallel=TRUE, 
+                      minQCth=15, fragmentSize=125, 
+                      bCorPlot=FALSE, reportInit="DBA", bUsePval=FALSE),
     peakCaller="raw", peakFormat, scoreCol, bLowerScoreBetter, 
     filter, skipLines=0, 
     bAddCallerConsensus=FALSE, 
     bRemoveM=TRUE, bRemoveRandom=TRUE, 
     bSummarizedExperiment=FALSE,
-    bCorPlot, attributes, dir)  
+    attributes, dir)  
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -26,28 +27,37 @@ dba(DBA,mask, minOverlap=2,
 %\subsection{Optional or defaulted arguments}{}
 
   \item{DBA}{
-existing DBA object -- if present, will return a fully-constructed DBA object based on the passed one, using criteria specified in the mask and/or minOverlap parameters. If missing, will create a new DBA object based on the sampleSheet.
+existing DBA object -- if present, will return a fully-constructed DBA object based on the passed one,
+using criteria specified in the \code{mask} and/or \code{minOverlap} parameters. 
+If missing, will create a new DBA object based on the \code{sampleSheet}.
 }
 \item{mask}{
-logical or numerical vector indicating which peaksets to include in the resulting model if basing DBA object on an existing one. See  \code{\link{dba.mask}}.
+logical or numerical vector indicating which peaksets to include in the resulting model 
+if basing DBA object on an existing one. 
+See  \code{\link{dba.mask}}.
 }
 \item{minOverlap}{
-only include peaks in at least this many peaksets in the main binding matrix if basing DBA object on an existing one.  If minOverlap is between zero and one, peak will be included from at least this proportion of peaksets.
+only include peaks in at least this many peaksets in the main binding matrix
+if basing DBA object on an existing one. 
+If \code{minOverlap} is between zero and one, peak will be included from at least this proportion of peaksets.
 }
 \item{sampleSheet}{
-data frame containing sample sheet, or file name of sample sheet to load (ignored if DBA is specified). Columns names in sample sheet may include:
+data frame containing sample sheet, or file name of sample sheet to load (ignored if DBA is specified). 
+Columns names in sample sheet may include:
 \itemize{
-\item {SampleID:}	{Identifier string for sample}
-\item {Tissue:}	{Identifier string for tissue type}
-\item {Factor:}	{Identifier string for factor}
-\item {Condition:}	{Identifier string for condition}
-\item {Treatment:}	{Identifier string for treatment}
-\item {Replicate:}	{Replicate number of sample}
-\item {bamReads:}	{file path for bam file containing aligned reads for ChIP sample}
-\item {bamControl:}	{file path for bam file containing aligned reads for control sample}
-\item {ControlID:}	{Identifier string for control sample}
-\item {Peaks:}	{path for file containing peaks for sample. format determined by PeakCaller field or caller parameter}
-\item {PeakCaller:}	{Identifier string for peak caller used. If Peaks is not a bed file, this will determine how the Peaks file is parsed. If missing, will use default peak caller specified in caller parameter. Possible values:}
+\item {\code{SampleID:}}	{Identifier string for sample}
+\item {\code{Tissue:}}	{Identifier string for tissue type}
+\item {\code{Factor:}}	{Identifier string for factor}
+\item {\code{Condition:}}	{Identifier string for condition}
+\item {\code{Treatment:}}	{Identifier string for treatment}
+\item {\code{Replicate:}}	{Replicate number of sample}
+\item {\code{bamReads:}}	{file path for bam file containing aligned reads for ChIP sample}
+\item {\code{bamControl:}}	{file path for bam file containing aligned reads for control sample}
+\item {\code{ControlID:}}	{Identifier string for control sample}
+\item {\code{Peaks:}}	{path for file containing peaks for sample. format determined by PeakCaller field or caller parameter}
+\item {\code{PeakCaller:}}	{Identifier string for peak caller used. 
+If Peaks is not a bed file, this will determine how the Peaks file is parsed. 
+If missing, will use default peak caller specified in caller parameter. Possible values:}
 \itemize{
 \item {\dQuote{raw}:}	{text file file; peak score is in fourth column}
 \item {\dQuote{bed}:}	{.bed file; peak score is in fifth column}
@@ -58,54 +68,73 @@ data frame containing sample sheet, or file name of sample sheet to load (ignore
 \item {\dQuote{peakset}:}	{peakset written out using pv.writepeakset}
 \item {\dQuote{fp4}:}	{FindPeaks v4}
 }
-\item {PeakFormat:}	{string indicating format for peak files; see PeakCaller and  \code{\link{dba.peakset}}}
-\item {ScoreCol:}	{column in peak files that contains peak scores}
-\item {LowerBetter:}	{logical indicating that lower scores signify better peaks}
-\item{Counts:} {file path for externally computed read counts; see \code{\link{dba.peakset}} (\code{counts} parameter)}
+\item {\code{PeakFormat:}}	{string indicating format for peak files; see PeakCaller and  \code{\link{dba.peakset}}}
+\item {\code{ScoreCol:}}	{column in peak files that contains peak scores}
+\item {\code{LowerBetter:}}	{logical indicating that lower scores signify better peaks}
+\item{\code{Counts:}} {file path for externally computed read counts; see \code{\link{dba.peakset}}
+(\code{counts} parameter)}
 }
-For sample sheets loaded from a file, the accepted formats are comma-separated values (column headers, followed by one line per sample), or Excel-formatted spreadsheets (\code{.xls} or \code{.xlsx} extension).  Leading and trailing white space will be removed from all values, with a warning.
+For sample sheets loaded from a file, the accepted formats are comma-separated values 
+(column headers, followed by one line per sample), or Excel-formatted spreadsheets (\code{.xls} 
+or \code{.xlsx} extension). 
+Leading and trailing white space will be removed from all values, with a warning.
 }
   \item{config}{
-data frame containing configuration options, or file name of config file to load when constructing a new DBA object from a sample sheet. NULL indicates no config file. Relevant fields include:
+data frame containing configuration options, 
+or file name of config file to load when constructing a new DBA object from a sample sheet. 
+\code{NULL} indicates no config file. 
+Relevant fields include:
 \itemize{
-\item {RunParallel:}	{logical indicating if counting and analysis operations should be run in parallel using multicore by default.}
-\item {DataType:}	{default class for peaks and reports (DBA_DATA_GRANGES, DBA_DATA_RANGEDDATA, or DBA_DATA_FRAME).}
-\item {ReportInit:}   {string to append to the beginning of saved report file names.}
-\item {AnalysisMethod:}	{either DBA_DESEQ2 or DBA_EDGER.}
-\item {bCorPlot:} {logical indicating that a correlation heatmap should be plotted automatically}
-\item {th:}   {default threshold for reporting and plotting analysis results.}
-\item {bUsePval:}   {logical, default indicating whether to use FDR (\code{FALSE}) or p-values (\code{TRUE}).}
-\item {minQCth:}   {numeric, for filtering reads based on mapping quality score; only reads with a mapping qulity score
-gretaer than or equal to this will be counted.}
-\item {fragmentSize:} {numeric with mean fragment size. Reads will be extended to this length before counting overlaps. May be a vector of legnths, one for each sample.}
+\item {\code{AnalysisMethod:}}	{either \code{DBA_DESEQ2} or \code{DBA_EDGER}.}
+\item {\code{th:}}   {default threshold for reporting and plotting analysis results.}
+\item {\code{DataType:}}	{default class for peaks and reports (\code{DBA_DATA_GRANGES, DBA_DATA_RANGEDDATA, or DBA_DATA_FRAME}).}
+\item {\code{RunParallel:}}	{logical indicating if counting and analysis operations should be run in parallel using multicore by default.}
+\item {\code{minQCth:}}   {numeric, for filtering reads based on mapping quality score; only reads with a mapping quality score
+greater than or equal to this will be counted.}
+\item {\code{fragmentSize:}} {numeric with mean fragment size.
+Reads will be extended to this length before counting overlaps. 
+May be a vector of lengths, one for each sample.}
+\item {\code{bCorPlot:}} {logical indicating that a correlation heatmap should be plotted automatically}
+\item {\code{ReportInit:}}   {string to append to the beginning of saved report file names.}
+\item {\code{bUsePval:}}   {logical, default indicating whether to use FDR (\code{FALSE}) or p-values (\code{TRUE}).}
 }
 }
   \item{peakCaller}{
-if a sampleSheet is specified, the default peak caller that will be used if the \code{PeakCaller} column is absent.
+if a \code{sampleSheet} is specified, the default peak caller that will be used 
+if the \code{PeakCaller} column is absent.
 }
  \item{peakFormat}{
-if a sampleSheet is specified, the default peak file format that will be used if the \code{PeakFormat} column is absent.
+if a \code{sampleSheet} is specified, the default peak file format that will be used 
+if the \code{PeakFormat} column is absent.
 }
  \item{scoreCol}{
-if a sampleSheet is specified, the default column  in the peak files that will be used for scoring if the \code{ScoreCol} column is absent.
+if a \code{sampleSheet} is specified, the default column  in the peak files that will be used 
+for scoring if the \code{ScoreCol} column is absent.
 }
  \item{bLowerScoreBetter}{
-if a sampleSheet is specified, the  sort order for peak scores if the \code{LowerBetter} column is absent.
+if a \code{sampleSheet} is specified, the  sort order for peak scores 
+if the \code{LowerBetter} column is absent.
 }
  \item{filter}{
-if a sampleSheet is specified, a filter value if the \code{Filter} column is absent. Peaks with scores lower than this value (or higher if \code{ bLowerScoreBetter} or \code{LowerBetter} is TRUE) will be removed.
+if a \code{sampleSheet} is specified, a filter value if the \code{Filter} column is absent.
+Peaks with scores lower than this value 
+(or higher if \code{ bLowerScoreBetter} or \code{LowerBetter} is \code{TRUE}) will be removed.
 }
   \item{skipLines}{
-if a sampleSheet is specified, the number of lines (ie header lines) at the beginning of each peak file to skip.
+if a \code{sampleSheet} is specified, the number of lines (ie header lines)
+at the beginning of each peak file to skip.
 }
   \item{bAddCallerConsensus}{
-add a consensus peakset for each sample with more than one peakset (i.e. different peak callers) when constructing a new DBA object from a sample sheet.
+add a consensus peakset for each sample with more than one peakset 
+(i.e. different peak callers) when constructing a new DBA object from a \code{sampleSheet}.
 }
   \item{bRemoveM}{
-logical indicating whether to remove peaks on chrM (mitochondria) when constructing a new DBA object from a sample sheet.
+logical indicating whether to remove peaks on chrM (mitochondria) 
+when constructing a new DBA object from a sample sheet.
 }
 \item{bRemoveRandom}{
-logical indicating whether to remove peaks on chrN_random when constructing a new DBA object from a sample sheet.
+logical indicating whether to remove peaks on chrN_random when 
+constructing a new DBA object from a sample sheet.
 }
 
 \item{bSummarizedExperiment}{
@@ -117,18 +146,20 @@ logical indicating that a correlation heatmap should be plotted before returning
 \item{attributes}{
 vector of attributes to use subsequently as defaults when generating labels in plotting functions:
 \itemize{ 
-\item DBA_ID
-\item DBA_TISSUE
-\item DBA_FACTOR
-\item DBA_CONDITION
-\item DBA_REPLICATE
-\item DBA_CONSENSUS
-\item DBA_CALLER
-\item DBA_CONTROL
+\item \code{DBA_ID}
+\item \code{DBA_TISSUE}
+\item \code{DBA_FACTOR}
+\item \code{DBA_CONDITION}
+\item \code{DBA_TREATMENT}
+\item \code{DBA_REPLICATE}
+\item \code{DBA_CONSENSUS}
+\item \code{DBA_CALLER}
+\item \code{DBA_CONTROL}
 }
 }
 \item{dir}{
-Directory path. If supplied, files referenced in the \code{sampleSheet} will have
+Directory path. 
+If supplied, files referenced in the \code{sampleSheet} will have
 this path prepended. 
 Applies to \code{PeakFiles}, \code{bamReads}, and \code{bamControl}, if present.
 If \code{sampleSheet} is a filepath, this will prepended to that as well.
@@ -139,17 +170,17 @@ If \code{sampleSheet} is a filepath, this will prepended to that as well.
 
 MODE: Construct a new DBA object from a samplesheet:
 
-dba(sampleSheet, config,
+\code{dba(sampleSheet, config,
     bAddCallerConsensus, bRemoveM, bRemoveRandom,
-    attributes)
+    attributes)}
 
 MODE: Construct a DBA object based on an existing one:
 
-dba(DBA, mask, attributes)
+\code{dba(DBA, mask, attributes)}
 
 MODE: Convert a DBA object to a SummarizedExperiment object:
 
-dba(DBA, bSummarizedExperiment=TRUE)
+\code{dba(DBA, bSummarizedExperiment=TRUE)}
 }
 \value{
 DBA object

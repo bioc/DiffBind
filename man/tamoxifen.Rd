@@ -28,14 +28,17 @@ load tamoxifen resistance dataset DBA object with count (affinity) data
 }
 
 \item{tamoxifen_analysis}{
-load tamoxifen resistance dataset DBA object with count (affinity) data and edgeR-based differential binding analysis results
+load tamoxifen resistance dataset DBA object with count (affinity) data and \code{DESeq2}-based differential binding analysis results
 }
 }
 \details{
 The tamoxifen resistance dataset is used for the DBA vignette and man page examples. 
+
+Data used to create these objects can be downloaded at
+\samp{http://DiffBind.starkhome.com/}.
 }
 \value{
-loads a DBA object named tamoxifen
+loads a DBA object named \code{tamoxifen}.
 }
 %\references{
 %% ~put references to the literature/web site here ~

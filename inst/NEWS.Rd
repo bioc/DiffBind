@@ -2,6 +2,57 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.99.1}{
+This is a major release of DiffBind and the new version will be 3.0.
+
+The main upgrade involves how the modelling is done. 
+DiffBind now supports models and contrasts of arbitrary complexity using either/both DESeq2 or/and edgeR.
+
+The previous methods for modelling are maintained for backward compatibility, however they are not the default. 
+To repeat earlier analyses, dba.contrast() must be called explicitly with design=FALSE.
+
+The default mode for dba.count() is now to ceter around summits (resulting in 501bp intervals). 
+To to avoid recentering around summits as was the previous default, set summits=FALSE.
+ 
+   \itemize{
+    \item{dba.contrast() changes:}
+      \itemize{
+         \item{Add ability to provide arbitrary design formula to dba.contrast() and made default}
+         \item{Add ability to specify contrasts in a number of formats}
+         \item{Add ability to retrieve names of design coefficients}
+      }
+     \item{dba.analyze() changes:}
+      \itemize{
+        \item{Removed support for original DESeq (keeping edgeR and DESeq2)}
+        \item{Add ability to retrieve DESeq2 or edgeR object}
+        \item{Moved bTagwise paameter to $config option}
+      }
+     \item{dba.count() changes:}
+      \itemize{
+        \item{Add new library size normalization scores:}
+         \itemize{
+          \item{DBA_SCORE_READS_FULL}
+          \item{DBA_SCORE_READS_EFFECTIVE}
+          \item{DBA_SCORE_READS_MINUS_FULL}
+          \item{DBA_SCORE_READS_MINUS_EFFECTIVE}
+         }   
+       \item{Changed default dba.count() score to DBA_SCORE_READS_MINUS_FULL (from DBA_SCORE_TMM_MINUS_FULL)}
+       \item{change default to summits=250; to avoid recentering around summits, must set summits=FALSE}
+      }
+      \item{dba.show() changes:}
+       \itemize{
+        \item{Updated dba.show() and print() to deal with designs and different contrast types}
+        \item{Add ability to retrieve design formula in dba.show()}
+        \item{Removed bUsePval parameter in dba.show()}
+        \item{Added constant variable DBA_READS to access library sizes}
+      }
+    \item{Add mask parameter to dba.plotBox() }
+    \item{removed bCorPlot as a parameter to dba(), dba.count(), and dba.analyze(). Use config.}
+    \item{Major update of Vignette and man pages to reflect new modelling methods.}
+    \item{Various bugfixes and cosmetic changes.}
+    }
+}
+
 \section{Version 2.15.1}{
    \itemize{
       \item{Fix issue when extracing SummarizedExperiment from DBA}

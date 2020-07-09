@@ -34,6 +34,7 @@ Entry Points:
 \code{\link{dba.plotBox}}:	\tab	Boxplots\cr
 \code{\link{dba.plotMA}}:	\tab	MA/scatter plot\cr
 \code{\link{dba.plotVenn}}:	\tab 	Venn diagram plot\cr
+\code{\link{dba.plotVolcano}}:	\tab 	Volcano plot\cr
 \cr
 	
 \code{\link{dba.show}}:	\tab	Show dba metadata\cr

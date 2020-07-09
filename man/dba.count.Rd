@@ -10,12 +10,11 @@ bed and gzip-compressed bed.  File suffixes must be ".bam", ".bed", or ".bed.gz"
 respectively.
 }
 \usage{
-dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_TMM_MINUS_FULL, bLog=FALSE,
+dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL, bLog=FALSE,
           fragmentSize=DBA$config$fragmentSize, 
-          summits, filter=0, bRemoveDuplicates=FALSE, bScaleControl=TRUE,
+          summits=250, filter=0, bRemoveDuplicates=FALSE, bScaleControl=TRUE,
           mapQCth=DBA$config$mapQCth, 
           filterFun=max, 
-          bCorPlot=DBA$config$bCorPlot, 
           bUseSummarizeOverlaps=FALSE, readFormat=DBA_READS_DEFAULT,
           bParallel=DBA$config$RunParallel) 
 }
@@ -40,6 +39,10 @@ which score to use in the binding affinity matrix. Note that all raw read counts
 DBA_SCORE_READS \tab raw read count for interval using only reads from ChIP\cr
 DBA_SCORE_READS_FOLD \tab raw read count for interval from ChIP divided by read count for interval from control\cr
 DBA_SCORE_READS_MINUS \tab raw read count for interval from ChIP minus read count for interval from control\cr
+DBA_SCORE_READS_FULL \tab read count for interval from ChIP normalized based on Full Library size\cr
+DBA_SCORE_READS_MINUS_FULL \tab read count for interval from ChIP minus read count for interval from control normalized based on Full Library size\cr
+DBA_SCORE_READS_EFFECTIVE \tab read count for interval from ChIP normalized based on Effective Library size\cr
+DBA_SCORE_READS_MINUS_EFFECTIVE \tab read count for interval from ChIP minus read count for interval from control normalized based on Effective Library size\cr
 DBA_SCORE_RPKM \tab RPKM for interval using only reads from ChIP\cr
 DBA_SCORE_RPKM_FOLD \tab RPKM for interval from ChIP divided by RPKM for interval from control\cr
 DBA_SCORE_TMM_READS_FULL \tab TMM normalized (using edgeR), using ChIP read counts and Full Library size\cr
@@ -56,72 +59,111 @@ DBA_SCORE_SUMMIT_POS \tab summit position (location of maximum read pileup)\cr
 }
 }
 \item{bLog}{
-logical indicating whether log2 of score should be used (only applies to DBA_SCORE_RPKM_FOLD and DBA_SCORE_READS_FOLD).
+logical indicating whether log2 of score should be used (only applies to 
+DBA_SCORE_RPKM_FOLD and DBA_SCORE_READS_FOLD).
 }
 \item{fragmentSize}{
 This value will be used as the length of the reads. 
 Each read will be extended from its endpoint along the appropriate strand by this many bases. 
 If set to zero, the read size indicated in the BAM/BED file will be used.
-\code{fragmentSize} may also be a vector of values, one for each ChIP sample plus one for each unique Control library.
+\code{fragmentSize} may also be a vector of values, one for each ChIP sample plus one for 
+each unique Control library.
 }
 \item{summits}{
-if present, summit heights (read pileup) and locations will be calculated for each peak. The values can retrieved using \code{\link{dba.peakset}}. The summits can also be used as a read score in the global binding matrix (see \code{score}). 
+unless set to \code{FALSE}, summit heights (read pileup) and locations will be calculated for each peak. 
+The values can retrieved using \code{\link{dba.peakset}}. 
+The summits can also be used as a read score in the global binding matrix (see \code{score}). 
 
-If the value of \code{summits} is \code{TRUE} (or \code{0}), the summits will be calculated but the peaksets will be unaffected.  If the value is greater than zero, all consensus peaks will be re-centered around a consensus summit, with the value of \code{summits} indicating how many base pairs to include upstream and downstream of the summit (so all consensus peaks will be of the same width, namely \code{2 * summits}). 
+If the value of \code{summits} is \code{TRUE} (or \code{0}), 
+the summits will be calculated but the peaksets will be unaffected.  
+If the value is greater than zero, all consensus peaks will be re-centered around a consensus summit, 
+with the value of \code{summits} indicating how many base pairs to include upstream and downstream 
+of the summit (so all consensus peaks will be of the same width, namely \code{2 * summits + 1}). 
 
 Note that if \code{summits} is greater than zero, the counting procedure will take twice as long, and \code{bUseSummarizeOverlaps} must be \code{FALSE}.
 }
+
 \item{filter}{
 value to use for filtering intervals with low read counts. 
-The \code{filterFun} will be applied to the scores for each interval, and if it returns a value below the \code{filter}
-value, the interval will be removed from further analysis.
-If \code{peaks} is NULL, will remove sites from existing DBA object without recounting. 
-If filter is a vector of values, \code{dba.count} will return a vector of the same length, indicating how many intervals will be retained for each specified \code{filter} level.
+The \code{filterFun} will be applied to the scores for each interval, 
+and if it returns a value below the \code{filter} value, 
+the interval will be removed from further analysis.
+If \code{peaks} is \code{NULL}, will remove sites from existing DBA object without recounting. 
+If filter is a vector of values, \code{dba.count} will return a vector of the same length, 
+indicating how many intervals will be retained for each specified \code{filter} level.
 }
 \item{bRemoveDuplicates}{
-logical indicating if duplicate reads (ones that map to exactly the same genomic position) should be removed. If TRUE, any location where multiple reads map will  be counted as a single read. Note that if \code{bLowMem} is set, duplicates needs to have been already marked in all of the BAM files.
-The built-in counting code may not correctly handle certain cases when the \code{bRemoveDuplicates} parameter is set to \code{TRUE}. These cases include paired-end data and datasets where the read length may differ within a single BAM file. In these cases, see the \code{bUseSummarizeOverlaps} parameter.
+logical indicating if duplicate reads (ones that map to exactly the same genomic position) should be removed.
+If \code{TRUE}, any location where multiple reads map will be counted as a single read. 
+Note that if \code{bLowMem} is set, duplicates needs to have been already marked 
+in all of the BAM files.
+The built-in counting code may not correctly handle certain cases when the 
+\code{bRemoveDuplicates} parameter is set to \code{TRUE}. 
+These cases include paired-end data and datasets where the read length may differ within a single BAM file. 
+In these cases, see the \code{bUseSummarizeOverlaps} parameter.
 }
 \item{bScaleControl}{
-logical indicating if the Control reads should be scaled based on relative library sizes. If TRUE, and there are more reads in the Control library than in the ChIP library, the number of Control reads for each peak will be multiplied by a scaling factor determined by dividing the total number of reads in the ChIP library by the total number of reads in the Control library. If this value is not an integer, the number of Control reads for each peak  will be the next highest integer.
+logical indicating if the Control reads should be scaled based on relative library sizes. 
+If \code{TRUE}, and there are more reads in the Control library than in the ChIP library, 
+the number of Control reads for each peak will be multiplied by a scaling factor 
+determined by dividing the total number of reads in the ChIP library by 
+the total number of reads in the Control library. 
+If this value is not an integer, the number of Control reads for each peak  
+will be the next highest integer.
 }
 
 \item{mapQCth}{
-for filtering by mapping quality (mapqc). Only alignments with mapping scores of at least this value will be included. Only applicable for bam files when \code{bUseSummarizeOverlaps=FALSE} (setting \code{DBA$config$scanbamparam} appropriately to filter on quality scores when using \code{\link{summarizeOverlaps}}.)
+for filtering by mapping quality (mapqc). 
+Only alignments with mapping scores of at least this value will be included. 
+Only applicable for bam files when \code{bUseSummarizeOverlaps=FALSE} 
+(setting \code{DBA$config$scanbamparam} appropriately to filter on quality scores when using \code{\link{summarizeOverlaps}}.)
 }
 
 \item{filterFun}{
-function that will be invoked for each interval with a vector of scores for each sample. Returns a score that will be evaluated against the \code{filter} value (only intervals with a score at least as high as \code{filter} will be kept). Default is \code{max}, indicating that at least one sample should have a score of at least \code{filter}; other useful values include \code{sum} (indicating that all the scores added together should be at least \code{filter}) and \code{mean} (setting a minimum mean normalized count level). Users can supply their own function as well.
-}
-\item{bCorPlot}{
-logical indicating whether to plot a correlation heatmap for the counted data
+function that will be invoked for each interval with a vector of scores for each sample. 
+Returns a score that will be evaluated against the \code{filter} value (only intervals with a score 
+at least as high as \code{filter} will be kept).
+Default is \code{max}, indicating that at least one sample should have a score of at least \code{filter}; 
+other useful values include \code{sum} (indicating that all the scores added together should be at least \code{filter}) and \code{mean} (setting a minimum mean normalized count level). 
+Users can supply their own function as well.
 }
 
 \item{bUseSummarizeOverlaps}{
-logical indicating that \code{\link{summarizeOverlaps}} should be used for counting instead of the built-in counting code. This option is slower but uses the more standard counting function. If \code{TRUE}, all read files must be BAM (.bam extension), with associated index files (.bam.bai extension). The \code{insertLength} parameter must absent. 
+logical indicating that \code{\link{summarizeOverlaps}} should be used for
+counting instead of the built-in counting code. 
+This option is slower but uses the more standard counting function.
+If \code{TRUE}, all read files must be BAM (.bam extension), with associated index files 
+(.bam.bai extension). 
+The \code{insertLength} parameter must absent. 
 
-See notes for when the \code{bRemoveDuplicates} parameter is set to \code{TRUE}, where the built-in counting code may not correctly handle certain cases and \code{bUseSummarizeOverlaps} should be set to \code{TRUE}.
+See notes for when the \code{bRemoveDuplicates} parameter is set to \code{TRUE}, 
+where the built-in counting code may not correctly handle certain cases and 
+\code{bUseSummarizeOverlaps} should be set to \code{TRUE}.
 
 Five additional parameters for \code{\link{summarizeOverlaps}} may be specified in \code{DBA$config}:
 \tabular{ll}{
-DBA$config$yieldSize \tab yieldSize indicating how many reads to process at one time; default is 5000000. The lower this value, the less memory will be used, but the more time it will take to complete the count operation.\cr
-DBA$config$intersectMode \tab mode indicating which overlap algorithm to use; default is \code{"IntersectionNotEmpty"}\cr 
-DBA$config$singleEnd \tab logical indicating if reads are single end; default is \code{TRUE}\cr 
-DBA$config$fragments \tab logical indicating how unmatched reads are counted; default is \code{FALSE}\cr 
-DBA$config$scanbamparam \tab \code{ScanBamParam} object to pass to \code{\link{summarizeOverlaps}}. If present, \code{bRemoveDuplicates} is ignored.\cr 
+\code{DBA$config$yieldSize} \tab yieldSize indicating how many reads to process at one time; default is 5000000. 
+The lower this value, the less memory will be used, but the more time it will take to 
+complete the count operation.\cr
+\code{DBA$config$intersectMode} \tab mode indicating which overlap algorithm to use; default is \code{"IntersectionNotEmpty"}\cr 
+\code{DBA$config$singleEnd} \tab logical indicating if reads are single end; default is \code{TRUE}\cr 
+\code{DBA$config$fragments} \tab logical indicating how unmatched reads are counted; default is \code{FALSE}\cr 
+\code{DBA$config$scanbamparam} \tab \code{ScanBamParam} object to pass to \code{\link{summarizeOverlaps}}. 
+If present, \code{bRemoveDuplicates} is ignored.\cr 
 }
 }
 \item{readFormat}{
 Specify the file type of the read files, over-riding the file extension. Possible values:
 \tabular{ll}{
-DBA_READS_DEFAULT \tab use file extension (.bam, .bed, .bed.gz) to determine file type\cr
-DBA_READS_BAM \tab assume the file type is BAM, regardless of the file extension\cr
-DBA_READS_BED \tab assume the file type is BED (or zipped BED), regardless of the file extension.
+\code{DBA_READS_DEFAULT} \tab use file extension (.bam, .bed, .bed.gz) to determine file type\cr
+\code{DBA_READS_BAM} \tab assume the file type is BAM, regardless of the file extension\cr
+\code{DBA_READS_BED} \tab assume the file type is BED (or zipped BED), regardless of the file extension.
 }
-Note that if \code{readFormat} is anything other than \code{DBA_READS_DEFAULT}, all the read files must be of the same file type.
+Note that if \code{readFormat} is anything other than \code{DBA_READS_DEFAULT}, 
+all the read files must be of the same file type.
 }
 \item{bParallel}{
-if TRUE, use multicore to get counts for each read file in parallel
+if \code{TRUE}, use multicore to get counts for each read file in parallel
 }
 }
 %\details{
@@ -182,6 +224,14 @@ plot(0:250,rate.max/rate.max[1],type='l',xlab="Filter Value",ylab="Proportion Re
 lines(0:250,rate.sum/rate.sum[1],col=2)
 tamoxifen <- dba.count(tamoxifen,peaks=NULL,filter=125,filterFun=sum)
 tamoxifen
+
+# Calculate summits
+data(tamoxifen_counts) 
+# pre-counted with summits=250 or 501bp intervals
+as.numeric(dba.show(tamoxifen)$FRiP)
+\dontrun{tamoxifen <- dba.count(tamoxifen,peaks=NULL,summits=50)}
+# re-counted with summits=50 or 101bp intervals
+as.numeric(dba.show(tamoxifen)$FRiP)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

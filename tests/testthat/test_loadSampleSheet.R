@@ -49,7 +49,7 @@ test_that("warning multiple columns generates multiple warnings",{
 test_that("loading csv sample sheet with spaces generates warnings",{
   wd <- getwd()
   setwd(system.file('extra','testdata',package='DiffBind'))
-  res <- collectWarnings(dba,list('sampleSheet'='test_sampleSheet_Spaces.csv','bCorPlot'=FALSE))
+  res <- collectWarnings(dba,list('sampleSheet'='test_sampleSheet_Spaces.csv'))# RJS 5/6/2020 ,'bCorPlot'=FALSE))
   expect_equal(2,length(res$warnings))
   expect_equal(res$warnings[1],"Removed white space from treated in column Condition (row 3)",fixed=TRUE)
   expect_equal(res$warnings[2],"Removed white space from bed_with_header.bed.gz,bed_without_header.bed.gz,raw_with_header.raw.gz in column Peaks (rows 1,2,3)",fixed=TRUE)
@@ -66,7 +66,7 @@ test_that("loading xlsx sample sheet with spaces generates warnings",{
   if (require(XLConnect)) {
     wd <- getwd()
     setwd(system.file('extra','testdata',package='DiffBind'))
-    res <- collectWarnings(dba,list('sampleSheet'='test_sampleSheet_Spaces.csv','bCorPlot'=FALSE))
+    res <- collectWarnings(dba,list('sampleSheet'='test_sampleSheet_Spaces.csv'))# RJS 5/6/2020,'bCorPlot'=FALSE))
     expect_equal(2,length(res$warnings))
     expect_equal(res$warnings[1],"Removed white space from treated in column Condition (row 3)",fixed=TRUE)
     expect_equal(res$warnings[2],"Removed white space from bed_with_header.bed.gz,bed_without_header.bed.gz,raw_with_header.raw.gz in column Peaks (rows 1,2,3)",fixed=TRUE)

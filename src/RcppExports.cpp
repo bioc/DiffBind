@@ -44,14 +44,7 @@ BEGIN_RCPP
 END_RCPP
 }
 
-extern "C" {
-SEXP croi_count_reads(SEXP filename_r,SEXP insertLength_r,SEXP filetype_r,
-                      SEXP bufferSize_r,SEXP minMapQual_r,SEXP chrom_r,
-                      SEXP left_r,SEXP right_r,
-                      SEXP intervalCount_r,SEXP withoutDupes_r,
-                      SEXP wantSummits_r,SEXP counts_r,SEXP summits_r,
-                      SEXP heights_r);
-}
+RcppExport SEXP croi_count_reads(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"_DiffBind_mergePeaks", (DL_FUNC) &_DiffBind_mergePeaks, 2},
