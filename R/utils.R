@@ -10,14 +10,14 @@ pv.peaks2DataType <- function(peaks,datatype=DBA_DATA_DEFAULT) {
       return(peaks)	
    }
    
-   if(class(peaks)=="data.frame") {
+   if(is(peaks,"data.frame")) {
       if(nrow(peaks)==0) {
          return(NULL)
       }   
    }
    
    if(datatype==DBA_DATA_RANGEDDATA) {
-      if(class(peaks)!="RangedData") {
+      if(!is(peaks,"RangedData")) {
          #require(IRanges)
          cnames <- colnames(peaks)
          cnames[1:3] <- c("space","start","end")
@@ -28,9 +28,9 @@ pv.peaks2DataType <- function(peaks,datatype=DBA_DATA_DEFAULT) {
    
    if(datatype==DBA_DATA_GRANGES) {
       #require(GenomicRanges)
-      if(class(peaks)=="RangedData") {
+      if(is(peaks,"RangedData")) {
          res <- suppressWarnings(as(peaks,"GRanges"))
-      } else if (class(peaks) != "GRanges") {
+      } else if (!is(peaks,"GRanges")) {
          res <- GRanges(Rle(peaks[,1]),IRanges(peaks[,2],width=peaks[,3]-peaks[,2]+1,names=rownames(peaks)),
                         strand <- Rle("*", length(seqnames)))
          if(ncol(peaks)>3) {
@@ -50,38 +50,38 @@ pv.DataType2Peaks <- function(RDpeaks){
    if(is.null(RDpeaks)) {
       return(NULL)
    }
-   if(class(RDpeaks)=='logical') {
+   if(is(RDpeaks,'logical')) {
       return(RDpeaks)
    }
-   if(class(RDpeaks)=='integer') {
+   if(is(RDpeaks,'integer')) {
       return(RDpeaks)
    }
-   if(class(RDpeaks)=='numeric') {
+   if(is(RDpeaks,'numeric')) {
       return(RDpeaks)
    }
-   if(class(RDpeaks)=='character') {
+   if(is(RDpeaks,'character')) {
       return(RDpeaks)
    }
-   if(class(RDpeaks)!="data.frame") {
+   if(!is(RDpeaks,"data.frame")) {
       #require(IRanges)
       res <- as.data.frame(RDpeaks)[,-4]
       cnames <- colnames(res)
       cnames[1:3] <- c("CHR","START","END")
       colnames(res) <- cnames
-      if(class(RDpeaks)=="GRanges") {
+      if(is(RDpeaks,"GRanges")) {
          res <- res[,-4]	
       }
    } else {
       res <- RDpeaks
    }
-   if(class(res)=="data.frame") {
+   if(is(res,"data.frame")) {
       res[,1] <- as.character(res[,1])
    }
    return(res)
 }
 
 
-pv.get_reads <- function(pv,peaksets,bSubControl=T,numReads){
+pv.get_reads <- function(pv,peaksets,bSubControl=TRUE,numReads){
    
    if(is.null(bSubControl)) {
       bSubControl <- TRUE
@@ -119,7 +119,7 @@ pv.get_reads <- function(pv,peaksets,bSubControl=T,numReads){
       }
    }
    
-   reads[reads<1]=1
+   reads[reads<1] <- minCount
    
    rownames(reads) <- 1:nrow(reads)
    
@@ -187,7 +187,7 @@ pv.occ2matrix <- function(occ,col=PV_COR,div){
    els <- unique(c(occ[,1],occ[,2]))
    
    nels <- length(els)
-   els  <- els[order(els,decreasing=F)]
+   els  <- els[order(els,decreasing=FALSE)]
    res <- matrix(NA,nels,nels)
    
    for(i in 1:nels) {
@@ -355,7 +355,7 @@ pv.attname <- function(attribute,pv=NULL) {
    return("Group")
 }
 
-pv.attributematrix <- function(pv,mask,contrast,attributes,cols,bReverse=F,bAddGroup=F) {
+pv.attributematrix <- function(pv,mask,contrast,attributes,cols,bReverse=FALSE,bAddGroup=FALSE) {
    
    if(is.null(attributes)){
       attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT,PV_REPLICATE,PV_CALLER)
@@ -454,7 +454,7 @@ pv.checkValue <- function(val,check) {
 
 pv.setMask <- function(pv,mask,contrast) {
    
-   newmask <- rep(T,length(pv$peaks))
+   newmask <- rep(TRUE,length(pv$peaks))
    
    if(!missing(contrast)) {
       if(contrast <= length(pv$contrasts)) {
@@ -471,17 +471,17 @@ pv.setMask <- function(pv,mask,contrast) {
       mask <- newmask   
    } else {
       if(!is.logical(mask)) {
-         tmp  <- rep(F,length(pv$peaks))
-         tmp[mask] <- T
+         tmp  <- rep(FALSE,length(pv$peaks))
+         tmp[mask] <- TRUE
          mask <- tmp
       }
    }
    if(length(mask) != length(pv$peaks)) {
-      stop('Mask does not match samples.')
+      stop('Mask does not match samples.',call.=FALSE)
    }
    for(pnum in 1:length(pv$peaks)) {
       if(nrow(pv$peaks[[pnum]])==0) {
-         mask[pnum]=F
+         mask[pnum] <- FALSE
       }
    }
    return(mask)
@@ -538,7 +538,8 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
       col <- get(col, mode = "function")
    if (!missing(breaks) && (scale != "none")) 
       warning("Using scale=\"row\" or scale=\"column\" when breaks are", 
-              "specified can produce unpredictable results.", "Please consider using only one or the other.")
+              "specified can produce unpredictable results.", "Please consider using only one or the other."
+              ,call.=FALSE)
    if (is.null(Rowv) || is.na(Rowv)) 
       Rowv <- FALSE
    if (is.null(Colv) || is.na(Colv)) 
@@ -546,13 +547,13 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
    else if (Colv == "Rowv" && !isTRUE(Rowv)) 
       Colv <- FALSE
    if (length(di <- dim(x)) != 2 || !is.numeric(x)) 
-      stop("`x' must be a numeric matrix")
+      stop("`x' must be a numeric matrix",call.=FALSE)
    nr <- di[1]
    nc <- di[2]
    if (nr <= 1 || nc <= 1) 
-      stop("`x' must have at least 2 rows and 2 columns")
+      stop("`x' must have at least 2 rows and 2 columns",call.=FALSE)
    if (!is.numeric(margins) || length(margins) != 2) 
-      stop("`margins' must be a numeric vector of length 2")
+      stop("`margins' must be a numeric vector of length 2",call.=FALSE)
    if (missing(cellnote)) 
       cellnote <- matrix("", ncol = ncol(x), nrow = nrow(x))
    if (!inherits(Rowv, "dendrogram")) {
@@ -562,7 +563,8 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
             dendrogram <- "column"
          else dedrogram <- "none"
          warning("Discrepancy: Rowv is FALSE, while dendrogram is `", 
-                 dendrogram, "'. Omitting row dendogram.")
+                 dendrogram, "'. Omitting row dendogram.",
+                 call.=FALSE)
       }
    }
    if (!inherits(Colv, "dendrogram")) {
@@ -572,7 +574,8 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
             dendrogram <- "row"
          else dendrogram <- "none"
          warning("Discrepancy: Colv is FALSE, while dendrogram is `", 
-                 dendrogram, "'. Omitting column dendogram.")
+                 dendrogram, "'. Omitting column dendogram.",
+                 call.=FALSE)
       }
    }
    if (inherits(Rowv, "dendrogram")) {
@@ -585,7 +588,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
       ddr <- reorder(ddr, Rowv)
       rowInd <- order.dendrogram(ddr)
       if (nr != length(rowInd)) 
-         stop("row dendrogram ordering gave index of wrong length")
+         stop("row dendrogram ordering gave index of wrong length",call.=FALSE)
    }
    else if (isTRUE(Rowv)) {
       Rowv <- rowMeans(x, na.rm = na.rm)
@@ -594,7 +597,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
       ddr <- reorder(ddr, Rowv)
       rowInd <- order.dendrogram(ddr)
       if (nr != length(rowInd)) 
-         stop("row dendrogram ordering gave index of wrong length")
+         stop("row dendrogram ordering gave index of wrong length",call.=FALSE)
    }
    else {
       rowInd <- nr:1
@@ -605,7 +608,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
    }
    else if (identical(Colv, "Rowv")) {
       if (nr != nc) 
-         stop("Colv = \"Rowv\" but nrow(x) != ncol(x)")
+         stop("Colv = \"Rowv\" but nrow(x) != ncol(x)",call.=FALSE)
       if (exists("ddr")) {
          ddc <- ddr
          colInd <- order.dendrogram(ddc)
@@ -620,7 +623,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
       ddc <- reorder(ddc, Colv)
       colInd <- order.dendrogram(ddc)
       if (nc != length(colInd)) 
-         stop("column dendrogram ordering gave index of wrong length")
+         stop("column dendrogram ordering gave index of wrong length",call.=FALSE)
    }
    else if (isTRUE(Colv)) {
       Colv <- colMeans(x, na.rm = na.rm)
@@ -631,7 +634,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
       ddc <- reorder(ddc, Colv)
       colInd <- order.dendrogram(ddc)
       if (nc != length(colInd)) 
-         stop("column dendrogram ordering gave index of wrong length")
+         stop("column dendrogram ordering gave index of wrong length",call.=FALSE)
    }
    else {
       colInd <- 1:nc
@@ -681,8 +684,9 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
    }
    nbr <- length(breaks)
    ncol <- length(breaks) - 1
-   if (class(col) == "function") 
+   if (is(col,"function")) {
       col <- col(ncol)
+   }
    min.breaks <- min(breaks)
    max.breaks <- max(breaks)
    x[x < min.breaks] <- min.breaks
@@ -700,7 +704,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
             #stop("'ColSideColors' must be a matrix")
             if (!is.character(ColSideColors) || dim(ColSideColors)[1] != 
                 nc) 
-               stop("'ColSideColors' dim()[2] must be of length ncol(x)")
+               stop("'ColSideColors' dim()[2] must be of length ncol(x)",call.=FALSE)
             lmat <- rbind(lmat[1, ] + 1, c(NA, 1), lmat[2, ] + 1)
             #lhei <- c(lhei[1], 0.2, lhei[2])
             lhei=c(lhei[1], 0.1*NumColSideColors, lhei[2]) 
@@ -712,7 +716,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
             #stop("'RowSideColors' must be a matrix")
             if (!is.character(RowSideColors) || dim(RowSideColors)[1] != 
                 nr) 
-               stop("'RowSideColors' must be a character vector of length nrow(x)")
+               stop("'RowSideColors' must be a character vector of length nrow(x)",call.=FALSE)
             lmat <- cbind(lmat[, 1] + 1, c(rep(NA, nrow(lmat) - 1), 1), lmat[,2] + 1)
             #lwid <- c(lwid[1], 0.2, lwid[2])
             lwid <- c(lwid[1], 0.1*NumRowSideColors, lwid[2])
@@ -722,9 +726,9 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
    }
    
    if (length(lhei) != nrow(lmat))
-      stop("lhei must have length = nrow(lmat) = ", nrow(lmat))
+      stop("lhei must have length = nrow(lmat) = ", nrow(lmat),call.=FALSE)
    if (length(lwid) != ncol(lmat))
-      stop("lwid must have length = ncol(lmat) =", ncol(lmat))
+      stop("lwid must have length = ncol(lmat) =", ncol(lmat),call.=FALSE)
    op <- par(no.readonly = TRUE)
    on.exit(par(op))
    layout(lmat, widths = lwid, heights = lhei, respect = FALSE)     
@@ -740,7 +744,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
          if(ncol(RowSideColors)==1) {	
             par(mar = c(margins[1], 0, 0, 0.5))
             image(rbind(1:nr), col = RowSideColors[,1][xrowInd], axes = FALSE)
-            axis(1,0,colnames(RowSideColors)[1],las=2,tick=F)
+            axis(1,0,colnames(RowSideColors)[1],las=2,tick=FALSE)
          } 
          else{
             par(mar = c(margins[1], 0, 0, 0.5))
@@ -770,7 +774,7 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
          if(ncol(ColSideColors)==1) {
             par(mar = c(0.5, 0, 0, margins[2]))
             image(cbind(1:nc), col = ColSideColors[,1][colInd], axes = FALSE)
-            axis(2,0,colnames(ColSideColors)[1],las=2,tick=F)
+            axis(2,0,colnames(ColSideColors)[1],las=2,tick=FALSE)
          }
          else {    
             par(mar = c(0.5, 0, 0, margins[2]))

@@ -50,409 +50,435 @@ PV_DEBUG <- FALSE
 ###########################################
 
 ## pv.peakset -- add a peakset to the model
-pv.peakset <-
-  function(pv = NULL,peaks, sampID, tissue, factor,condition, treatment, replicate,
-           control, peak.caller, peak.format, reads = 0, consensus =
-             F, readBam, controlBam,
-           scoreCol = NULL, bLowerScoreBetter = NULL, bRemoveM =
-             T, bRemoveRandom = T,
-           minOverlap = 2,bFast = F,bMakeMasks = T,skipLines =
-             1, filter = NULL, counts = NULL) {
-    zeroVal <- -1
-    bLog <- F
-    
-    if (missing(peaks)) {
-      peaks <- NULL
-    }
-    
-    if (!is.null(pv$peaks) && length(peaks) == 0) {
-      peaks <- 1:length(pv$peaks)
-    }
-    
-    if (missing(counts))
-      counts <- NULL
-    if (!is.null(counts)) {
-      res <- pv.peaksetCounts(
-        pv = pv,peaks = peaks,counts = counts,
-        sampID = sampID,tissue = tissue,factor = factor,
-        condition = condition, treatment = treatment,replicate = replicate
+pv.peakset <- function(pv = NULL,peaks, sampID, tissue, factor,condition, treatment, replicate,
+                       control, peak.caller, peak.format, reads = 0, consensus =FALSE, 
+                       readBam, controlBam, scoreCol = NULL, bLowerScoreBetter = NULL,
+                       bRemoveM = TRUE, bRemoveRandom = TRUE,
+                       minOverlap = 2,bFast = FALSE,bMakeMasks = TRUE,
+                       skipLines = 1, filter = NULL, counts = NULL) {
+  zeroVal <- -1
+  bLog <- FALSE
+  
+  if (missing(peaks)) {
+    peaks <- NULL
+  }
+  
+  if (!is.null(pv$peaks) && length(peaks) == 0) {
+    peaks <- 1:length(pv$peaks)
+  }
+  
+  if (missing(counts))
+    counts <- NULL
+  if (!is.null(counts)) {
+    res <- pv.peaksetCounts(
+      pv = pv,peaks = peaks,counts = counts,
+      sampID = sampID,tissue = tissue,factor = factor,
+      condition = condition, treatment = treatment,replicate = replicate
+    )
+    return(res)
+  }
+  
+  if (missing(peak.format))
+    peak.format <- NULL
+  if (missing(scoreCol))
+    scoreCol <- NULL
+  if (missing(bLowerScoreBetter))
+    bLowerScoreBetter <- NULL
+  if (missing(filter))
+    filter <- NULL
+  
+  bConsensus <- FALSE
+  if (is.numeric(consensus)) {
+    ## Add a set of consensus peaksets
+    bConsensus <- TRUE
+    pv <-
+      pv.consensusSets(
+        pv,peaks = peaks,minOverlap = minOverlap,attributes = consensus,
+        tissue,factor,condition,treatment,replicate,control,peak.caller,
+        readBam, controlBam
       )
-      return(res)
-    }
     
-    if (missing(peak.format))
-      peak.format <- NULL
-    if (missing(scoreCol))
-      scoreCol <- NULL
-    if (missing(bLowerScoreBetter))
-      bLowerScoreBetter <- NULL
-    if (missing(filter))
-      filter <- NULL
-    
-    bConsensus <- F
-    if (is.numeric(consensus)) {
-      ## Add a set of consensus peaksets
-      bConsensus <- T
+  } else {
+    ## add a specific consensus peakset
+    if (is.vector(peaks) && length(peaks) > 1) {
+      # consensus
+      bConsensus <- TRUE
       pv <-
-        pv.consensusSets(
-          pv,peaks = peaks,minOverlap = minOverlap,attributes = consensus,
-          tissue,factor,condition,treatment,replicate,control,peak.caller,
-          readBam, controlBam
-        )
-      
-    } else {
-      ## add a specific consensus peakset
-      if (is.vector(peaks) && length(peaks) > 1) {
-        # consensus
-        bConsensus <- T
-        pv <-
-          pv.consensus(pv,peaks,minOverlap = minOverlap,bFast = bFast)
-        if (!is.null(minOverlap)) {
-          nset <- length(pv$peaks)
-          if (!missing(sampID)) {
-            pv$class[PV_ID,nset] <- sampID
-            colnames(pv$class)[nset] <- sampID
-          }
+        pv.consensus(pv,peaks,minOverlap = minOverlap,bFast = bFast)
+      if (!is.null(minOverlap)) {
+        nset <- length(pv$peaks)
+        if (!missing(sampID)) {
+          pv$class[PV_ID,nset] <- sampID
+          colnames(pv$class)[nset] <- sampID
         }
-        
-        if (!missing(tissue))
-          pv$class[PV_TISSUE,nset] <- tissue
-        if (!missing(factor))
-          pv$class[PV_FACTOR,nset] <- factor
-        if (!missing(condition))
-          pv$class[PV_CONDITION,nset] <- condition
-        if (!missing(treatment))
-          pv$class[PV_TREATMENT,nset] <- treatment
-        if (!missing(replicate))
-          pv$class[PV_REPLICATE,nset] <- replicate
-        if (!missing(control))
-          pv$class[PV_CONTROL,nset] <- control
-        if (!missing(peak.caller))
-          pv$class[PV_CALLER,nset] <- peak.caller
-        if (!missing(readBam))
-          pv$class[PV_BAMREADS,nset] <- readBam
-        if (!missing(controlBam))
-          pv$class[PV_BAMCONTROL,nset] <- controlBam
       }
+      
+      if (!missing(tissue))
+        pv$class[PV_TISSUE,nset] <- tissue
+      if (!missing(factor))
+        pv$class[PV_FACTOR,nset] <- factor
+      if (!missing(condition))
+        pv$class[PV_CONDITION,nset] <- condition
+      if (!missing(treatment))
+        pv$class[PV_TREATMENT,nset] <- treatment
+      if (!missing(replicate))
+        pv$class[PV_REPLICATE,nset] <- replicate
+      if (!missing(control))
+        pv$class[PV_CONTROL,nset] <- control
+      if (!missing(peak.caller))
+        pv$class[PV_CALLER,nset] <- peak.caller
+      if (!missing(readBam))
+        pv$class[PV_BAMREADS,nset] <- readBam
+      if (!missing(controlBam))
+        pv$class[PV_BAMCONTROL,nset] <- controlBam
     }
-    if (bConsensus) {
-      if (bMakeMasks) {
-        pv$masks <- pv.mask(pv)
-      }
-      return(pv)
-    }
-    
-    if (missing(tissue))
-      tissue <- ''
-    if (missing(factor))
-      factor <- ''
-    if (missing(condition))
-      condition <- ''
-    if (missing(treatment))
-      treatment <- ''
-    if (missing(replicate))
-      replicate <- ''
-    if (missing(control))
-      control <- ''
-    if (missing(peak.caller))
-      peak.caller <- ''
-    if (missing(readBam))
-      readBam <- NA
-    if (length(readBam) == 0)
-      readBam <- NA
-    if (missing(controlBam))
-      controlBam <- NA
-    if (length(controlBam) == 0)
-      controlBam <- NA
-    
-    if (!is.null(peaks) && length(peaks) <= 1) {
-      if (is.na(peaks)) {
-        peaks <- NULL
-      } else {
-        if (is.character(peaks)) {
-          if (peaks == "" || peaks == " ")
-            peaks <- NULL
-        }
-      }
-    }
-    if (is.null(peaks)) {
-      peaks <- matrix(0,0,4)
-    } else {
-      if (is.character(peaks)) {
-        # Read in peaks from a file
-        if(file.info(peaks)$size > 0) {
-          pcaller <- strtrim(peak.caller,6)
-          if (is.null(peak.format)) {
-            peak.format <- pcaller
-          }
-          if (is.null(scoreCol)) {
-            scoreCol <- pv.defaultScoreCol(peak.format)
-          }
-          peaks <- pv.readPeaks(peaks,peak.format,skipLines)
-        } else {
-          peaks <- matrix(0,0,4)
-          scoreSave <- scoreCol <- 0
-        }
-      } else {
-        peaks <- pv.peaksort(peaks)
-        if (is.null(scoreCol))
-          scoreCol <- 0
-        if (is.null(bLowerScoreBetter))
-          bLowerScoreBetter <- FALSE
-      }
-      
-      scoreSave <- scoreCol
-      if ( (nrow(peaks) > 0) & 
-           ( (ncol(peaks) < scoreSave) | (ncol(peaks) == 3))){
-        peaks <- cbind(peaks[,1:3],1)
-        colnames(peaks)[ncol(peaks)] <- "score"
-        scoreCol <- 0
-      }
-      
-      if (is.null(bLowerScoreBetter)) {
-        if (peak.caller == "report") {
-          bLowerScoreBetter <- TRUE
-        } else {
-          bLowerScoreBetter <- FALSE
-        }
-      }
-      
-      if (is.null(filter) && peak.caller == "bayes") {
-        filter <- 0.5
-      }
-      
-      if (scoreCol > 0) {
-        if (!missing(filter)) {
-          if (!is.null(filter)) {
-            if (bLowerScoreBetter) {
-              tokeep <- peaks[,scoreCol] <= filter
-            } else {
-              tokeep <- peaks[,scoreCol] >= filter
-            }
-            peaks <- peaks[tokeep,]
-          }
-        }
-        peaks[,scoreCol] <-
-          pv.normalize(peaks,scoreCol,zeroVal = zeroVal,bLog = bLog)
-        if (bLowerScoreBetter) {
-          peaks[,scoreCol] <- 1 - peaks[,scoreCol]
-        }
-        peaks <- peaks[,c(1:3,scoreCol)]
-      }
-      
-      if (bRemoveM) {
-        idx <- peaks[,1] != "chrM"
-        peaks <- peaks[idx,]
-        if (sum(!idx) > 0) {
-          peaks[,1] <- as.factor(as.character(peaks[,1]))
-        }
-      }
-      
-      if (bRemoveRandom) {
-        for (i in c(1:22,"X","Y")) {
-          ch <- sprintf("chr%s_random",i)
-          idx <- peaks[,1] != ch
-          peaks <- peaks[idx,]
-          if (sum(!idx) > 0) {
-            peaks[,1] <- as.factor(as.character(peaks[,1]))
-          }
-        }
-      }
-      
-      newchrs <- as.character(peaks[,1])
-      pv$chrmap  <- sort(unique(c(pv$chrmap,newchrs)))
-      #         peaks[,1] <- factor(peaks[,1],pv$chrmap)
-      peaks[,1] <- as.character(peaks[,1])
-    }
-    
-    pv$peaks <- pv.listadd(pv$peaks,peaks)
-    
-    if (missing(sampID)) {
-      if (is.null(pv)) {
-        sampID <- 1
-      } else if (is.null(pv$peaks)) {
-        sampID <- 1
-      } else {
-        sampID <- length(pv$peaks)
-      }
-    }
-    clascol <-
-      cbind(
-        NULL,c(
-          sampID,tissue,factor,condition,consensus,peak.caller,control,
-          reads,replicate,readBam,controlBam,treatment
-        )
-      )
-    colnames(clascol) <- sampID
-    pv$class <- cbind(pv$class,clascol)
-    rownames(pv$class) <-
-      c(
-        "ID","Tissue","Factor","Condition", "Consensus",
-        "Peak caller","Control","Reads","Replicate","bamRead",
-        "bamControl","Treatment"
-      )
-    pv$merged  <- NULL
-    pv$binding <- NULL
+  }
+  if (bConsensus) {
     if (bMakeMasks) {
       pv$masks <- pv.mask(pv)
     }
     return(pv)
   }
+  
+  if (missing(tissue))
+    tissue <- ''
+  if (missing(factor))
+    factor <- ''
+  if (missing(condition))
+    condition <- ''
+  if (missing(treatment))
+    treatment <- ''
+  if (missing(replicate))
+    replicate <- ''
+  if (missing(control))
+    control <- ''
+  if (missing(peak.caller))
+    peak.caller <- ''
+  if (missing(readBam))
+    readBam <- NA
+  if (length(readBam) == 0)
+    readBam <- NA
+  if (missing(controlBam))
+    controlBam <- NA
+  if (length(controlBam) == 0)
+    controlBam <- NA
+  
+  if (!is.null(peaks) && length(peaks) <= 1) {
+    if (is.na(peaks)) {
+      peaks <- NULL
+    } else {
+      if (is.character(peaks)) {
+        if (peaks == "" || peaks == " ")
+          peaks <- NULL
+      }
+    }
+  }
+  if (is.null(peaks)) {
+    peaks <- matrix(0,0,4)
+  } else {
+    if (is.character(peaks)) {
+      # Read in peaks from a file
+      if(file.info(peaks)$size > 0) {
+        pcaller <- strtrim(peak.caller,6)
+        if (is.null(peak.format)) {
+          peak.format <- pcaller
+        }
+        if (is.null(scoreCol)) {
+          scoreCol <- pv.defaultScoreCol(peak.format)
+        }
+        peaks <- pv.readPeaks(peaks,peak.format,skipLines)
+      } else {
+        peaks <- matrix(0,0,4)
+        scoreSave <- scoreCol <- 0
+      }
+    } else {
+      peaks <- pv.peaksort(peaks)
+      if (is.null(scoreCol))
+        scoreCol <- 0
+      if (is.null(bLowerScoreBetter))
+        bLowerScoreBetter <- FALSE
+    }
+    
+    scoreSave <- scoreCol
+    if ( (nrow(peaks) > 0) & 
+         ( (ncol(peaks) < scoreSave) | (ncol(peaks) == 3))){
+      peaks <- cbind(peaks[,1:3],1)
+      colnames(peaks)[ncol(peaks)] <- "score"
+      scoreCol <- 0
+    }
+    
+    if (is.null(bLowerScoreBetter)) {
+      if (peak.caller == "report") {
+        bLowerScoreBetter <- TRUE
+      } else {
+        bLowerScoreBetter <- FALSE
+      }
+    }
+    
+    if (is.null(filter) && peak.caller == "bayes") {
+      filter <- 0.5
+    }
+    
+    if (scoreCol > 0) {
+      if (!missing(filter)) {
+        if (!is.null(filter)) {
+          if (bLowerScoreBetter) {
+            tokeep <- peaks[,scoreCol] <= filter
+          } else {
+            tokeep <- peaks[,scoreCol] >= filter
+          }
+          peaks <- peaks[tokeep,]
+        }
+      }
+      peaks[,scoreCol] <-
+        pv.normalize(peaks,scoreCol,zeroVal = zeroVal,bLog = bLog)
+      if (bLowerScoreBetter) {
+        peaks[,scoreCol] <- 1 - peaks[,scoreCol]
+      }
+      peaks <- peaks[,c(1:3,scoreCol)]
+    }
+    
+    if (bRemoveM) {
+      idx <- peaks[,1] != "chrM"
+      peaks <- peaks[idx,]
+      if (sum(!idx) > 0) {
+        peaks[,1] <- as.factor(as.character(peaks[,1]))
+      }
+    }
+    
+    if (bRemoveRandom) {
+      for (i in c(1:22,"X","Y")) {
+        ch <- sprintf("chr%s_random",i)
+        idx <- peaks[,1] != ch
+        peaks <- peaks[idx,]
+        if (sum(!idx) > 0) {
+          peaks[,1] <- as.factor(as.character(peaks[,1]))
+        }
+      }
+    }
+    
+    newchrs <- as.character(peaks[,1])
+    pv$chrmap  <- sort(unique(c(pv$chrmap,newchrs)))
+    #         peaks[,1] <- factor(peaks[,1],pv$chrmap)
+    peaks[,1] <- as.character(peaks[,1])
+  }
+  
+  colnames(peaks)[1:4] <- c("Chr","Start","End","Score")
+  
+  pv$peaks <- pv.listadd(pv$peaks,peaks)
+  
+  if (missing(sampID)) {
+    if (is.null(pv)) {
+      sampID <- 1
+    } else if (is.null(pv$peaks)) {
+      sampID <- 1
+    } else {
+      sampID <- length(pv$peaks)
+    }
+  }
+  clascol <-
+    cbind(
+      NULL,c(
+        sampID,tissue,factor,condition,consensus,peak.caller,control,
+        reads,replicate,readBam,controlBam,treatment
+      )
+    )
+  colnames(clascol) <- sampID
+  pv$class <- cbind(pv$class,clascol)
+  rownames(pv$class) <-
+    c(
+      "ID","Tissue","Factor","Condition", "Consensus",
+      "Peak caller","Control","Reads","Replicate","bamRead",
+      "bamControl","Treatment"
+    )
+  pv$merged  <- NULL
+  pv$binding <- NULL
+  if (bMakeMasks) {
+    pv$masks <- pv.mask(pv)
+  }
+  return(pv)
+}
 
 ## pv.vectors -- build the binding expression vectors and do clustering/PCA
-pv.vectors <-
-  function(pv,mask,minOverlap = 2,attributes,bAllSame = F,
-           merge = TRUE) {
-    if (missing(attributes)) {
-      if (is.null(pv$attributes)) {
-        attributes <- PV_ID
-      } else {
-        attributes <- pv$attributes
-      }
-    }
-    
-    if (!missing(mask)) {
-      if (is.logical(mask)) {
-        mask <- which(mask)
-      }
-      peaks <- NULL
-      for (i in mask) {
-        #if(nrow(pv$peaks[[i]]) > 0) {
-        peaks <- pv.listadd(peaks,pv$peaks[[i]])
-        #}
-      }
-      class      <- pv$class[,mask]
-      chrmap     <- pv$chrmap
-      config     <- pv$config
-      samples    <- pv$samples
-      contrasts  <- pv$contrasts
-      #annotation <- pv$annotation
-      
-      pv <- NULL
-      pv$peaks      <- peaks
-      pv$class      <- class
-      pv$chrmap     <- chrmap
-      pv$config     <- config
-      pv$samples    <- samples
-      pv$contrasts  <- contrasts
-      #pv$annotation <- annotation
-    }
-    
-    if (is.vector(pv$class)) {
-      pv$class <- matrix(pv$class,length(pv$class),1)
-      colnames(pv$class) <- pv$class[1,]
-    }
-    
-    peaks <- pv$peaks
-    
-    numvecs <- length(peaks)
-    ncols <- numvecs + 3
-    
-    if (minOverlap > 0 && minOverlap < 1) {
-      minOverlap <- ceiling(numvecs * minOverlap)
-    }
-    
-    npeaks <- 0
-    defval <- -1
-    
-    if (!bAllSame) {
-      if (sum(sapply(peaks,nrow)) > 0) {
-        if (merge) {
-          allp <-lapply(peaks,
-                        function(x) {
-                          y <- x[,1:3]
-                          colnames(y) <- c("chr","start","end")
-                          y})
-          allpeaks <- NULL
-          for(el in allp) { # check for empty peaksets
-            if(nrow(el)>0) { 
-              allpeaks <- pv.listadd(allpeaks,el)
-            }
-          }
-          allpeaks <- bind_rows(allpeaks)
-        } else {
-          allpeaks <- data.frame(pv$merged)
-          allpeaks[,1] <- pv$chrmap[allpeaks[,1]]
-        }
-      } else {
-        allpeaks <- matrix(0,0,4)
-      }
-      allnames <- NULL
-      if (nrow(allpeaks) > 0) {
-        res  <- pv.merge(allpeaks,peaks,pv$class)
-        pv$called <- res$included
-        pv$totalMerged <- nrow(res$merged)
-        rownames(res$merged) <- 1:nrow(res$merged)
-        allnames <- res$chrmap
-        pv$merged <- res$merged[,1:3]
-        if ((ncol(res$merged) > 4) && (minOverlap > 1)) {
-          pv$binding <- res$merged[pv.overlaps(pv,minOverlap),]
-        }  else {
-          pv$binding <- res$merged
-        }
-      } else {
-        pv$merged  <- matrix(0,0,3 + length(pv$peaks))
-        pv$overlaps <- NULL
-        colnames(pv$merged) <- colnames(allpeaks)
-        pv$binding   <- pv$merge
-        pv$totalMerged <- 0
-        pv$called <- NULL
-      }
+pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
+                       merge = TRUE) {
+  if (missing(attributes)) {
+    if (is.null(pv$attributes)) {
+      attributes <- PV_ID
     } else {
-      ## ALL SAME
-      result <- matrix(0,nrow(pv$peaks[[1]]),length(pv$peaks) + 3)
-      if (is.character(pv$peaks[[1]][1,1])) {
-        result[,1] <- match(pv$peaks[[1]][,1],pv$chrmap)
-      }
-      result[,2] <- pv$peaks[[1]][,2]
-      result[,3] <- pv$peaks[[1]][,3]
-      for (i in 1:numvecs) {
-        result[,i + 3] <- pv$peaks[[i]][,4]
-      }
-      colnames(result) <-
-        c("CHR","START","END",pv$class[PV_ID,1:numvecs])
-      pv$binding <- result
-      pv$merged <- pv$binding[,1:3]
-      pv$totalMerged <- nrow(pv$binding)
-      pv$called <- NULL
-      allnames <- pv$chrmap
+      attributes <- pv$attributes
     }
-    
-    pv$attributes <- attributes
-    pv$minOverlap <- minOverlap
-    
-    if (is.null(allnames)) {
-      allnames <- pv$chrmap[pv$binding[,1]]
-    }
-    
-    pv$binding <- pv.check1(pv$binding)
-    if (nrow(pv$binding) > 0) {
-      vnames <- allnames[pv$binding[,1]]
-    }
-    if (!is.null(allnames)) {
-      newmap <- sort(unique(allnames))
-    } else {
-      newmap <- NULL
-    }
-    if (nrow(pv$binding) > 0) {
-      pv$binding[,1] <- match(vnames,newmap)
-      if (is.unsorted(unique(pv$binding[,1]))) {
-        pv$binding <- pv.peaksort(pv$binding)
-      }
-      rownames(pv$binding) <- 1:nrow(pv$binding)
-    }
-    
-    pv$merged <- pv.check1(pv$merged)
-    pv$called <- pv.check1(pv$called)
-    pv$chrmap <- newmap
-    
-    pv$hc <- NULL
-    pv$pc <- NULL
-    pv$masks <- pv.mask(pv)
-    pv$config <- as.list(pv$config)
-    pv.gc()
-    return(pv)
   }
+  
+  if(missing(mask) && merge) {
+    mask <- 1:length(pv$peaks)
+  }
+  
+  called <- SN <- NULL
+  if (!missing(mask)) {
+    if (is.logical(mask)) {
+      mask <- which(mask)
+    }
+    peaks <- NULL
+    for (i in mask) {
+      #if(nrow(pv$peaks[[i]]) > 0) {
+      peaks <- pv.listadd(peaks,pv$peaks[[i]])
+      #}
+    }
+    class      <- pv$class[,mask]
+    chrmap     <- pv$chrmap
+    config     <- pv$config
+    samples    <- pv$samples
+    if(!is.null(pv$called)) {
+      if(length(mask)<=ncol(pv$called)) {
+        called   <- pv$called[,mask]
+      }
+    }
+    if(!is.null(pv$SN)) {
+      if(length(mask)==length(SN)) {
+        SN       <- pv$SN[mask]
+      }
+    }
+    score      <- pv$score
+    summits    <- pv$summits
+    #contrasts  <- pv$contrasts
+    blacklist  <- pv$blacklist
+    greylist   <- pv$greylist
+    peaks.blacklisted <- pv$peaks.blacklisted
+    #annotation <- pv$annotation
+    
+    pv <- NULL
+    pv$peaks      <- peaks
+    pv$class      <- class
+    pv$chrmap     <- chrmap
+    pv$config     <- config
+    pv$samples    <- samples
+    pv$called     <- called
+    #pv$contrasts  <- contrasts
+    pv$score      <- score
+    pv$SN         <- SN
+    pv$summits    <- summits
+    pv$blacklist  <- blacklist
+    pv$greylist   <- greylist
+    pv$peaks.blacklisted <- peaks.blacklisted
+    #pv$annotation <- annotation
+  }
+  
+  if (is.vector(pv$class)) {
+    pv$class <- matrix(pv$class,length(pv$class),1)
+    colnames(pv$class) <- pv$class[1,]
+  }
+  
+  peaks <- pv$peaks
+  
+  numvecs <- length(peaks)
+  ncols <- numvecs + 3
+  
+  if (minOverlap > 0 && minOverlap < 1) {
+    minOverlap <- ceiling(numvecs * minOverlap)
+  }
+  
+  npeaks <- 0
+  defval <- -1
+  
+  if (!bAllSame) {
+    if (sum(vapply(peaks,nrow,1)) > 0) {
+      if (merge) {
+        allp <-lapply(peaks,
+                      function(x) {
+                        y <- x[,1:3]
+                        colnames(y) <- c("chr","start","end")
+                        y})
+        allpeaks <- NULL
+        for(el in allp) { # check for empty peaksets
+          if(nrow(el)>0) { 
+            allpeaks <- pv.listadd(allpeaks,el)
+          }
+        }
+        allpeaks <- bind_rows(allpeaks)
+      } else {
+        allpeaks <- data.frame(pv$merged)
+        allpeaks[,1] <- pv$chrmap[allpeaks[,1]]
+      }
+    } else {
+      allpeaks <- matrix(0,0,4)
+    }
+    allnames <- NULL
+    if (nrow(allpeaks) > 0) {
+      res  <- pv.merge(allpeaks,peaks,pv$class)
+      pv$called <- res$included
+      pv$totalMerged <- nrow(res$merged)
+      rownames(res$merged) <- 1:nrow(res$merged)
+      allnames <- res$chrmap
+      pv$merged <- res$merged[,1:3]
+      if ((ncol(res$merged) > 4) && (minOverlap > 1)) {
+        pv$binding <- res$merged[pv.overlaps(pv,minOverlap),]
+      }  else {
+        pv$binding <- res$merged
+      }
+    } else {
+      pv$merged  <- matrix(0,0,3 + length(pv$peaks))
+      pv$overlaps <- NULL
+      colnames(pv$merged) <- colnames(allpeaks)
+      pv$binding   <- pv$merge
+      pv$totalMerged <- 0
+      pv$called <- NULL
+    }
+  } else {
+    ## ALL SAME
+    result <- matrix(0,nrow(pv$peaks[[1]]),length(pv$peaks) + 3)
+    if (is.character(pv$peaks[[1]][1,1])) {
+      result[,1] <- match(pv$peaks[[1]][,1],pv$chrmap)
+    }
+    result[,2] <- pv$peaks[[1]][,2]
+    result[,3] <- pv$peaks[[1]][,3]
+    for (i in 1:numvecs) {
+      result[,i + 3] <- pv$peaks[[i]][,4]
+    }
+    colnames(result) <-
+      c("CHR","START","END",pv$class[PV_ID,1:numvecs])
+    pv$binding <- result
+    pv$merged <- pv$binding[,1:3]
+    pv$totalMerged <- nrow(pv$binding)
+    pv$called <- called
+    allnames <- pv$chrmap
+  }
+  
+  pv$attributes <- attributes
+  pv$minOverlap <- minOverlap
+  
+  if (is.null(allnames)) {
+    allnames <- pv$chrmap[pv$binding[,1]]
+  }
+  
+  pv$binding <- pv.check1(pv$binding)
+  if (nrow(pv$binding) > 0) {
+    vnames <- allnames[pv$binding[,1]]
+  }
+  if (!is.null(allnames)) {
+    newmap <- sort(unique(allnames))
+  } else {
+    newmap <- NULL
+  }
+  if (nrow(pv$binding) > 0) {
+    pv$binding[,1] <- match(vnames,newmap)
+    if (is.unsorted(unique(pv$binding[,1]))) {
+      pv$binding <- pv.peaksort(pv$binding)
+    }
+    rownames(pv$binding) <- 1:nrow(pv$binding)
+  }
+  
+  pv$merged <- pv.check1(pv$merged)
+  pv$called <- pv.check1(pv$called)
+  pv$chrmap <- newmap
+  
+  pv$hc <- NULL
+  pv$pc <- NULL
+  pv$masks <- pv.mask(pv)
+  pv$config <- as.list(pv$config)
+  pv.gc()
+  return(pv)
+}
 
 ## pv.list -- list attributes of samples in model
 pv.deflist <- c(
@@ -460,227 +486,225 @@ pv.deflist <- c(
   PV_REPLICATE,PV_CALLER,PV_INTERVALS,PV_READS,PV_SN_RATIO
 )
 
-pv.list <-
-  function(pv,mask,bContrasts = FALSE, bDesign=FALSE,
-           attributes = pv.deflist,
-           th = 0.05) {
-    
-    if (!missing(mask)) {
-      if (!is.logical(mask)) {
-        tmp  <- rep (F,length(pv$peaks))
-        tmp[mask] <- T
-        mask <- tmp
-      }
-    }
-    
-    if (bContrasts) {
-      return(pv.listContrasts(pv,th = th))
-    }
-    
-    if (bDesign) {
-      if(is.null(pv$design)) {
-        warning("No design present.")
-        return(NULL)
-      } else {
-        return(pv$design)
-      }
-    }
-    
-    if (missing(attributes)) {
-      attributes <- pv.deflist
-    }
-    
-    if (missing(mask)) {
-      mask <- rep(T,ncol(pv$class))
-    }
-    
+pv.list <- function(pv,mask,bContrasts = FALSE, bDesign=FALSE,
+                    attributes = pv.deflist, th = 0.05) {
+  
+  if (!missing(mask)) {
     if (!is.logical(mask)) {
-      newm <- rep(F,length(pv$peaks))
-      for (ps in mask) {
-        newm[ps] <- T
-      }
-      mask <- newm
+      tmp  <- rep (FALSE,length(pv$peaks))
+      tmp[mask] <- TRUE
+      mask <- tmp
     }
-    
-    if (PV_INTERVALS %in% attributes) {
-      attributes <- attributes[-which(attributes %in% PV_INTERVALS)]
-      bIntervals <- T
-    } else
-      bIntervals <- F
-    
-    if (PV_SN_RATIO %in% attributes) {
-      attributes <- attributes[-which(attributes %in% PV_SN_RATIO)]
-      bSN <- T
-    } else
-      bSN <- F
-    
-    
-    res <- t(pv$class[attributes,mask])
-    colnames(res) <- sapply(attributes,pv.attname,pv)
-    rownames(res) <- which(mask)
-    
-    if (bIntervals) {
-      intervals <- NULL
-      for (i in 1:length(mask)) {
-        if (mask[i]) {
-          intervals <- c(intervals,nrow(pv$peaks[[i]]))
-        }
-      }
-      res <- cbind(res,intervals)
-      colnames(res)[ncol(res)] <- 'Intervals'
-    }
-    
-    if(PV_READS %in% attributes) {
-      movecol <- which(attributes %in% PV_READS)
-      res <- cbind(res,res[,movecol])
-      res <- res[,-movecol]
-      colnames(res)[ncol(res)] <- "Reads"
-    }
-    
-    if (bSN) {
-      if (!is.null(pv$SN)) {
-        res <- cbind(res,pv$SN)
-        colnames(res)[ncol(res)] <- 'FRiP'
-      }
-    }
-    
-    j <- ncol(res)
-    if (nrow(res) > 1) {
-      for (i in j:1) {
-        x <- unique(res[,i])
-        if (colnames(res)[i] == 'Peak caller') {
-          if (all.equal(attributes,pv.deflist) == TRUE) {
-            if (length(x) == 1) {
-              res <- res[,-i]
-            }
-          }
-        } else if (length(x) == 1) {
-          if (is.na(x)) {
-            res <- res[,-i]
-          } else if (x[1] == "") {
-            res <- res[,-i]
-          }
-        }
-      }
-    }
-    
-    return(data.frame(res))
   }
+  
+  if (bContrasts) {
+    return(pv.listContrasts(pv,th = th))
+  }
+  
+  if (bDesign) {
+    if(is.null(pv$design)) {
+      warning("No design present.",call.=FALSE)
+      return(NULL)
+    } else {
+      return(pv$design)
+    }
+  }
+  
+  if (missing(attributes)) {
+    attributes <- pv.deflist
+  }
+  
+  if (missing(mask)) {
+    mask <- rep(TRUE,ncol(pv$class))
+  }
+  
+  if (!is.logical(mask)) {
+    newm <- rep(FALSE,length(pv$peaks))
+    for (ps in mask) {
+      newm[ps] <- TRUE
+    }
+    mask <- newm
+  }
+  
+  if (PV_INTERVALS %in% attributes) {
+    attributes <- attributes[-which(attributes %in% PV_INTERVALS)]
+    bIntervals <- TRUE
+  } else
+    bIntervals <- FALSE
+  
+  if (PV_SN_RATIO %in% attributes) {
+    attributes <- attributes[-which(attributes %in% PV_SN_RATIO)]
+    bSN <- TRUE
+  } else
+    bSN <- FALSE
+  
+  
+  res <- t(pv$class[attributes,mask])
+  colnames(res) <- sapply(attributes,pv.attname,pv)
+  rownames(res) <- which(mask)
+  
+  if (bIntervals) {
+    intervals <- NULL
+    for (i in 1:length(mask)) {
+      if (mask[i]) {
+        intervals <- c(intervals,nrow(pv$peaks[[i]]))
+      }
+    }
+    res <- cbind(res,intervals)
+    colnames(res)[ncol(res)] <- 'Intervals'
+  }
+  
+  if(PV_READS %in% attributes) {
+    movecol <- which(attributes %in% PV_READS)
+    res <- cbind(res,res[,movecol])
+    res <- res[,-movecol]
+    colnames(res)[ncol(res)] <- "Reads"
+  }
+  
+  if (bSN) {
+    if (!is.null(pv$SN)) {
+      res <- cbind(res,pv$SN)
+      colnames(res)[ncol(res)] <- 'FRiP'
+    }
+  }
+  
+  j <- ncol(res)
+  if (nrow(res) > 1) {
+    for (i in j:1) {
+      x <- unique(res[,i])
+      if (colnames(res)[i] == 'Peak caller') {
+        if (all.equal(attributes,pv.deflist) == TRUE) {
+          if (length(x) == 1) {
+            res <- res[,-i]
+          }
+        }
+      } else if (length(x) == 1) {
+        if (is.na(x)) {
+          res <- res[,-i]
+        } else if (x[1] == "") {
+          res <- res[,-i]
+        }
+      }
+    }
+  }
+  
+  return(data.frame(res))
+}
 
 ## pv.consensus -- add a consensus peakset based on peaksets already in model
-pv.consensus <-
-  function(pv,sampvec,minOverlap = 2,bFast = F,sampID) {
-    if (missing(sampvec)) {
-      sampvec <- 1:length(pv$peaks)
-    }
-    if (is.null(sampvec)) {
-      sampvec <- 1:length(pv$peaks)
-    }
-    if (class(sampvec) == 'logical') {
-      sampvec <- which(sampvec)
-    }
-    
-    tmp <- NULL
-    if (bFast & (max(sampvec) <= ncol(pv$class)))  {
-      if ((length(sampvec) < length(pv$peaks)) ||
-          (pv$totalMerged != nrow(pv$binding))) {
-        pv <- pv.vectors(pv,sampvec,minOverlap = 1)
-        sampvec <- 1:length(pv$peaks)
-      } else {
-        pv <- pv.check(pv)
-      }
-      sites <- pv.whichSites(pv,sampvec,bUseAllvecs = FALSE)
-      tmp$binding <- pv$binding[sites,c(1:3,(sampvec + 3))]
-    } else {
-      peaklist  <- NULL
-      classlist <- NULL
-      chrs <- NULL
-      for (samp in sampvec) {
-        peaklist  <- pv.listadd(peaklist,pv$peaks[[samp]])
-        chrs <- sort(unique(c(chrs,unique(pv$peaks[[samp]][,1]))))
-      }
-      tmp$peaks  <- peaklist
-      tmp$class  <- pv$class[, sampvec]
-      tmp$chrmap <- chrs
-      tmp <- pv.vectors(tmp,minOverlap = minOverlap)
-    }
-    
-    if (minOverlap > 0 && minOverlap < 1) {
-      minOverlap <- ceiling(length(tmp$peaks) * minOverlap)
-    }
-    
-    goodvecs <-
-      apply(tmp$binding[,4:ncol(tmp$binding)],1,pv.minOverlap,minOverlap)
-    
-    tmp$binding  <- tmp$binding[goodvecs,]
-    
-    mean.density <-
-      apply(tmp$binding[,4:ncol(tmp$binding)],1,pv.domean)
-    tmp$binding <- cbind(tmp$binding[,1:3],mean.density)
-    
-    #kludge to get peakset in correct format
-    tmpf <- tempfile(as.character(Sys.getpid())) #tmpdir='.')
-    pv.do_peaks2bed(tmp$binding, tmp$chrmap,tmpf)
-    tmp$binding <- pv.readbed(tmpf)
-    unlink(tmpf)
-    
-    if (length(unique(pv$class[PV_REPLICATE, sampvec])) == 1) {
-      replicate <- unique(pv$class[PV_REPLICATE, sampvec])
-    } else {
-      replicate <- pv.catstr(pv$class[PV_REPLICATE, sampvec])
-    }
-    if (missing(sampID)) {
-      sampID <- pv.catstr(pv$class[PV_ID, sampvec])
-    }
-    pv <- pv.peakset(
-      pv, peaks = tmp$binding,
-      sampID       =  sampID,
-      tissue       =  pv.catstr(pv$class[PV_TISSUE, sampvec]),
-      factor       =  pv.catstr(pv$class[PV_FACTOR, sampvec]),
-      condition    =  pv.catstr(pv$class[PV_CONDITION, sampvec]),
-      treatment    =  pv.catstr(pv$class[PV_TREATMENT, sampvec]),
-      peak.caller  =  pv.catstr(pv$class[PV_CALLER, sampvec]),
-      control      =  pv.catstr(pv$class[PV_CONTROL, sampvec]),
-      reads        =  mean(as.numeric(pv$class[PV_READS, sampvec])),
-      replicate    =  replicate,
-      consensus    =  T,
-      readBam      =  pv.getoneorNA(pv$class[PV_BAMREADS, sampvec]),
-      controlBam   =  pv.getoneorNA(pv$class[PV_BAMCONTROL, sampvec]),
-      scoreCol     =  0
-    )
-    
-    pv$binding    <- NULL
-    pv$hc         <- NULL
-    pv$pc         <- NULL
-    
-    return(pv)
+pv.consensus <- function(pv,sampvec,minOverlap = 2,
+                         bFast = FALSE,sampID) {
+  if (missing(sampvec)) {
+    sampvec <- 1:length(pv$peaks)
   }
+  if (is.null(sampvec)) {
+    sampvec <- 1:length(pv$peaks)
+  }
+  if (is(sampvec,"logical")) {
+    sampvec <- which(sampvec)
+  }
+  
+  tmp <- NULL
+  if (bFast & (max(sampvec) <= ncol(pv$class)))  {
+    if ((length(sampvec) < length(pv$peaks)) ||
+        (pv$totalMerged != nrow(pv$binding))) {
+      pv <- pv.vectors(pv,sampvec,minOverlap = 1)
+      sampvec <- 1:length(pv$peaks)
+    } else {
+      pv <- pv.check(pv)
+    }
+    sites <- pv.whichSites(pv,sampvec,bUseAllvecs = FALSE)
+    tmp$binding <- pv$binding[sites,c(1:3,(sampvec + 3))]
+  } else {
+    peaklist  <- NULL
+    classlist <- NULL
+    chrs <- NULL
+    for (samp in sampvec) {
+      peaklist  <- pv.listadd(peaklist,pv$peaks[[samp]])
+      chrs <- sort(unique(c(chrs,unique(pv$peaks[[samp]][,1]))))
+    }
+    tmp$peaks  <- peaklist
+    tmp$class  <- pv$class[, sampvec]
+    tmp$chrmap <- chrs
+    tmp <- pv.vectors(tmp,minOverlap = minOverlap)
+  }
+  
+  if (minOverlap > 0 && minOverlap < 1) {
+    minOverlap <- ceiling(length(tmp$peaks) * minOverlap)
+  }
+  
+  goodvecs <-
+    apply(tmp$binding[,4:ncol(tmp$binding)],1,pv.minOverlap,minOverlap)
+  
+  tmp$binding  <- tmp$binding[goodvecs,]
+  
+  mean.density <-
+    apply(tmp$binding[,4:ncol(tmp$binding)],1,pv.domean)
+  tmp$binding <- cbind(tmp$binding[,1:3],mean.density)
+  
+  #kludge to get peakset in correct format
+  tmpf <- tempfile(as.character(Sys.getpid())) #tmpdir='.')
+  pv.do_peaks2bed(tmp$binding, tmp$chrmap,tmpf)
+  tmp$binding <- pv.readbed(tmpf)
+  unlink(tmpf)
+  
+  if (length(unique(pv$class[PV_REPLICATE, sampvec])) == 1) {
+    replicate <- unique(pv$class[PV_REPLICATE, sampvec])
+  } else {
+    replicate <- pv.catstr(pv$class[PV_REPLICATE, sampvec])
+  }
+  if (missing(sampID)) {
+    sampID <- pv.catstr(pv$class[PV_ID, sampvec])
+  }
+  pv <- pv.peakset(
+    pv, peaks = tmp$binding,
+    sampID       =  sampID,
+    tissue       =  pv.catstr(pv$class[PV_TISSUE, sampvec]),
+    factor       =  pv.catstr(pv$class[PV_FACTOR, sampvec]),
+    condition    =  pv.catstr(pv$class[PV_CONDITION, sampvec]),
+    treatment    =  pv.catstr(pv$class[PV_TREATMENT, sampvec]),
+    peak.caller  =  pv.catstr(pv$class[PV_CALLER, sampvec]),
+    control      =  pv.catstr(pv$class[PV_CONTROL, sampvec]),
+    reads        =  mean(as.numeric(pv$class[PV_READS, sampvec])),
+    replicate    =  replicate,
+    consensus    =  TRUE,
+    readBam      =  pv.getoneorNA(pv$class[PV_BAMREADS, sampvec]),
+    controlBam   =  pv.getoneorNA(pv$class[PV_BAMCONTROL, sampvec]),
+    scoreCol     =  0
+  )
+  
+  pv$binding    <- NULL
+  pv$hc         <- NULL
+  pv$pc         <- NULL
+  
+  return(pv)
+}
 
 pv.consensusSets <- function(pv,peaks = NULL,minOverlap,attributes,
                              tissue,factor,condition,treatment,replicate,control,peak.caller,
                              readBam, controlBam)	{
   if (is.character(peaks)) {
     stop(
-      "\"peaks\" parameter can not be a filename when \"consensus\" specifies attributes",call. =
-        FALSE
+      "\"peaks\" parameter can not be a filename when \"consensus\" specifies attributes",
+      call. =FALSE
     )
-  }
+  } 
   
   if (is.null(peaks)) {
-    peaks <- rep(T,ncol(pv$class))
+    peaks <- rep(TRUE,ncol(pv$class))
   }
   
-  include <- F
-  exclude <- F
+  include <- FALSE
+  exclude <- FALSE
   if (sum(attributes < 0))
-    exclude <- T
+    exclude <- TRUE
   if (sum(attributes > 0))
-    include <- T
+    include <- TRUE
   
   if (include & exclude) {
     stop(
-      'Consensus attributes must be all inclusive (positive) or all exclusive (negative)',call. =
-        F
+      'Consensus attributes must be all inclusive (positive) or all exclusive (negative)',
+      call. = FALSE
     )
   }
   
@@ -715,8 +739,8 @@ pv.consensusSets <- function(pv,peaks = NULL,minOverlap,attributes,
   
   if (ncol(specs) == ncol(class)) {
     warning(
-      'All peaksets unique for specified attributes; no consensus peaksets added.',call. =
-        F
+      'All peaksets unique for specified attributes; no consensus peaksets added.',
+      call. = FALSE
     )
     return(pv)
   }
@@ -771,14 +795,14 @@ pv.consensusSets <- function(pv,peaks = NULL,minOverlap,attributes,
 
 ## pv.mask -- create a mask to define a subset of peaksets in a model
 pv.mask <-
-  function(pv,attribute,value,combine = 'or',mask,merge = 'or',bApply = F) {
+  function(pv,attribute,value,combine = 'or',mask,merge = 'or',bApply = FALSE) {
     numsamps <- ncol(pv$class)
     
     if (missing(mask)) {
       if ((merge == 'or') | (merge == 'and')) {
-        mask <- rep(F, numsamps)
+        mask <- rep(FALSE, numsamps)
       } else {
-        mask <- rep(T, numsamps)
+        mask <- rep(TRUE, numsamps)
       }
     }
     
@@ -792,7 +816,7 @@ pv.mask <-
           masks <- c(masks,res)
         }
       }
-      res <- list(x = pv.mask(pv,PV_CONSENSUS,T))
+      res <- list(x = pv.mask(pv,PV_CONSENSUS,TRUE))
       if (sum(res[[1]])) {
         names(res) <- "Consensus"
         masks <- c(masks,res)
@@ -807,8 +831,8 @@ pv.mask <-
         }
       }
       
-      masks$All  <- rep(T,ncol(pv$class))
-      masks$None <- rep(F,ncol(pv$class))
+      masks$All  <- rep(TRUE,ncol(pv$class))
+      masks$None <- rep(FALSE,ncol(pv$class))
       
       return(masks)
     }
@@ -855,9 +879,9 @@ pv.mask <-
 
 ## pv.whichSites -- return index vector of sites belonging to a specific peakset
 pv.whichSites <-
-  function(pv,pnum,combine = "or",minVal = -1,bUseAllvecs = F) {
+  function(pv,pnum,combine = "or",minVal = -1,bUseAllvecs = FALSE) {
     if (bUseAllvecs) {
-      stop("Internal error: bUseAllvecs=F in pv.whichsites, please report.")
+      stop("Internal error: bUseAllvecs=FALSE in pv.whichsites, please report.")
     } else {
       vecs <- pv$binding
     }
@@ -888,10 +912,10 @@ pv.whichSites <-
 pv.plotClust <-
   function(pv,mask,numSites,sites,attributes = pv$attributes,distMeth = "pearson") {
     if (missing(mask)) {
-      mask <- rep(T,ncol(pv$class))
+      mask <- rep(TRUE,ncol(pv$class))
     }
     if (missing(sites)) {
-      sites <- rep(T,nrow(pv$binding))
+      sites <- rep(TRUE,nrow(pv$binding))
     }
     if (missing(numSites)) {
       numSites <- length(sites)
@@ -899,14 +923,14 @@ pv.plotClust <-
     pv$binding <- pv$binding[sites,mask][1:numSites,]
     pv$class   <- pv$class[,mask]
     pv         <-
-      pv.analysis(pv,attributes,bPCA = F,distMeth = distMeth)
+      pv.analysis(pv,attributes,bPCA = FALSE,distMeth = distMeth)
     plot(pv$hc)
     return(pv$hc)
   }
 
 
 ## pv.overlap -- generate overlapping/unique peaksets
-pv.overlap <- function(pv,mask,bFast = F,minVal = 0) {
+pv.overlap <- function(pv,mask,bFast = FALSE,minVal = 0) {
   if (!missing(mask)) {
     if (!is.logical(mask)) {
       peaksets <- mask
@@ -923,11 +947,11 @@ pv.overlap <- function(pv,mask,bFast = F,minVal = 0) {
         D <- peaksets[4]
       }
     } else {
-      warning('Too many peaksets in mask.')
+      warning('Too many peaksets in mask.',call.=FALSE)
       return(NULL)
     }
   } else {
-    stop('Must specify mask for peaksets to overlap.',call. = F)
+    stop('Must specify mask for peaksets to overlap.',call. = FALSE)
   }
   
   if (pv$totalMerged != nrow(pv$binding)) {
@@ -968,11 +992,11 @@ pv.overlap <- function(pv,mask,bFast = F,minVal = 0) {
 ## pv.sort  - sort binding sites (e.g. for heatmap)
 pv.sort <- function(pv,fun = sd,mask,...) {
   if (missing(mask)) {
-    mask <- rep(T,ncol(pv$class))
+    mask <- rep(TRUE,ncol(pv$class))
   }
   
-  scores <- apply(pv$binding[,c(F,F,F,mask)],1,fun,...)
-  ranked <- order(scores,decreasing = T)
+  scores <- apply(pv$binding[,c(FALSE,FALSE,FALSE,mask)],1,fun,...)
+  ranked <- order(scores,decreasing = TRUE)
   
   pv$binding   <- pv$binding[ranked,]
   
@@ -998,20 +1022,20 @@ pv.overlapRate <- function(pv,mask = mask) {
 ## pv.occupancy-- generate co-occupancy stats from peaksets in a model
 pv.occupancy <-
   function(pv,mask,sites,byAttribute,Sort = 'inall',CorMethod = "pearson",
-           labelAtts = pv$attributes,bPlot = F,minVal = 0,bCorOnly = F,
-           bNonZeroCors = F,chrmask) {
+           labelAtts = pv$attributes,bPlot = FALSE,minVal = 0,bCorOnly = FALSE,
+           bNonZeroCors = FALSE,chrmask) {
     pv <- pv.check(pv)
     
     vecs <- pv$binding
     
     if (missing(mask)) {
-      mask <- rep(T,ncol(pv$class))
+      mask <- rep(TRUE,ncol(pv$class))
     } else if (is.null(mask)) {
-      mask <- rep(T,ncol(pv$class))
+      mask <- rep(TRUE,ncol(pv$class))
     } else {
       if (!is.logical(mask)) {
-        tmp  <- rep (F,length(pv$peaks))
-        tmp[mask] <- T
+        tmp  <- rep (FALSE,length(pv$peaks))
+        tmp[mask] <- TRUE
         mask <- tmp
       }
     }
@@ -1044,7 +1068,7 @@ pv.occupancy <-
       vals <- unique(pv$class[byAttribute,mask])
       for (i in 1:length(vals)) {
         comps <- which(pv$class[byAttribute,] %in% vals[i])
-        vmask <- rep(F,length(mask))
+        vmask <- rep(FALSE,length(mask))
         vmask[comps] <- TRUE
         if (sum(vmask) > 1) {
           res <- rbind(
@@ -1060,11 +1084,11 @@ pv.occupancy <-
     
     if (!is.null(nrow(res))) {
       if (Sort == 'cor') {
-        res <- res[pv.orderfacs(res[,6],decreasing=T),]
+        res <- res[pv.orderfacs(res[,6],decreasing=TRUE),]
       } else if (Sort == 'percent') {
-        res <- res[pv.orderfacs(res[,7],decreasing=T),]
+        res <- res[pv.orderfacs(res[,7],decreasing=TRUE),]
       } else {
-        res <- res[pv.orderfacs(res[,5],decreasing=T),]
+        res <- res[pv.orderfacs(res[,5],decreasing=TRUE),]
       }
     }
     

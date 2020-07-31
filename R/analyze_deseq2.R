@@ -1,9 +1,9 @@
 pv.DESeq2 <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
-                      bSubControl=T,bFullLibrarySize=F,bTagwise=T,bGLM=T,
+                      bSubControl=TRUE,bFullLibrarySize=FALSE,bTagwise=TRUE,bGLM=TRUE,
                       blockList=NULL,filter=0, filterFun=max){
   
   if (!requireNamespace("DESeq2",quietly=TRUE)) {
-    stop("Package DESeq2 not installed")
+    stop("Package DESeq2 not installed",call.=FALSE)
   }
   res <- NULL
   
@@ -75,7 +75,7 @@ pv.DESeq2design <- function(pv,
                             filter=0, filterFun=max){
   
   if (!requireNamespace("DESeq2",quietly=TRUE)) {
-    stop("Package DESeq2 not installed")
+    stop("Package DESeq2 not installed",call.=FALSE)
   }
   res <- NULL
   res$design <- pv$design
@@ -125,20 +125,20 @@ pv.DESeq2design <- function(pv,
 }
 
 pv.DEinitDESeq2 <- function(pv,
-                            bSubControl=F,bFullLibrarySize=F,
-                            bRawCounts=F,
+                            bSubControl=FALSE,bFullLibrarySize=FALSE,
+                            bRawCounts=FALSE,
                             filter=0,filterFun=max,
                             numReads) {
   
   if (requireNamespace("DESeq2",quietly=TRUE)) {
     DESeq2 <- TRUE 
   } else {
-    stop("Package DESeq2 not installed")
+    stop("Package DESeq2 not installed",call.=FALSE)
   }    
   
   srcmask <- pv.mask(pv,PV_CALLER,"source") | pv.mask(pv,PV_CALLER,"counts")
   if(sum(srcmask)==0) {
-    stop('Error: no samples present with read counts')
+    stop('Error: no samples present with read counts',call.=FALSE)
   }
   counts  <- pv.get_reads(pv, srcmask,bSubControl=bSubControl,numReads=numReads)
   
@@ -163,9 +163,7 @@ pv.DEinitDESeq2 <- function(pv,
     libsize <- colSums(counts)
   }
   
-  meta <- pv$class[c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT,
-                     PV_REPLICATE,PV_CALLER,PV_CONTROL,PV_READS),]
-  meta <- data.frame(t(meta),stringsAsFactors = TRUE)
+  meta <- pv.getMeta(pv)
   res <- suppressMessages(
     DESeq2::DESeqDataSetFromMatrix(counts,meta,formula(pv$design))
   )
@@ -177,12 +175,12 @@ pv.DEinitDESeq2 <- function(pv,
   return(res)
 }
 
-pv.allDESeq2 <- function(pv,block,bSubControl=F,bFullLibrarySize=F,
-                         bTagwise=T,bGLM=F,bParallel=F,
+pv.allDESeq2 <- function(pv,block,bSubControl=FALSE,bFullLibrarySize=FALSE,
+                         bTagwise=TRUE,bGLM=FALSE,bParallel=FALSE,
                          filter=0,filterFun=max) {
   
   if (!requireNamespace("DESeq2",quietly=TRUE)) {
-    stop("Package DESeq2 not installed")
+    stop("Package DESeq2 not installed",call.=FALSE)
   }
   
   if(is.null(pv$contrasts)) {
@@ -255,7 +253,7 @@ pv.allDESeq2 <- function(pv,block,bSubControl=F,bFullLibrarySize=F,
 }
 
 pv.DESeq2_parallel <- function(contrast,pv,blockList,bSubControl,
-                               bFullLibrarySize,bTagwise=T,bGLM=F,
+                               bFullLibrarySize,bTagwise=TRUE,bGLM=FALSE,
                                filter=0,filterFun=max) {
   crec <- pv$contrasts[[contrast]]
   if(!is.null(blockList)) {
@@ -276,7 +274,7 @@ pv.DESeq2_parallel <- function(contrast,pv,blockList,bSubControl,
 pv.DESeq2Contrast <- function(pv, contrast, shrink=TRUE) {
   
   if(is.null(pv$DESeq2)) {
-    stop("Can not test contrast: model has not been run")
+    stop("Can not test contrast: model has not been run",call.=FALSE)
   }
   
   res <- NULL

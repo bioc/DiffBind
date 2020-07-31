@@ -32,7 +32,7 @@ dba.parallel <- function(DBA) {
    #    return(DBA)
    # }
    # 
-   warning('UNKNOWN PARALLEL PACKAGE: ',DBA$config$parallelPackage)
+   warning('UNKNOWN PARALLEL PACKAGE: ',DBA$config$parallelPackage,call.=FALSE)
    return(DBA)
 }
 
@@ -66,7 +66,7 @@ dba.parallel.wait4jobs <- function(config,joblist) {
 }
 
 # dba.Rlsf.init <- function(config){
-#    if (length(find.package(package="DiffBindCRI",quiet=T))>0) {
+#    if (length(find.package(package="DiffBindCRI",quiet=TRUE))>0) {
 #       config <- dba.CRI.Rlsf.init(config)    
 #    } else {
 #       warning('Rlsf interface not supported in this version')
@@ -76,7 +76,7 @@ dba.parallel.wait4jobs <- function(config,joblist) {
 # }
 # 
 # dba.lsfR.init <- function(config){
-#    if (length(find.package(package="DiffBindCRI",quiet=T))>0) {
+#    if (length(find.package(package="DiffBindCRI",quiet=TRUE))>0) {
 #       config <- dba.CRI.lsfR.init(config)    
 #    } else {
 #       warning('lsfR interface not supported in this version')
@@ -91,25 +91,25 @@ dba.parallel.wait4jobs <- function(config,joblist) {
 
 dba.multicore.init <- function(config) {
    
-   noparallel=F
+   noparallel <- FALSE
    if (requireNamespace("parallel",quietly=TRUE)) {
       if(!exists("mcparallel","package:parallel")) {
-         noparallel=T
+         noparallel <- TRUE
       }     
       if(!exists("mclapply","package:parallel")) {
-         noparallel=T
+         noparallel <- TRUE
       } 
    } else {
-      noparallel=T
+      noparallel <- TRUE
    }
    if(noparallel){
-      warning("Parallel execution unavailable: executing serially.")
+      warning("Parallel execution unavailable: executing serially.",call.=FALSE)
       config$RunParallel <- FALSE
       config$parallelPackage <- 0
       return(config)
    }
    
-   config$multicoreInit <- T    
+   config$multicoreInit <- TRUE    
    
    config$initFun      <- dba.multicore.init
    config$paramFun     <- dba.multicore.params
@@ -159,18 +159,18 @@ dba.multicore.wait4jobs <- function(config,joblist) {
 
 dba.biocparallel.init <- function(config) {
    
-   noparallel=F
+   noparallel <- FALSE
    if (!requireNamespace("BiocParallel",quietly=TRUE)) {
-      noparallel=T
+      noparallel <- TRUE
    }
    if(noparallel){
-      warning("Parallel execution unavailable: executing serially.")
+      warning("Parallel execution unavailable: executing serially.",call.=FALSE)
       config$RunParallel <- FALSE
       config$parallelPackage <- 0
       return(config)
    }
    
-   config$biocparallelInit <- T    
+   config$biocparallelInit <- TRUE    
    
    config$initFun      <- dba.biocparallel.init
    config$paramFun     <- dba.biocparallel.params
@@ -198,10 +198,10 @@ dba.biocparallel.lapply <- function(config,params,arglist,fn,...){
 
 ### ADD JOB ###
 dba.biocparallel.addjob <- function(config,params,fn,...) {
-   stop('addjob unimplemented when using BiocParallel.')
+   stop('addjob unimplemented when using BiocParallel.',call.=FALSE)
 }
 
 ### WAIT FOR JOBS TO COMPLETE AND GATHER RESULTS ###
 dba.biocparallel.wait4jobs <- function(config,joblist) {
-   stop('wait4jobs unimplemented when using BiocParallel.')
+   stop('wait4jobs unimplemented when using BiocParallel.',call.=FALSE)
 }

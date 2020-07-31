@@ -12,7 +12,8 @@
 ## cpp_count_reads -- count reads on intervals
 
 cpp_count_reads <- function(bamfile,insertLength,fileType,bufferSize,
-                            intervals,bWithoutDupes,summits,minMappingQual=0) {
+                            intervals,bWithoutDupes,summits,minMappingQual=0,
+                            minVal=1) {
   icount <- length(intervals[[1]])
   counts <- vector(mode="integer",length=icount)
   if (summits >= 0) { # RJS 2/7/2020: change from !missing(summits)) {
@@ -40,7 +41,11 @@ cpp_count_reads <- function(bamfile,insertLength,fileType,bufferSize,
                    counts,
                    summits.vec,
                    heights.vec)
-  counts[counts==0]=1
+  
+  # RJS 10 July 2020 -- Added minVal parameter  
+  if(minVal>0) {
+    counts[counts==0]  <- minVal
+  }
   
   widths = intervals[,3] - intervals[,2]
   rpkm = (counts/(widths/1000))/(libsize/1E6)

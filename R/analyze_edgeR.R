@@ -1,5 +1,5 @@
 pv.DEedgeR <- function(pv,group1,group2,label1="Group 1",label2="Group 2",blockList=NULL,
-                       bSubControl=F,bFullLibrarySize=F,bTagwise=T,bGLM=T,bNormOnly=F,
+                       bSubControl=FALSE,bFullLibrarySize=FALSE,bTagwise=TRUE,bGLM=TRUE,bNormOnly=FALSE,
                        bWeighting=FALSE, filter=0,filterFun=max) {
   
   fdebug('Enter pv.DEedgeR')
@@ -121,8 +121,8 @@ pv.DEedgeR_parallel <- function(contrast,pv,blockList,bSubControl,
 }
 
 
-pv.allDEedgeR <- function(pv,block,bFullLibrarySize=F,bParallel=F,bSubControl=F,
-                          bTagwise=T,bGLM=F,filter=filter,filterFun=filterFun) {
+pv.allDEedgeR <- function(pv,block,bFullLibrarySize=FALSE,bParallel=FALSE,bSubControl=FALSE,
+                          bTagwise=TRUE,bGLM=FALSE,filter=filter,filterFun=filterFun) {
   
   fdebug('ENTER pv.allDEedgeR')
   #require(edgeR)
@@ -205,7 +205,7 @@ pv.edgeRdesign <- function(pv,
                            filter=0, filterFun=max){
   
   if (!requireNamespace("edgeR",quietly=TRUE)) {
-    stop("Package edgeR not installed")
+    stop("Package edgeR not installed",call.=FALSE)
   }
   
   #Can we avoid re fitting model?
@@ -252,10 +252,7 @@ pv.edgeRdesign <- function(pv,
 }
 
 pv.edgeRdesign.matrix <- function(pv,design){
-  
-  meta <- pv$class[c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT,
-                     PV_REPLICATE,PV_CALLER,PV_CONTROL,PV_READS),]
-  meta <- data.frame(t(meta),stringsAsFactors = TRUE)
+  meta <- pv.getMeta(pv)
   design.matrix <- model.matrix(formula(design),data=meta)
   return(design.matrix)
 }
@@ -267,12 +264,12 @@ pv.DEinitedgeR <- function(pv,
                            numReads) {
   
   if (!requireNamespace("edgeR",quietly=TRUE)) {
-    stop("Package edgeR not installed")
+    stop("Package edgeR not installed",call.=FALSE)
   }    
   
   srcmask <- pv.mask(pv,PV_CALLER,"source") | pv.mask(pv,PV_CALLER,"counts")
   if(sum(srcmask)==0) {
-    stop('Error: no samples present with read counts')
+    stop('Error: no samples present with read counts',call.=FALSE)
   }
   
   counts  <- pv.get_reads(pv, srcmask,bSubControl=bSubControl,numReads=numReads)
@@ -298,9 +295,7 @@ pv.DEinitedgeR <- function(pv,
     libsize <- colSums(counts)
   }
   
-  meta <- pv$class[c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT,
-                     PV_REPLICATE,PV_CALLER,PV_CONTROL,PV_READS),]
-  meta <- data.frame(t(meta),stringsAsFactors = TRUE)
+  meta <- pv.getMeta(pv)
   res <- #suppressMessages(
     res <- edgeR::DGEList(counts,lib.size=libsize,
                           samples=meta,genes=as.character(1:nrow(counts)))
@@ -313,7 +308,7 @@ pv.DEinitedgeR <- function(pv,
 pv.edgeRContrast <- function(pv, contrast, shrink=TRUE) {
   
   if(is.null(pv$edgeR)) {
-    stop("Can not test contrast: model has not been run")
+    stop("Can not test contrast: model has not been run",call.=FALSE)
   }
   
   res <-  de <- coeffs <- NULL
@@ -321,13 +316,13 @@ pv.edgeRContrast <- function(pv, contrast, shrink=TRUE) {
   coeffs <- pv.getCoeffs(contrast,pv)
   
   if(is.null(coeffs)) {
-    stop("edgeR: unsupported contrast.")
+    stop("edgeR: unsupported contrast.",call.=FALSE)
   }
   
   de <- edgeR::glmQLFTest(pv$edgeR$DEdata,contrast=coeffs)
   
   if(is.null(de)) {
-    stop("edgeR: unsupported contrast.")
+    stop("edgeR: unsupported contrast.",call.=FALSE)
   }
   
   res$de <- topTags(de,nrow(de))$table
@@ -357,7 +352,7 @@ pv.getCoeffs <- function(contrast,pv) {
     coef1 <- pv.getCoef(cname, pv)
   } else if(contrast$contrastType=="byname") {
     coef1 <- pv.getCoef(contrast$contrast, pv)
-  } else if(class(contrast$contrast)=="list") {
+  } else if(is(contrast$contrast,"list")) {
     coef1 <- pv.getCoef(contrast$contrast[[1]], pv)
     if(contrast$contrastType=="byresults2") {
       coef2 <- pv.getCoef(contrast$contrast[[2]], pv)
@@ -376,15 +371,17 @@ pv.getCoeffs <- function(contrast,pv) {
 }
 
 pv.getCoef <- function(contrast, pv) {
+  
   coefs <- pv$DESeq2$names
+  
   vals  <- strsplit(contrast,"_")[[1]]
   res   <- rep(0,length(coefs))
   
-  coef  <- match(contrast,coefs)
+  coef  <- pv.matchCoefs(contrast,coefs)
   
   if(is.na(coef)) {
     contrast <- paste(vals[1],vals[4],vals[3],vals[2],sep="_")
-    coef <- match(contrast,coefs)
+    coef <- pv.matchCoefs(contrast,coefs)
     if(!is.na(coef)) {
       res[coef] <- -1
       return(res)
@@ -410,6 +407,19 @@ pv.getCoef <- function(contrast, pv) {
   return(res)
 }
 
+pv.matchCoefs <- function(contrast,coefs) {
+  
+  coef <- match(contrast, coefs)
+  if(!is.na(coef)) {
+    return(coef)
+  }
+  
+  coef <- match(make.names(contrast), coefs)
+  
+  return(coef)
+  
+}
+
 pv.normTMM <- function(pv,bMinus=TRUE,bFullLib=FALSE,bCPM=FALSE,bReturnFactors=FALSE){
   
   if(length(pv$peaks)<2) {
@@ -419,12 +429,12 @@ pv.normTMM <- function(pv,bMinus=TRUE,bFullLib=FALSE,bCPM=FALSE,bReturnFactors=F
   
   vColors <- pv.colsv
   
-  g1     <- rep(F,length(pv$peaks))
-  g1[1]  <- T
+  g1     <- rep(FALSE,length(pv$peaks))
+  g1[1]  <- TRUE
   
   savenames <- pv$class[PV_ID,]
   pv$class[PV_ID,] <- 1:ncol(pv$class)
-  res    <- pv.DEedgeR(pv,g1,!g1,"1","2",bSubControl=bMinus,bFullLibrarySize=bFullLib,bNormOnly=T)
+  res    <- pv.DEedgeR(pv,g1,!g1,"1","2",bSubControl=bMinus,bFullLibrarySize=bFullLib,bNormOnly=TRUE)
   #res    <- estimateCommonDisp(res)
   counts <- res$counts
   sizes  <- res$samples$lib.size * res$samples$norm.factors
@@ -448,7 +458,7 @@ pv.normTMM <- function(pv,bMinus=TRUE,bFullLib=FALSE,bCPM=FALSE,bReturnFactors=F
 pv.stripEdgeR <- function(erec) {
   if(!is.null(erec)) {
     
-    if(class(erec)=="DGEList") {
+    if(is(erec,"DGEList")) {
       erec$counts     <- NULL
       erec$pseudo.alt <- NULL
       erec$conc       <- NULL

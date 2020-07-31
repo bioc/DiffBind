@@ -1,16 +1,16 @@
-pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled=F,
-                         bCounts=F,bCalledDetail=F,
-                         file,initString='reports/DBA',bNormalized=T,ext="csv",
-                         minFold=0,bSupressWarning=F,
+pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,bCalled=FALSE,
+                         bCounts=FALSE,bCalledDetail=FALSE,
+                         file,initString='reports/DBA',bNormalized=TRUE,ext="csv",
+                         minFold=0,bSupressWarning=FALSE,
                          bFlip=FALSE, precision=2:3) {
   
   
   if(length(contrast)>1){
-    stop('Can only specify one contrast unless requesting a report-based DBA.')
+    stop('Can only specify one contrast unless requesting a report-based DBA.',call.=FALSE)
   }
   
   if(contrast > length(pv$contrasts)) {
-    stop('Specified contrast number is greater than number of contrasts')
+    stop('Specified contrast number is greater than number of contrasts',call.=FALSE)
     return(NULL)
   }
   con <- pv$contrasts[[contrast]]
@@ -44,22 +44,22 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
   }
   
   if(method=='edgeR' || method=='edgeRGLM'){
-    if(is.null(con$edgeR) || class(con$edgeR)=="try-error") {
-      stop('edgeR analysis has not been run for this contrast')
+    if(is.null(con$edgeR) || is(con$edgeR,"try-error")) {
+      stop('edgeR analysis has not been run for this contrast',call.=FALSE)
       return(NULL)
     }
     if(!is.null(con$contrast)) {
       if(is.null(pv$edgeR$DEdata)) {
-        stop('edgeR analysis missing.')
+        stop('edgeR analysis missing.',call.=FALSE)
       } else {
         counts <- pv$edgeR$DEdata$counts
         if(groups) {
-         facs <-  c(which(group1),which(group2))
-         counts <- counts[,facs]
+          facs <-  c(which(group1),which(group2))
+          counts <- counts[,facs]
         } else {
           facs <- 1:ncol(counts)
         }
-
+        
       }
     } else {
       if(is.null(con$edgeR$counts)) {
@@ -130,10 +130,10 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
     } 
   } else if (method=='DESeq2' || method=='DESeq2Block') {
     if (!requireNamespace("DESeq2",quietly=TRUE)) {
-      stop("Package DESeq2 not installed")
+      stop("Package DESeq2 not installed",call.=FALSE)
     }
-    if(is.null(con$DESeq2) || class(con$DESeq2)=="try-error") {
-      stop('DESeq2 analysis has not been run for this contrast') 
+    if(is.null(con$DESeq2) || is(con$DESeq2,"try-error")) {
+      stop('DESeq2 analysis has not been run for this contrast',call.=FALSE) 
       return(NULL) 
     }
     siteCol <- 1
@@ -142,7 +142,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
     
     if(!is.null(con$contrast)) {
       if(is.null(pv$DESeq2$DEdata)) {
-        stop('DESeq2 analysis missing.')
+        stop('DESeq2 analysis missing.',call.=FALSE)
       } else {
         counts <- counts(pv$DESeq2$DEdata,normalized=bNormalized)
       }
@@ -171,7 +171,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
       }
     }
   } else {
-    stop('Unknown DE method: ',method)
+    stop('Unknown DE method: ',method,call.=FALSE)
     return(NULL)
   }
   
@@ -317,7 +317,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=F,bCalled
     } else {
       file=sprintf("%s%s.%s",initString,file,ext)
     }
-    write.csv(data,row.names=F,file=file)
+    write.csv(data,row.names=FALSE,file=file)
   }
   
   return(data)
@@ -341,12 +341,12 @@ pv.getsites <- function(pv,sites){
 
 pv.getPlotData <- 
   function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,th=0.05,
-           bUsePval=FALSE,bNormalized=T,report,
-           bPCA=F,bLog=T,minval,maxval,mask,fold=0,
+           bUsePval=FALSE,bNormalized=TRUE,report,
+           bPCA=FALSE,bLog=TRUE,minval,maxval,mask,fold=0,
            bFlip=FALSE, precision=2:3) {
     
     if(contrast > length(pv$contrasts)) {
-      stop('Specified contrast number is greater than number of contrasts')
+      stop('Specified contrast number is greater than number of contrasts',call.=FALSE)
       return(NULL)
     }
     
@@ -363,26 +363,26 @@ pv.getPlotData <-
     
     if(missing(report)) {
       report <- pv.DBAreport(pv,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
-                             bNormalized=bNormalized,bCounts=T,bSupressWarning=T,
+                             bNormalized=bNormalized,bCounts=TRUE,bSupressWarning=TRUE,
                              minFold=fold,bFlip=bFlip,precision=precision)
       if(is.null(report)) {
-        stop('Unable to plot -- no sites within threshold')	
+        stop('Unable to plot -- no sites within threshold',call.=FALSE)	
       }
     } else {
       report <- report[abs(report$Fold)>=fold,]
     }
     
     if(nrow(report)==1) {
-      stop("Only one site to plot -- need at least 2!")   
+      stop("Only one site to plot -- need at least 2!",call.=FALSE)   
     }
     
     if(!missing(mask)){
       if (!is.logical(mask)) {
         if (max(mask) > length(pv$peaks)) {
-          stop("Invalid sample number in mask.",call.=F)
+          stop("Invalid sample number in mask.",call.=FALSE)
         }
-        temp <- rep(F, length(pv$peaks))
-        temp[mask] <- T
+        temp <- rep(FALSE, length(pv$peaks))
+        temp[mask] <- TRUE
         mask <- temp
       }
       if(!bFlip) {
@@ -423,24 +423,24 @@ pv.getPlotData <-
         group2 <- con$group1 
       }
       allsamps <- c(which(group1),which(group2))
-      extra <- rep(F,ncol(pv$class)) 
+      extra <- rep(FALSE,ncol(pv$class)) 
       repcols <- colnames(report)
       numsamps <- sum(group1)+sum(group2)
       if(length(repcols) < (numsamps+9)) {
-        stop('Report does not have count data, re-run dba.report with bCounts=TRUE')
+        stop('Report does not have count data, re-run dba.report with bCounts=TRUE',call.=FALSE)
       }
       first <- 10
       if(repcols[10]=="Called1") {
         if(length(repcols) < (numsamps+11)) {
-          stop('Report does not have count data, re-run dba.report with bCounts=TRUE')
+          stop('Report does not have count data, re-run dba.report with bCounts=TRUE',call.=FALSE)
         }
         first <- 12	 
       }
       domap <- report[,first:(first+numsamps-1)]
-      group1 <- rep(F,numsamps)
-      group2 <- rep(T,numsamps)
-      group1[1:sum(con$group1)] <- T
-      group2[1:sum(con$group1)] <- F
+      group1 <- rep(FALSE,numsamps)
+      group2 <- rep(TRUE,numsamps)
+      group1[1:sum(con$group1)] <- TRUE
+      group2[1:sum(con$group1)] <- FALSE
       con$group1 <- group1
       con$group2 <- group2
       
@@ -475,13 +475,13 @@ pv.getPlotData <-
     pv$merged <- pv$binding[,1:3]
     pv$totalMerged <- nrow(pv$merged)
     pv$contrasts <- list(pv$contrasts[[contrast]])
-    pv$contrasts[[1]]$group1 <- rep(F,ncol(pv$class))
-    pv$contrasts[[1]]$group2 <- rep(F,ncol(pv$class))
+    pv$contrasts[[1]]$group1 <- rep(FALSE,ncol(pv$class))
+    pv$contrasts[[1]]$group2 <- rep(FALSE,ncol(pv$class))
     if(sum(con$group1)) {
-      pv$contrasts[[1]]$group1[1:sum(con$group1)]=T
+      pv$contrasts[[1]]$group1[1:sum(con$group1)] <- TRUE
     }
     if(sum(con$group2)) {
-      pv$contrasts[[1]]$group2[(sum(con$group1)+1):(sum(con$group1)+sum(con$group2))]=T   
+      pv$contrasts[[1]]$group2[(sum(con$group1)+1):(sum(con$group1)+sum(con$group2))] <- TRUE 
     }
     
     if(bPCA)  {
@@ -498,12 +498,12 @@ pv.getPlotData <-
 
 pv.getPlotDataComplexContrast <- 
   function(pv,attributes=PV_GROUP,contrast=1,method=DBA_DESEQ2,th=0.05,
-           bUsePval=FALSE,mask,bNormalized=T,report,
-           bLog=T,minval,maxval,fold=0,
+           bUsePval=FALSE,mask,bNormalized=TRUE,report,
+           bLog=TRUE,minval,maxval,fold=0,
            precision=2:3) {
     
     if(contrast > length(pv$contrasts)) {
-      stop('Specified contrast number is greater than number of contrasts')
+      stop('Specified contrast number is greater than number of contrasts',call.=FALSE)
       return(NULL)
     }
     
@@ -511,17 +511,17 @@ pv.getPlotDataComplexContrast <-
     
     if(missing(report)) {
       report <- pv.DBAreport(pv,contrast=contrast,method=method,th=th,bUsePval=bUsePval,
-                             bNormalized=bNormalized,bCounts=T,bSupressWarning=T,
+                             bNormalized=bNormalized,bCounts=TRUE,bSupressWarning=TRUE,
                              minFold=fold,precision=precision)
       if(is.null(report)) {
-        stop('Unable to plot -- no sites within threshold')	
+        stop('Unable to plot -- no sites within threshold',call.=FALSE)	
       }
     } else {
       report <- report[abs(report$Fold)>=fold,]
     }
     
     if(nrow(report)==1) {
-      stop("Only one site to plot -- need at least 2!")   
+      stop("Only one site to plot -- need at least 2!",call.=FALSE)   
     }
     
     sites <- as.numeric(rownames(report))
@@ -532,10 +532,10 @@ pv.getPlotDataComplexContrast <-
     } else {
       if (!is.logical(mask)) {
         if (max(mask) > length(pv$peaks)) {
-          stop("Invalid sample number in mask.",call.=F)
+          stop("Invalid sample number in mask.",call.=FALSE)
         }
-        temp <- rep(F, length(pv$peaks))
-        temp[mask] <- T
+        temp <- rep(FALSE, length(pv$peaks))
+        temp[mask] <- TRUE
         mask <- temp
       }
       
@@ -549,13 +549,13 @@ pv.getPlotDataComplexContrast <-
     
     repcols <- colnames(report)
     if(length(repcols) < (numsamps+7)) {
-      stop('Report does not have count data, re-run dba.report with bCounts=TRUE')
+      stop('Report does not have count data, re-run dba.report with bCounts=TRUE',call.=FALSE)
     }
     
     first <- match("FDR",repcols) + 1
     if(repcols[first]=="Called1") {
       if(length(repcols) < (numsamps+first-1)) {
-        stop('Report does not have count data, re-run dba.report with bCounts=TRUE')
+        stop('Report does not have count data, re-run dba.report with bCounts=TRUE',call.=FALSE)
       }
       first <- first+2	 
     }
@@ -598,8 +598,8 @@ pv.getPlotDataComplexContrast <-
   }
 
 pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
-                          th=0.05,bUsePval=F,fold=0,
-                          bDB=T,bNotDB=F,bUp=F,bDown=F,bAll=T,
+                          th=0.05,bUsePval=FALSE,fold=0,
+                          bDB=TRUE,bNotDB=FALSE,bUp=FALSE,bDown=FALSE,bAll=TRUE,
                           bFlip=FALSE) {
   
   if(missing(contrasts)) {
@@ -616,7 +616,7 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
   }
   
   if(is.null(res)) {
-    warning('No valid contrasts/methods specified.',call.=F)	
+    warning('No valid contrasts/methods specified.',call.=FALSE)	
   }
   
   res$config$id        <- "Contrast"
@@ -630,7 +630,7 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
 }
 
 pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
-                         fold=0,bDB=T,bNotDB=F,bAll=F,bUp=F,bDown=F,
+                         fold=0,bDB=TRUE,bNotDB=FALSE,bAll=FALSE,bUp=FALSE,bDown=FALSE,
                          bFlip=FALSE) {
   
   if(method=='edgeR' || method=="edgeRGLM") {

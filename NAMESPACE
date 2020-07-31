@@ -1,6 +1,7 @@
 export(dba,
        dba.peakset,
        dba.overlap,
+       dba.blacklist,
        dba.count,
        dba.contrast,
        dba.analyze,
@@ -37,6 +38,7 @@ export(dba,
        DBA_SCORE_RPKM,
        DBA_SCORE_RPKM_FOLD,
        DBA_SCORE_READS,
+       DBA_SCORE_CONTROL_READS,
        DBA_SCORE_READS_FOLD,
        DBA_SCORE_READS_MINUS,
        DBA_SCORE_READS_FULL,
@@ -70,7 +72,20 @@ export(dba,
        DBA_DATA_RANGEDDATA,
        DBA_DATA_GRANGES,
        DBA_DATA_SUMMARIZED_EXPERIMENT,
-       DBA_DATA_DBAOBJECT)
+       DBA_DATA_DBAOBJECT,
+       DBA_BLACKLIST_HG19,
+       DBA_BLACKLIST_HG19,
+       DBA_BLACKLIST_GRCH37, 
+       DBA_BLACKLIST_GRCH38, 
+       DBA_BLACKLIST_MM9,
+       DBA_BLACKLIST_MM10, 
+       DBA_BLACKLIST_CE10,
+       DBA_BLACKLIST_CE11,
+       DBA_BLACKLIST_DM3,
+       DBA_BLACKLIST_DM6,
+       DBA_BLACKLIST,
+       DBA_GREYLIST,
+       DBA_BLACKLISTED_PEAKS)
 
 exportClasses("DBA")
 
@@ -89,9 +104,9 @@ importFrom(edgeR,
            estimateTagwiseDisp, exactTest, glmFit, glmLRT,
            topTags,calcNormFactors, DGEList)
 
-importFrom(IRanges, IRanges)
+importFrom(IRanges, IRanges, overlapsAny, "%over%")
 
-importFrom(GenomicRanges, GRanges, seqnames, width)
+importFrom(GenomicRanges, GRanges, GRangesList, seqnames, width, union)
 
 importFrom(SummarizedExperiment, SummarizedExperiment, assay)
 
@@ -113,7 +128,7 @@ importFrom(utils, read.table, write.csv, write.table, packageVersion,"read.csv")
 
 importFrom(limma,nonEstimable)
 
-importFrom(GenomicAlignments,summarizeOverlaps)
+import(GenomicAlignments)
 
 importFrom(lattice, xyplot)
 
@@ -138,7 +153,7 @@ importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-")
 
 importFrom(Rsamtools, BamFileList, ScanBamParam, scanBamFlag, countBam)
 
-importFrom(methods,as)
+importFrom(methods,as, is)
 
 importFrom(ggplot2, ggplot, aes, geom_point, scale_color_manual, 
            labs, geom_text)
@@ -146,4 +161,7 @@ importFrom(ggrepel,geom_text_repel)
 
 import(apeglm)
 import(ashr)
-
+import(GreyListChIP)
+import(BSgenome)
+importFrom("methods", "new")
+importFrom("utils", "data")

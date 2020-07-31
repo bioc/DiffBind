@@ -9,9 +9,9 @@ Performs differential binding affinity analysis
 }
 \usage{
 dba.analyze(DBA, method=DBA$config$AnalysisMethod, 
-            bSubControl=TRUE, bFullLibrarySize=TRUE, 
-            filter=0, filterFun=max, bRetrieveAnalysis=FALSE,
-            bReduceObjects=TRUE, 
+            bSubControl=is.null(DBA$greylist), 
+            bFullLibrarySize=TRUE, filter=0, filterFun=max, 
+            bRetrieveAnalysis=FALSE, bReduceObjects=TRUE, 
             bParallel=DBA$config$RunParallel)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -20,7 +20,8 @@ dba.analyze(DBA, method=DBA$config$AnalysisMethod,
 %\subsection{Required arguments}{}
 
   \item{DBA}{
-DBA object. If no contrasts are specified (\code{DBA$contrast} is \code{NULL}), default contrasts will be added via a call to \code{\link{dba.contrast}}.
+DBA object. If no contrasts are specified (\code{DBA$contrast} is \code{NULL}),
+default contrasts will be added via a call to \code{\link{dba.contrast}}.
 }
 %\subsection{Optional/defaulted arguments}{}
 \item{method}{
@@ -40,9 +41,16 @@ specifying \code{c(DBA_EDGER,DBA_DESEQ2)}.
 \item{bSubControl}{
 logical indicating whether Control read counts are subtracted for each site in each sample 
 before performing analysis.
+If there are more overlapping control reads thns ChIP reads, the count will be set to zero.
+If \code{bSubControl} is not explicitly specified,
+it will be set to \code{TRUE} unless a greylist has been applied
+(see \code{\link{dba.blacklist}}).
 }
 \item{bFullLibrarySize}{
-logical indicating if the full library size (total number of reads in BAM/SAM/BED file) for each sample is used for scaling normalization. If \code{FALSE}, the total number of reads present in the peaks for each sample is used (generally preferable if overall biding levels are expected to be similar between samples).
+logical indicating if the full library size (total number of reads in BAM/SAM/BED file) 
+for each sample is used for scaling normalization. 
+If \code{FALSE}, the total number of reads present in the peaks for each sample is used 
+(generally preferable if overall biding levels are expected to be similar between samples).
 }
 
 \item{filter}{
@@ -52,7 +60,13 @@ The \code{filterFun} will be applied t each interval, and any scores below the \
 value will be removed prior to analysis.
 }
 \item{filterFun}{
-function that will be invoked for each interval with a vector of scores for each sample. Returns a score that will be evaluated against the \code{filter} value (only intervals with a score at least as high as \code{filter} will be kept). Default is \code{max}, indicating that at least one sample should have a score of at least \code{filter}; other useful values include \code{sum} (indicating that all the scores added together should be at least \code{filter}) and \code{mean} (setting a minimum mean normalized count level). Users can supply their own function as well.
+function that will be invoked for each interval with a vector of scores for each sample. 
+Returns a score that will be evaluated against the \code{filter} value
+(only intervals with a score at least as high as \code{filter} will be kept). 
+Default is \code{max}, indicating that at least one sample should have a score of at least \code{filter}; 
+other useful values include \code{sum} (indicating that all the scores added together should be at least 
+\code{filter}) and \code{mean} (setting a minimum mean normalized count level). 
+Users can supply their own function as well.
 }
 \item{bRetrieveAnalysis}{
 If changed from \code{FALSE}, the underlying DE analysis object is returned instead of running a new analysis. Possible values for \code{bRetrieveAnalysis}:
@@ -73,12 +87,18 @@ logical indicating that the analyses is to be done in parallel using multicore (
 }
 }
 \details{
+In general, prior to calling \code{dba.analyze}, \code{\link{dba.count}} and \code{\link{dba.contrast}} 
+should have been run.
+If no contrasts have been established prior to invoking \code{dba.analyze},
+then the default set of contrasts will be added using (\code{\link{dba.contrast}}).
+
 See the DBA User Guide for more details on how the \code{edgeR} and \code{DESeq2} analyses are carried out.  
 }
 \value{
 DBA object with results of analysis added to \code{DBA$contrasts}.
 
-Alternatively, an analysis object (either a \code{\link{DESeqDataSet}} or a \code{\link{DGEList}}) if \code{bRetrieveAnalysis} if not \code{FALSE}.
+Alternatively, an analysis object (either a \code{\link{DESeqDataSet}}
+or a \code{\link{DGEList}}) if \code{bRetrieveAnalysis} if not \code{FALSE}.
 }
 
 \author{
@@ -103,6 +123,7 @@ data(tamoxifen_counts)
 tamoxifen <- dba.analyze(tamoxifen)
 tamoxifen
 
+tamoxifen <- dba.contrast(tamoxifen, design="~Tissue + Condition")
 tamoxifen <- dba.analyze(tamoxifen,method=DBA_ALL_METHODS)
 tamoxifen
 

@@ -92,6 +92,7 @@ Used in conjunction with \code{contrast}.
 Score to use for count data. Only used when plotting the global binding matrix (no contrast specified). One of:
 \itemize{
 \item \code{\link{DBA_SCORE_READS}}
+\item \code{\link{DBA_SCORE_CONTROL_READS}}
 \item \code{\link{DBA_SCORE_READS_MINUS}}
 \item \code{\link{DBA_SCORE_READS_FULL}}
 \item \code{\link{DBA_SCORE_READS_EFFECTIVE}}

@@ -1,13 +1,13 @@
-pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
-                         bUsePval=F,fold=0,facname="",bNormalized=T,
-                         cex=.15,bSignificant=T, bSmooth=T, bFlip=FALSE,
+pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
+                         bUsePval=FALSE,fold=0,facname="",bNormalized=TRUE,
+                         cex=.15,bSignificant=TRUE, bSmooth=TRUE, bFlip=FALSE,
                          xrange, yrange, ...) {
   
   if(missing(contrast)){
     contrast <- 1:length(pv$contrasts)
   } else {
     if(contrast > length(pv$contrasts)) {
-      stop('Specified contrast number is greater than number of contrasts')
+      stop('Specified contrast number is greater than number of contrasts',call.=FALSE)
       return(NULL)
     }
   }
@@ -28,7 +28,7 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
       name2 <- conrec$name1   
     }
     for(meth in method) {
-      res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=T,
+      res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=TRUE,
                           th=100,bNormalized=bNormalized,bFlip=bFlip,precision=0)
       if(!is.null(res)) {
         if(bUsePval) {
@@ -45,7 +45,7 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
             xmax  <- ceiling(max(res$Conc))
           } else {
             if (length(xrange) != 2) {
-              stop("xrange must be vector of two numbers")
+              stop("xrange must be vector of two numbers",call.=FALSE)
             }
             xmin <- xrange[1]
             xmax <- xrange[2]
@@ -55,7 +55,7 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
             ymax  <- ceiling(max(res$Fold))
           } else {
             if (length(yrange) != 2) {
-              stop("yrange must be vector of two numbers")
+              stop("yrange must be vector of two numbers",call.=FALSE)
             }
             ymin <- yrange[1]
             ymax <- yrange[2]
@@ -102,14 +102,14 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
       }
       if(bXY){
         if(is.null(conrec$group1)) {
-          stop('Can not plot XY for complex contrast.')
+          stop('Can not plot XY for complex contrast.',call.=FALSE)
         }
         if(missing(xrange)) {
           xmin  <- floor(min(res[,5]))
           xmax  <- ceiling(max(res[,5]))
         } else {
           if (length(xrange) != 2) {
-            stop("xrange must be vector of two numbers")
+            stop("xrange must be vector of two numbers",call.=FALSE)
           }
           xmin <- xrange[1]
           xmax <- xrange[2]
@@ -119,7 +119,7 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
           ymax  <- ceiling(max(res[,6]))
         } else {
           if (length(yrange) != 2) {
-            stop("yrange must be vector of two numbers")
+            stop("yrange must be vector of two numbers",call.=FALSE)
           }
           ymin <- yrange[1]
           ymax <- yrange[2]
@@ -149,16 +149,16 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=T,bXY=F,th=0.05,
 }	
 
 pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
-                              bUsePval=F,fold=0,facname="",
+                              bUsePval=FALSE,fold=0,facname="",
                               bLabels=FALSE,maxLabels=50,
-                              dotSize=1,bSignificant=T, bFlip=FALSE,
+                              dotSize=1,bSignificant=TRUE, bFlip=FALSE,
                               xrange,yrange) {
   
   if(missing(contrast)){
     contrast <- 1:length(pv$contrasts)
   } else {
     if(contrast > length(pv$contrasts)) {
-      stop('Specified contrast number is greater than number of contrasts')
+      stop('Specified contrast number is greater than number of contrasts',call.=FALSE)
       return(NULL)
     }
   }
@@ -172,7 +172,7 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
       name2 <- conrec$name1   
     }
     for(meth in method) {
-      res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=T,
+      res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=TRUE,
                           th=100,bNormalized=TRUE,bFlip=bFlip,precision=0)
       
       if(!is.null(res)) {
@@ -254,14 +254,14 @@ PV_TOTAL <- 0
 pv.plotHeatmap <-
   function(pv,numSites = 1000,attributes = pv$attributes,mask,sites,contrast,
            overlaps, olmask, olPlot = PV_COR,divVal,RowAttributes,ColAttributes,rowSideCols,colSideCols,
-           bTop = T,minval,maxval,bReorder = F,ColScheme =
+           bTop = TRUE,minval,maxval,bReorder = FALSE,ColScheme =
              "Greens",distMeth = "pearson",...) {
     pv <- pv.check(pv)
     
     if (missing(mask)) {
-      mask <- rep(T,ncol(pv$class))
+      mask <- rep(TRUE,ncol(pv$class))
     } else if (is.null(mask)) {
-      mask <- rep(T,ncol(pv$class))
+      mask <- rep(TRUE,ncol(pv$class))
     }
     
     ocm <- NULL
@@ -298,7 +298,7 @@ pv.plotHeatmap <-
         }
       }
       
-      if (bTop == T) {
+      if (bTop == TRUE) {
         sites <- sites[1:numSites]
       } else {
         tsites <- length(sites)
@@ -311,7 +311,7 @@ pv.plotHeatmap <-
       }
       domap <- matrix(0.1,length(sites),sum(mask))
       for (i in 1:ncol(domap)) {
-        domap[,i] <- as.numeric(pv$binding[sites,c(F,F,F,mask)][,i])
+        domap[,i] <- as.numeric(pv$binding[sites,c(FALSE,FALSE,FALSE,mask)][,i])
       }
       rowlab <- ""
       collab <- colnames[mask]
@@ -356,7 +356,7 @@ pv.plotHeatmap <-
     } else if (!is.null(RowAttributes)) {
       rowatts <-
         pv.attributematrix(
-          pv,mask,contrast = contrast,RowAttributes,rowSideCols,bReverse = T
+          pv,mask,contrast = contrast,RowAttributes,rowSideCols,bReverse = TRUE
         )
       rowcols <- length(unique(as.vector(rowatts)))
     }
@@ -380,8 +380,8 @@ pv.plotHeatmap <-
     
     if (is.null(ocm)) {
       if (!missing(RowAttributes)) {
-        warning("Row color bars not permitted for peak score heatmaps.",call. =
-                  F)
+        warning("Row color bars not permitted for peak score heatmaps.",
+                call.=FALSE)
       }
       heatmap.3(
         domap,labCol = collab,col = cols,trace = "none",labRow = rowlab,KeyValueName =
@@ -397,7 +397,7 @@ pv.plotHeatmap <-
           domap,labCol = collab,col = cols,trace = "none",labRow = rowlab, 
           KeyValueName ="Correlation",
           distfun = function(x)
-            Dist(x,method = distMeth),symm = T,revC = T,Colv = T,
+            Dist(x,method = distMeth),symm = TRUE,revC = TRUE,Colv = TRUE,
           RowSideColors = rowatts,ColSideColors = colatts,NumRowSideColors =
             rowcols,NumColSideColors = colcols,
           ...
@@ -406,7 +406,7 @@ pv.plotHeatmap <-
         if (length(unique(rownames(ocm))) == nrow(ocm)) {
           ocm <- pv.reorderM(ocm,res$rowDendrogram)
         } else {
-          warning("Unable to re-order returned correlation matrix as labels are non-unique")
+          warning("Unable to re-order returned correlation matrix as labels are non-unique",call.=FALSE)
         }
       }
       ocm <- signif(ocm,2) 
@@ -419,8 +419,8 @@ pv.plotHeatmap <-
 ## pv.plotPCA -- 3D plot of PCA
 pv.plotPCA <-
   function(pv,attributes = PV_ID,second,third,fourth,size,mask,
-           numSites,sites,cor = F,comps=1:3, b3D = T,vColors,
-           label = NULL,bLog = T,labelSize = .8,labelCols = "black",...) {
+           numSites,sites,cor = FALSE,comps=1:3, b3D = TRUE,vColors,
+           label = NULL,bLog = TRUE,labelSize = .8,labelCols = "black",...) {
     
     pv <- pv.check(pv)
     
@@ -461,7 +461,7 @@ pv.plotPCA <-
     
     if (!missing(mask) || !missing(numSites)) {
       if (missing(mask)) {
-        mask <- rep(T,ncol(pv$class))
+        mask <- rep(TRUE,ncol(pv$class))
       }
       pv <-
         pv.pcmask(pv,numSites,mask,sites,cor = cor,bLog = bLog)
@@ -482,7 +482,7 @@ pv.plotPCA <-
     #}
     
     if (max(class) > nrow(classes)) {
-      return(F)
+      return(FALSE)
     }
     
     vr <- rep(0,length(pc$sdev))
@@ -579,7 +579,7 @@ pv.plotPCA <-
         }
         print(p)
       } else {
-        warning("Package rgl not installed")
+        warning("Package rgl not installed",call.=FALSE)
         p <-
           pv.doPCAplot(pc,classvec,c1,c2,sval,vColors,thetitle,c1p,c2p,addlabels,...)
       }
@@ -644,41 +644,41 @@ pv.doPCAplot <-
 
 ## pv.plotBoxplot -- Boxplots
 pv.plotBoxplot <-
-  function(DBA, contrast, method=DBA_DESEQ2, th=0.05, bUsePval=F, bNormalized =
-             T, attribute=DBA_GROUP, mask,
+  function(DBA, contrast, method=DBA_DESEQ2, th=0.05, bUsePval=FALSE, bNormalized=TRUE, 
+           attribute=DBA_GROUP, mask,
            bAll, bAllIncreased, bAllDecreased, bDB, bDBIncreased, bDBDecreased,
-           pvalMethod=wilcox.test,  bReversePos=FALSE, attribOrder, vColors, varwidth =
-             T, notch=T, ...) {
+           pvalMethod=wilcox.test,  bReversePos=FALSE, attribOrder, vColors, 
+           varwidth=TRUE, notch=TRUE, ...) {
     
     if (missing(bAll) &&
         missing(bAllIncreased) && missing(bAllDecreased)) {
-      bMissingAll <- T
+      bMissingAll <- TRUE
     } else
-      bMissingAll <- F
+      bMissingAll <- FALSE
     
     if (missing(bDB) &&
         missing(bDBIncreased) && missing(bDBDecreased)) {
-      bMissingDB <- T
+      bMissingDB <- TRUE
     } else
-      bMissingDB <- F
+      bMissingDB <- FALSE
     
     if (missing(contrast)) {
       if (bMissingAll) {
-        bAll          <- T
-        bAllIncreased <- F
-        bAllDecreased <- F
-        bDB           <- F
-        bDBIncreased  <- F
-        bDBDecreased  <- F
+        bAll          <- TRUE
+        bAllIncreased <- FALSE
+        bAllDecreased <- FALSE
+        bDB           <- FALSE
+        bDBIncreased  <- FALSE
+        bDBDecreased  <- FALSE
       }
     } else {
       if (bMissingAll && bMissingDB) {
-        bAll          <- F
-        bAllIncreased <- F
-        bAllDecreased <- F
-        bDB           <- T
-        bDBIncreased  <- F
-        bDBDecreased  <- F
+        bAll          <- FALSE
+        bAllIncreased <- FALSE
+        bAllDecreased <- FALSE
+        bDB           <- TRUE
+        bDBIncreased  <- FALSE
+        bDBDecreased  <- FALSE
       }
     }
     
@@ -811,7 +811,7 @@ pv.plotBoxplot <-
     }
     
     if (nrow(report) == 1) {
-      stop('Need more than one DB site for boxplot')
+      stop('Need more than one DB site for boxplot',call.=FALSE)
     }
     
     if(bReversePos) {
@@ -854,13 +854,13 @@ pv.plotBoxplot <-
       subtitle <- TRUE
     }
     
-    if (bNormalized == T) {
+    if (bNormalized == TRUE) {
       ystr <- "log2 normalized reads in binding sites"
     } else {
       ystr <- "log2 reads in binding sites"
     }
     
-    if (subtitle == T && !is.null(DBA$contrasts[[contrast]]$group1)) {
+    if (subtitle == TRUE && !is.null(DBA$contrasts[[contrast]]$group1)) {
       subt <-
         sprintf(
           "+ indicates sites with increased affinity in %s\n- indicates sites with increased affinity in %s",
@@ -870,6 +870,7 @@ pv.plotBoxplot <-
       subt <- ""
     }
     
+    toplot <- lapply(toplot,pv.infToNA)
     mainstr <- pv.getContrastString(DBA$contrasts[[contrast]])
     boxplot(
       toplot,notch=notch, varwidth=varwidth,
@@ -904,6 +905,13 @@ pv.box <- function(ids,report) {
   idx <- match(ids,colnames(report))
   res <- log2(apply(report[,idx],1,mean))
   return(res)
+}
+
+pv.infToNA <- function(vals) {
+  if(min(vals)==-Inf) {
+    vals[vals==-Inf] <- NA
+  }
+  return(vals)
 }
 
 ## pv.plotVenn -- draw venn diagrams

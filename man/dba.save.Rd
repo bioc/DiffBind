@@ -63,6 +63,7 @@ Rory Stark
 data(tamoxifen_peaks)
 savefile <- dba.save(tamoxifen,'tamoxifenPeaks')
 savefile
+rm(tamoxifen)
 tamoxifen <- dba.load('tamoxifenPeaks')
 unlink(savefile)
 }

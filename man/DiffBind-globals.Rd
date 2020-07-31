@@ -20,6 +20,7 @@
 \alias{DBA_OLAP}
 \alias{DBA_INALL}
 \alias{DBA_SCORE_READS}
+\alias{DBA_SCORE_CONTROL_READS}
 \alias{DBA_SCORE_READS_MINUS}
 \alias{DBA_SCORE_READS_FULL}
 \alias{DBA_SCORE_READS_MINUS_FULL}
@@ -54,7 +55,20 @@
 \alias{DBA_DATA_GRANGES}
 \alias{DBA_DATA_RANGEDDATA}
 \alias{DBA_DATA_SUMMARIZED_EXPERIMENT}
-\alias{DBA_DATA_DBAOBJECT} 
+\alias{DBA_DATA_DBAOBJECT}
+\alias{DBA_BLACKLIST_CE10}
+\alias{DBA_BLACKLIST_CE11}
+\alias{DBA_BLACKLIST_DM3}
+\alias{DBA_BLACKLIST_DM6}
+\alias{DBA_BLACKLIST_GRCH37} 
+\alias{DBA_BLACKLIST_GRCH38}
+\alias{DBA_BLACKLIST_HG19}
+\alias{DBA_BLACKLIST_HG38}
+\alias{DBA_BLACKLIST_MM9}
+\alias{DBA_BLACKLIST_MM10} 
+\alias{DBA_BLACKLIST}
+\alias{DBA_GREYLIST}
+\alias{DBA_BLACKLISTED_PEAKS}
 
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
@@ -90,6 +104,7 @@ DBA_OLAP
 DBA_INALL
 
 DBA_SCORE_READS
+DBA_SCORE_CONTROL_READS
 DBA_SCORE_READS_MINUS
 DBA_SCORE_READS_FULL
 DBA_SCORE_READS_MINUS_FULL
@@ -128,6 +143,20 @@ DBA_DATA_GRANGES
 DBA_DATA_RANGEDDATA
 DBA_DATA_SUMMARIZED_EXPERIMENT
 DBA_DATA_DBAOBJECT
+
+DBA_BLACKLIST_CE10
+DBA_BLACKLIST_CE11
+DBA_BLACKLIST_DM3
+DBA_BLACKLIST_DM6
+DBA_BLACKLIST_GRCH37
+DBA_BLACKLIST_GRCH38
+DBA_BLACKLIST_HG19
+DBA_BLACKLIST_HG38
+DBA_BLACKLIST_MM9
+DBA_BLACKLIST_MM10
+DBA_BLACKLIST
+DBA_GREYLIST
+DBA_BLACKLISTED_PEAKS
 }
 
 %- maybe also 'usage' for other objects documented here.
@@ -198,6 +227,9 @@ When plotting a heatmap from an overlap record, use the number of peaks in commo
 
 \item{DBA_SCORE_READS}{
 dba.count score is number of reads in ChIP
+}
+\item{DBA_SCORE_CONTROL_READS}{
+dba.count score is number of reads in Control
 }
 \item{DBA_SCORE_READS_FOLD}{
 dba.count score is number of reads in ChIP divided by number of reads in Control
@@ -310,6 +342,21 @@ Return report as a \code{\link{SummarizedExperiment}}.
 \item{DBA_DATA_DBAOBJECT}{
 Return a result-based DBA object from \code{\link{dba.plotVenn}}.
 }
+
+\item{DBA_BLACKLIST_HG19}{Homo sapiens 19 (chromosomes have "chr")}
+\item{DBA_BLACKLIST_HG38}{Homo sapiens 38 (chromosomes have "chr")}  
+\item{DBA_BLACKLIST_GRCH37}{Homo sapiens 37 (chromosomes are numbers)}
+\item{DBA_BLACKLIST_GRCH38}{Homo sapiens 38 (chromosomes are numbers)}
+\item{DBA_BLACKLIST_MM9}{Mus musculus 9 }
+\item{DBA_BLACKLIST_MM10}{Mus musculus 10}
+\item{DBA_BLACKLIST_CE10}{C. elegans 10}
+\item{DBA_BLACKLIST_CE11}{C. elegans 11}
+\item{DBA_BLACKLIST_DM3}{Drosophila melanogaster 3}
+\item{DBA_BLACKLIST_DM6}{Drosophila melanogaster 6}
+\item{DBA_BLACKLIST}{Retrieve blacklist}
+\item{DBA_GREYLIST}{Retrieve greylist}
+\item{DBA_BLACKLISTED_PEAKS}{Retrieve blacklisted peaks}
+
 }
 %\details{
 %%

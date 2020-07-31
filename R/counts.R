@@ -6,11 +6,14 @@
 ## Cancer Research UK              ##
 #####################################
 PV_DEBUG <- FALSE
+
+minCount <- 0
+
 ## pv.model -- build model, e.g. from sample sheet
 pv.model <- function(model,mask,minOverlap=2,
                      samplesheet='sampleSheet.csv',config=data.frame(RunParallel=FALSE),
-                     caller="raw",format, scorecol, bLowerBetter, skipLines=0,bAddCallerConsensus=T,
-                     bRemoveM=T, bRemoveRandom=T,filter,
+                     caller="raw",format, scorecol, bLowerBetter, skipLines=0,bAddCallerConsensus=TRUE,
+                     bRemoveM=TRUE, bRemoveRandom=TRUE,filter,
                      attributes, dir) {
   
   if(missing(format))       format       <- NULL
@@ -58,10 +61,10 @@ pv.model <- function(model,mask,minOverlap=2,
       if (requireNamespace("XLConnect",quietly=TRUE)) {
         samples <- XLConnect::readWorksheetFromFile(samplesheet,sheet=1)
       } else {
-        stop("Package XLConnect is needed to read Excel-format sample sheets.")
+        stop("Package XLConnect is needed to read Excel-format sample sheets.",call.=FALSE)
       }
     } else {
-      samples <- read.table(samplesheet,sep=',',stringsAsFactors=F,header=T, 
+      samples <- read.table(samplesheet,sep=',',stringsAsFactors=FALSE,header=TRUE, 
                             comment.char="")
     }
     samples <- stripSpaces(samples)
@@ -112,7 +115,7 @@ pv.model <- function(model,mask,minOverlap=2,
   model <- NULL
   if(is.character(config)) {
     if(!is.null(config)) {
-      config  <- read.table(config,colClasses='character',sep=',',header=T)
+      config  <- read.table(config,colClasses='character',sep=',',header=TRUE)
       x <- config$DataType
       if(!is.null(x)) {
         if(x=="DBA_DATA_FRAME")	{
@@ -232,7 +235,7 @@ pv.model <- function(model,mask,minOverlap=2,
                         factor      = as.character(samples$Factor[i]),
                         condition   = as.character(samples$Condition[i]),
                         treatment   = as.character(samples$Treatment[i]),
-                        consensus   = F,
+                        consensus   = FALSE,
                         peak.caller = peakcaller,
                         peak.format = peakformat,
                         scoreCol    = peakscores,
@@ -286,6 +289,7 @@ PV_SCORE_RPKM_FOLD      <- PV_RES_RPKM_FOLD
 PV_SCORE_READS          <- PV_RES_READS
 PV_SCORE_READS_FOLD     <- PV_RES_READS_FOLD
 PV_SCORE_READS_MINUS    <- PV_RES_READS_MINUS
+PV_SCORE_CONTROL_READS  <- 18
 PV_SCORE_TMM_MINUS_FULL       <- 6
 PV_SCORE_TMM_MINUS_EFFECTIVE  <- 7
 PV_SCORE_TMM_READS_FULL       <- 8
@@ -306,16 +310,16 @@ PV_READS_DEFAULT   <- 0
 PV_READS_BAM       <- 3
 PV_READS_BED       <- 1
 
-pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog=T,insertLength=0,
-                      bOnlyCounts=T,bCalledMasks=T,minMaxval,filterFun=max,
-                      bParallel=F,bUseLast=F,bWithoutDupes=F, bScaleControl=F, bSignal2Noise=T,
-                      bLowMem=F, readFormat=PV_READS_DEFAULT, summits, minMappingQuality=0,
+pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog=TRUE,insertLength=0,
+                      bOnlyCounts=TRUE,bCalledMasks=TRUE,minMaxval,filterFun=max,
+                      bParallel=FALSE,bUseLast=FALSE,bWithoutDupes=FALSE, bScaleControl=FALSE, bSignal2Noise=TRUE,
+                      bLowMem=FALSE, readFormat=PV_READS_DEFAULT, summits, minMappingQuality=0,
                       maxGap=-1, bRecentered=FALSE) {
   
   pv <- pv.check(pv)
   
   if(sum(is.na(pv$class[PV_BAMREADS,]))) {
-    stop("Can't count: some peaksets are not associated with a .bam file.",call.=TRUE)
+    stop("Can't count: some peaksets are not associated with a .bam file.",call.=FALSE)
   }
   
   pv$class[PV_BAMCONTROL,pv$class[PV_BAMCONTROL,]==""]=NA
@@ -365,6 +369,9 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
       if(is.character(peaks[1,1])){
         peaks[,1] <- factor(peaks[,1],pv$chrmap)
       }
+      if(nrow(peaks)==nrow(pv$called)) {
+        called <- pv$called
+      }
     }
     if(is.null(bed)) {
       colnames(peaks)[1:3] <- c("CHR","START","END")
@@ -384,7 +391,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
   called <- pv.check1(called)
   
   if(nrow(bed)==0) {
-    stop("Zero peaks to count!")
+    stop("Zero peaks to count!",call.=FALSE)
   }
   
   bed <- as.data.frame(pv.peaksort(bed,pv$chrmap))
@@ -398,7 +405,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
   todo   <- unique(c(chips,inputs))
   
   if(!pv.checkExists(todo)) {
-    stop('Some read files could not be accessed. See warnings for details.')
+    stop('Some read files could not be accessed. See warnings for details.',call.=FALSE)
   }
   
   if(length(insertLength)==1) {
@@ -434,13 +441,13 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
     if (insertLength[1] !=0) {
       warning("fragmentSize ignored when bUseSummarizeOverlaps is TRUE in dba.count",call.=FALSE)
     }
-    bAllBam <- T
+    bAllBam <- TRUE
     for(st in todo) {
       if(substr(st,nchar(st)-3,nchar(st)) != ".bam")	{
-        bAllBam=F
+        bAllBam <- FALSE
         warning(st,": not a .bam",call.=FALSE)	
       } else if(file.access(paste(st,".bai",sep=""))==-1) {
-        bAllBam=F
+        bAllBam <- FALSE
         warning(st,": no associated .bam.bai index",call.=FALSE)	
       }
     }
@@ -458,7 +465,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
     }
     if(!is.null(pv$config$fragments)) {
       fragments <- pv$config$fragments   
-    } else fragments=FALSE
+    } else fragments <- FALSE
     
     scanbamparam <- pv$config$scanbamparam 	
   }
@@ -502,7 +509,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
   if(sum(errors)) {
     errors <- which(errors)
     for(err in errors) {
-      if(class(results[[err]])=="try-error") {
+      if(is(results[[err]],"try-error")) {
         warning(strsplit(results[[err]][1],'\n')[[1]][2],call.=FALSE)   
       } else {
         warning(results[[err]],call.=FALSE)
@@ -518,16 +525,16 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
       jnum <- which(todo %in% pv$class[PV_BAMREADS,chipnum])
       cond <- results[[jnum]]
       if(length(cond$counts)==0){
-        warning('ERROR IN PROCESSING ',todo[jnum])
+        warning('ERROR IN PROCESSING ',todo[jnum],call.=FALSE)
       }
       if(length(cond$libsize)==0){
-        warning('ERROR IN PROCESSING ',todo[jnum])
+        warning('ERROR IN PROCESSING ',todo[jnum],call.=FALSE)
       }         
       if(!is.na(pv$class[PV_BAMCONTROL,chipnum])) {
         cnum <- which(todo %in% pv$class[PV_BAMCONTROL,chipnum])
         cont <- results[[cnum]]
         if(length(cont$counts)==0){
-          warning('ERROR IN PROCESSING ',todo[cnum])
+          warning('ERROR IN PROCESSING ',todo[cnum],call.=FALSE)
         }
         if(bScaleControl==TRUE) {
           if(cond$libsize>0) {
@@ -540,8 +547,8 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
         }
       } else {
         cont <- NULL
-        cont$counts <- rep(1,length(cond$counts))	
-        cont$rpkm   <- rep(1,length(cond$rpkm))   
+        cont$counts <- rep(minCount,length(cond$counts))	
+        cont$rpkm   <- rep(minCount,length(cond$rpkm))   
       }
       
       rpkm_fold   <- cond$rpkm   / cont$rpkm
@@ -578,7 +585,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
                        factor      = pv$class[PV_FACTOR,chipnum],
                        condition   = pv$class[PV_CONDITION,chipnum],
                        treatment   = pv$class[PV_TREATMENT,chipnum],
-                       consensus   = T,
+                       consensus   = TRUE,
                        peak.caller = 'counts',
                        control     = pv$class[PV_CONTROL,chipnum],
                        reads       = cond$libsize, #pv$class[PV_READS,chipnum],
@@ -586,7 +593,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
                        readBam     = pv$class[PV_BAMREADS,chipnum],
                        controlBam  = pv$class[PV_BAMCONTROL,chipnum],
                        scoreCol    = 0,
-                       bRemoveM = F, bRemoveRandom=F,bMakeMasks=F)
+                       bRemoveM = FALSE, bRemoveRandom=FALSE,bMakeMasks=FALSE)
       numAdded <- numAdded + 1
     }                  
   }
@@ -599,14 +606,25 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
         defaultScore <- redoScore
       }
       res <- pv.counts(res,peaks=res$merged,defaultScore=defaultScore,bLog=bLog,insertLength=insertLength,
-                       bOnlyCounts=T,bCalledMasks=T,minMaxval=minMaxval,filterFun=filterFun,
+                       bOnlyCounts=TRUE,bCalledMasks=TRUE,minMaxval=minMaxval,filterFun=filterFun,
                        bParallel=bParallel,bWithoutDupes=bWithoutDupes,bScaleControl=bScaleControl,
                        bSignal2Noise=bSignal2Noise,bLowMem=FALSE,readFormat=readFormat,summits=0,
                        bRecentered=TRUE,minMappingQuality=minMappingQuality)
       pv.gc()
       return(res)
     } else {
+      savecalled <- pv$called
+      if(ncol(savecalled) == numAdded) {
+        pv$called <- NULL
+      }
       res <- pv.vectors(pv,(numpeaks-numAdded+1):numpeaks,minOverlap=1,bAllSame=TRUE)
+      if(is.null(res$called)) {
+        if(nrow(savecalled)==nrow(res$peaks[[length(res$peaks)]])) {
+          res$called <- savecalled
+        } else if(nrow(called)==nrow(res$peaks[[length(res$peaks)]])) {
+          res$called <- called
+        }
+      }
       if(bRecentered) {
         called <- pv$called
       } 
@@ -628,11 +646,13 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
           } 
           res <- pv.vectors(res,minOverlap=1,bAllSame=pv.allSame(res))
         } else {
-          stop('No sites have activity greater than minMaxval')
+          stop('No sites have activity greater than minMaxval',call.=FALSE)
         }
       }
     }
-    res$called <- called
+    if(is.null(res$called)) {
+      res$called <- called
+    }
   } else {
     if(redoScore > 0) {
       res <- pv.setScore(res,redoScore,minMaxval=minMaxval,filterFun=filterFun,bSignal2Noise=bSignal2Noise)	
@@ -665,7 +685,7 @@ pv.nodup <- function(pv,chipnum) {
   chips <- pv$class[PV_BAMREADS,1:(chipnum-1)] == pv$class[PV_BAMREADS,chipnum]
   conts <- pv$class[PV_BAMCONTROL,1:(chipnum-1)] == pv$class[PV_BAMCONTROL,chipnum]
   
-  conts[is.na(conts)] <- T
+  conts[is.na(conts)] <- TRUE
   
   if(sum(chips&conts)>0) {
     return(FALSE)
@@ -685,8 +705,8 @@ pv.checkExists <- function(filelist){
   return(sum(res)==0)
 }
 
-pv.do_getCounts <- function(countrec,intervals,bWithoutDupes=F,
-                            bLowMem=F,yieldSize,mode,singleEnd,scanbamparam,
+pv.do_getCounts <- function(countrec,intervals,bWithoutDupes=FALSE,
+                            bLowMem=FALSE,yieldSize,mode,singleEnd,scanbamparam,
                             fileType=0,summits,fragments,minMappingQuality=0) {
   
   res <- pv.getCounts(bamfile=countrec$bamfile,intervals=intervals,insertLength=countrec$insert,
@@ -699,8 +719,8 @@ pv.do_getCounts <- function(countrec,intervals,bWithoutDupes=F,
   return(res)
   
 }
-pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=F,
-                         bLowMem=F,yieldSize,mode,singleEnd,scanbamparam,
+pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=FALSE,
+                         bLowMem=FALSE,yieldSize,mode,singleEnd,scanbamparam,
                          fileType=0,summits=-1,fragments,minMappingQuality=0) {
   
   bufferSize <- 1e6
@@ -708,7 +728,7 @@ pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=F,
   
   if(bLowMem) {
     if(minMappingQuality>0) {
-      warning('minMappingQuality ignored for summarizeOverlaps, set in ScanBamParam.')
+      warning('minMappingQuality ignored for summarizeOverlaps, set in ScanBamParam.',call.=FALSE)
     }
     res <- pv.getCountsLowMem(bamfile,intervals,bWithoutDupes,mode,yieldSize,singleEnd,fragments,
                               scanbamparam)
@@ -717,7 +737,8 @@ pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=F,
   
   fdebug("Starting croi_count_reads...")
   result <- cpp_count_reads(bamfile,insertLength,fileType,bufferSize,
-                            intervals,bWithoutDupes,summits,minMappingQuality)
+                            intervals,bWithoutDupes,summits,minMappingQuality,
+                            minVal=minCount)
   fdebug("Done croi_count_reads...")
   fdebug(sprintf("Counted %d reads...",result$libsize))
   return(result)
@@ -736,8 +757,9 @@ pv.filterRate <- function(pv,vFilter,filterFun=max) {
   return(res)
 }
 
-pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=F,
-                               mode="IntersectionNotEmpty",yieldSize=5000000,singleEnd=TRUE,fragments=FALSE,params=NULL) {
+pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=FALSE,
+                               mode="IntersectionNotEmpty",yieldSize=5000000,
+                               singleEnd=TRUE,fragments=FALSE,params=NULL) {
   
   intervals <- pv.peaks2DataType(intervals,DBA_DATA_GRANGES)
   
@@ -752,7 +774,9 @@ pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=F,
     params  <- ScanBamParam(flag=scanBamFlag(isDuplicate=Dups))
   }
   
-  counts  <- assay(summarizeOverlaps(features=intervals,reads=bfl,ignore.strand=TRUE,singleEnd=singleEnd,fragments=fragments,param=params))
+  counts  <- assay(summarizeOverlaps(features=intervals,reads=bfl,
+                                     ignore.strand=TRUE,singleEnd=singleEnd,
+                                     fragments=fragments,param=params))
   libsize <- countBam(bfl)$records
   rpkm    <- (counts/(width(intervals)/1000))/(libsize/1e+06)
   
@@ -762,7 +786,7 @@ pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=F,
 pv.Recenter <- function(pv,summits,peakrange,called=NULL) {
   peaklist <- pv$peaks[peakrange]
   if(is.null(peaklist[[1]]$Summits)) {
-    stop('Summits not available; re-run dba.count with summits=TRUE')   
+    stop('Summits not available; re-run dba.count with summits=TRUE',call.=FALSE)   
   }
   
   message('Re-centering peaks...')
@@ -850,27 +874,27 @@ pv.controlID <- function(samples,i,class, curnum){
 
 pv.resetCounts <- function(pv,counts) {
   
-  if(class(counts) != "data.frame") {
-    stop("New counts must be passed as a data.frame.")
+  if(!is(counts,"data.frame")) {
+    stop("New counts must be passed as a data.frame.",call.=FALSE)
   }
   if(sum(pv$class[PV_CALLER,]=="counts") != ncol(pv$class)) {
     stop("All peaks must have counts to replace.")
   }
   if(nrow(pv$binding) != nrow(counts)) {
-    stop("All samples must have same number of peaks as binding matrix.")
+    stop("All samples must have same number of peaks as binding matrix.",call.=FALSE)
   }
   if(ncol(pv$binding) != ncol(counts)) {
-    stop("All samples must have same number of samples as binding matrix.")
+    stop("All samples must have same number of samples as binding matrix.",call.=FALSE)
   }
   if(sum(pv$class[PV_ID,] == colnames(counts[,4:ncol(counts)])) != 
      ncol(pv$class)) {
-    stop("All samples must have same IDs, and be in same order, as binding matrix.")
+    stop("All samples must have same IDs, and be in same order, as binding matrix.",call.=FALSE)
   }
   
   for(sample in 4:ncol(counts)) {
     snum <- sample - 3
     pv$peaks[[snum]]$Reads <- sapply(round(counts[,sample]),
-                                     function(x){max(1,x)})
+                                     function(x){max(minCount,x)})
   }
   if(!is.null(pv$score)) {
     scoreVal <- pv$score

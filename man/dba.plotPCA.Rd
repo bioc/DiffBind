@@ -90,6 +90,7 @@ Only used when plotting the global binding matrix (no \code{contrast} specified)
 One of:
 \itemize{
 \item \code{\link{DBA_SCORE_READS}}
+\item \code{\link{DBA_SCORE_CONTROL_READS}}
 \item \code{\link{DBA_SCORE_READS_MINUS}}
 \item \code{\link{DBA_SCORE_READS_FULL}}
 \item \code{\link{DBA_SCORE_READS_EFFECTIVE}}

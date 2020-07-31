@@ -1,5 +1,5 @@
-pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T,
-                   minMembers=3,bParallel=F, block,
+pv.DBA <- function(pv,method='edgeR',bSubControl=TRUE,bFullLibrarySize=FALSE,bTagwise=TRUE,
+                   minMembers=3,bParallel=FALSE, block,
                    filter=0,filterFun=max) {
   
   if(bParallel) {
@@ -18,7 +18,7 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T
   }
   
   if(is.null(pv$contrasts)) {
-    stop('Unable to perform analysis: no contrasts specified.')	
+    stop('Unable to perform analysis: no contrasts specified.',call.=FALSE)	
   }
   
   noreps <- FALSE
@@ -61,20 +61,20 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T
       fdebug('submit job: pv.all')
       jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,
                                                   pv.allDEedgeR,pv,
-                                                  bFullLibrarySize=bFullLibrarySize,bParallel=T,
-                                                  bSubControl=bSubControl,bTagwise=bTagwise,bGLM=T,
+                                                  bFullLibrarySize=bFullLibrarySize,bParallel=TRUE,
+                                                  bSubControl=bSubControl,bTagwise=bTagwise,bGLM=TRUE,
                                                   filter=filter,filterFun=filterFun))
     } else {
       results <- pv.listadd(results, pv.allDEedgeR(pv,block=block,
                                                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                   bParallel=setParallel,bTagwise=bTagwise,bGLM=T,
+                                                   bParallel=setParallel,bTagwise=bTagwise,bGLM=TRUE,
                                                    filter=filter,filterFun=filterFun))
     }
   }
   
   if('DESeq2' %in% method) {
     if (!requireNamespace("DESeq2",quietly=TRUE)) {
-      stop("Package DESeq2 not installed")
+      stop("Package DESeq2 not installed",call.=FALSE)
     }
     
     if(!is.null(pv$design)) {
@@ -89,11 +89,11 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T
       params <- dba.parallel.params(pv$config,c('pv.DESeq2'))
       jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq2,pv,
                                                   bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                  bTagwise=bTagwise,bGLM=F,
-                                                  bParallel=T,filter=filter,filterFun=filterFun))
+                                                  bTagwise=bTagwise,bGLM=FALSE,
+                                                  bParallel=TRUE,filter=filter,filterFun=filterFun))
     } else {
       results <- pv.listadd(results,pv.allDESeq2(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
-                                                 bTagwise=bTagwise,bGLM=F,bParallel=setParallel,
+                                                 bTagwise=bTagwise,bGLM=FALSE,bParallel=setParallel,
                                                  filter=filter,filterFun=filterFun))
     }
   }
@@ -128,21 +128,21 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=T,bFullLibrarySize=F,bTagwise=T
 }
 
 pv.DEinit <- function(pv,mask1,mask2,group1=1,group2=2,method='edgeR',
-                      bSubControl=F,bFullLibrarySize=F,removeComps=0,
-                      bRawCounts=F,targets=NULL,
+                      bSubControl=FALSE,bFullLibrarySize=FALSE,removeComps=0,
+                      bRawCounts=FALSE,targets=NULL,
                       filter=0,filterFun=max) {
   
   fdebug('enter pv.DEinit')
   
-  edgeR  <- F
-  DESeq2 <- F
+  edgeR  <- FALSE
+  DESeq2 <- FALSE
   if(method == 'edgeR') {
-    edgeR <- T   
+    edgeR <- TRUE   
   } else if (method == 'DESeq2') {
     if (requireNamespace("DESeq2",quietly=TRUE)) {
-      DESeq2 <- T 
+      DESeq2 <- TRUE 
     } else {
-      stop("Package DESeq2 not installed")
+      stop("Package DESeq2 not installed",call.=FALSE)
     }    
   } else {
     warning('Invalid method: ',method,call.=FALSE)
@@ -256,17 +256,17 @@ pv.blockFactors <- function(pv,group1,group2,label1,label2,blockList) {
   
 }
 
-pv.normFactors <- function(pv,bMinus=F,bFullLib=T) {
+pv.normFactors <- function(pv,bMinus=FALSE,bFullLib=TRUE) {
   if(length(pv$peaks)<2) {
     warning('Unable to TMM normalize -- not enough peaksets',call.=FALSE)
     return(pv)   
   }
-  g1     <- rep(F,length(pv$peaks))
-  g1[1]  <- T
+  g1     <- rep(FALSE,length(pv$peaks))
+  g1[1]  <- TRUE
   
   savenames <- pv$class[PV_ID,]
   pv$class[PV_ID,] <- 1:ncol(pv$class)
-  res    <- pv.DEedgeR(pv,g1,!g1,"1","2",bSubControl=bMinus,bFullLibrarySize=bFullLib,bNormOnly=T)
+  res    <- pv.DEedgeR(pv,g1,!g1,"1","2",bSubControl=bMinus,bFullLibrarySize=bFullLib,bNormOnly=TRUE)
   return(res$samples$norm.factors)
 }
 

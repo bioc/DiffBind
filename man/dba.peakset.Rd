@@ -53,6 +53,7 @@ if \code{NULL}, retrieves/writes the full binding matrix.
 \item{sampID}{
 ID string for the peakset being added; if missing, one is assigned 
 (a serial number for a new peakset, or a concatenation of IDs for a consensus peakset).
+Must be unique for each sample.
 }
 \item{tissue}{
 tissue name for the peakset being added; if missing, one is assigned 

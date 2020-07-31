@@ -49,11 +49,13 @@ Rory Stark
 }
 
 \examples{
-data(tamoxifen_analysis)
+data(tamoxifen_peaks)
+savefile <- dba.save(tamoxifen,'tamoxifenPeaks')
+savefile
+rm(tamoxifen)
+tamoxifen <- dba.load('tamoxifenPeaks')
 tamoxifen
-dba.save(tamoxifen,'tamoxifen_analysis')
-tamoxifen <- dba.load('tamoxifen_analysis')
-tamoxifen
+unlink(savefile)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

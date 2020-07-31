@@ -12,7 +12,7 @@ dba.contrast(DBA, design=missing(group1), contrast,
              group1, group2=!group1, name1, name2,
              minMembers=3, block, bNot=FALSE, bComplex=FALSE,
              categories=c(DBA_TISSUE,DBA_FACTOR,DBA_CONDITION,DBA_TREATMENT),
-             bGetCoefficients=FALSE)
+             bGetCoefficients=FALSE, reorderMeta)
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -116,10 +116,37 @@ If block is a list, it should be a list of vectors (either logical masks or vect
 }
 
 \item{bGetCoefficients}{
-If \code{TRUE}, return the names of the columns (coeffcients) associated with the \code{design}.
+If \code{TRUE}, return the names of the columns (coefficients) associated with the \code{design}.
 These can be used to specify a \code{contrast}. 
 If \code{bGetCoefficients=TRUE}, all other parameters 
 (except \code{DBA} and \code{design}, if specified) will be ignored.
+}
+
+\item{reorderMeta}{
+By default, the metadata factor levels will be ordered in the order they appear in the sample sheet. 
+They can be re-ordered using this parameter.
+\code{reorderMeta} is specified as a list, with each element being a vector of character strings corresponding
+to unique factor values in the desired order.
+Each element should be named for the appropriate metadata factor, one of:
+   \itemize{ 
+     \item Tissue
+     \item Factor
+     \item Condition
+     \item Treatment
+     \item Replicate
+     \item Caller
+  }
+
+If the vector of factor values contains a subset of the possible values,
+the specified values will be set to be ordered first, with the remaining values
+following in their default order. 
+If only one factor value is supplied, it will be set as the reference (or "control") value.
+Contrasts that are no longer valid will be removed (and a warning issued) if detected.
+These include contrasts specified as a numeric vector of coefficients,
+or contrasts specified using coefficient names that no longer
+exists after reordering the metadata factor levels.
+Any existing analysis will be removed when metadata factor levels are reordered, necessitating 
+another call to \code{\link{dba.analyze}}
 }
 }
 \details{
@@ -168,7 +195,7 @@ data(tamoxifen_counts)
 tamoxifen <- dba.contrast(tamoxifen, contrast=c("Condition","Responsive","Resistant"))
 tamoxifen
 tamoxifen <- dba.analyze(tamoxifen)
-tamoxifen
+dba.show(tamoxifen,bContrasts=TRUE)
 
 # Add another contrast
 tamoxifen <- dba.contrast(tamoxifen, contrast=c("Tissue","MCF7","BT474"))
@@ -190,20 +217,22 @@ tamoxifen
 tamoxifen <- dba.contrast(tamoxifen, minMembers=2)
 dba.show(tamoxifen,bContrasts=TRUE)
 
-# Use of complex contrasts                          
+### Use of complex contrasts                          
 data(tamoxifen_counts)
-tamoxifen <- dba.contrast(tamoxifen, contrast=c("Tissue","MCF7","BT474"))
-dba.show(tamoxifen,bDesign=TRUE)
-tamoxifen <- dba.contrast(tamoxifen,design="~Tissue + Condition")
-tamoxifen
-
+tamoxifen <- dba.contrast(tamoxifen, contrast=c("Tissue","BT474","MCF7"))
 dba.contrast(tamoxifen, bGetCoefficients=TRUE)
-tamoxifen <- dba.contrast(tamoxifen,contrast="Tissue_MCF7_vs_BT474")
-tamoxifen <- dba.contrast(tamoxifen,contrast=list("Tissue_MCF7_vs_BT474"))
-tamoxifen <- dba.contrast(tamoxifen,contrast=c(0,1,0,0,0))
+
+#Change design and factor ordering
+tamoxifen <- dba.contrast(tamoxifen,design="~Tissue + Condition",
+                          reorderMeta=list(Condition="Responsive",
+                          Tissue=c("MCF7","ZR75","T47D","BT474")))
+dba.contrast(tamoxifen, bGetCoefficients=TRUE)
+tamoxifen <- dba.contrast(tamoxifen,contrast="Tissue_BT474_vs_MCF7")
+tamoxifen <- dba.contrast(tamoxifen,contrast=list("Tissue_BT474_vs_MCF7"))
+tamoxifen <- dba.contrast(tamoxifen,contrast=c(0,0,0,1,0))
 tamoxifen <- dba.contrast(tamoxifen,
-                          contrast=list("Tissue_MCF7_vs_BT474","Tissue_T47D_vs_BT474"))
-tamoxifen <- dba.contrast(tamoxifen,contrast=c(0,1,1,1,0))
+                          contrast=list("Tissue_BT474_vs_MCF7","Tissue_T47D_vs_MCF7"))
+tamoxifen <- dba.contrast(tamoxifen,contrast=c(0,0,-1,1,0))
 tamoxifen <- dba.contrast(tamoxifen,contrast=c(0,0,0,0,1))
 dba.show(tamoxifen,bContrasts=TRUE)
 tamoxifen <- dba.analyze(tamoxifen)
@@ -212,9 +241,10 @@ tamoxifen <- dba.contrast(tamoxifen,
                           contrast=c("Condition","Responsive","Resistant"))
 tamoxifen <- dba.analyze(tamoxifen)
 dba.show(tamoxifen,bContrasts=TRUE)[7:8,]
+dba.plotVenn(tamoxifen, contrast=7:8, bDB=TRUE,          
+             bAll=FALSE, bGain=TRUE, bLoss=TRUE)
 
-
-# Explicit contrast, without design
+## Explicit contrast, without design
 data(tamoxifen_counts)
 tamoxifen <- dba.contrast(tamoxifen, design=FALSE,
                           group1=tamoxifen$masks$Responsive, name1="Responsive",

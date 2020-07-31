@@ -2,17 +2,36 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.99.1}{
+
+\section{Version 2.99.3}{
 This is a major release of DiffBind and the new version will be 3.0.
 
 The main upgrade involves how the modelling is done. 
 DiffBind now supports models and contrasts of arbitrary complexity using either/both DESeq2 or/and edgeR.
 
-The previous methods for modelling are maintained for backward compatibility, however they are not the default. 
+NB:
+
+The previous methods for modelling are maintained for backward compatibility, 
+ however they are not the default. 
 To repeat earlier analyses, dba.contrast() must be called explicitly with design=FALSE.
 
-The default mode for dba.count() is now to ceter around summits (resulting in 501bp intervals). 
-To to avoid recentering around summits as was the previous default, set summits=FALSE.
+The default mode for dba.count() is now to center around summits (resulting in 501bp intervals). 
+To to avoid recentering around summits as was the previous default, set summits=FALSE (or to a more appropriate value).
+
+ Changes in this point release:
+   \itemize{
+     \item{Change minimum count value from 1 to 0}.
+     \item{Add new interface function: dba.blacklist() to support  
+     blacklists and greylists}
+     \item{Change default for bSubControl in dba.analyze() to be FALSE if a greylist has been used to filter peaks.}
+     \item{Add rorderMeta parameter to dba.contrast()}
+
+    }
+}
+
+\section{Version 2.99.1}{
+
+Add full model designs.
  
    \itemize{
     \item{dba.contrast() changes:}

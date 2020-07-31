@@ -200,7 +200,7 @@ dba.plotVenn(tamoxifen,tamoxifen$masks$Consensus,
              main="Tissue consensus overlaps")
 
 #Venns of differentially bound sites
-data(tamoxifen_analysis)
+data(tamoxifen_counts)
 tamoxifen <- dba.contrast(tamoxifen,categories=DBA_CONDITION)
 tamoxifen <- dba.analyze(tamoxifen,method=c(DBA_EDGER,DBA_DESEQ2))
 dba.plotVenn(tamoxifen,contrast=1,method=DBA_ALL_METHODS,

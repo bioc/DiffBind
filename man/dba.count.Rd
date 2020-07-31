@@ -37,6 +37,7 @@ only include peaks in at least this many peaksets when generating consensus peak
 which score to use in the binding affinity matrix. Note that all raw read counts are maintained for use by \code{\link{dba.analyze}}, regardless of how this is set. One of:
 \tabular{ll}{
 DBA_SCORE_READS \tab raw read count for interval using only reads from ChIP\cr
+DBA_SCORE_CONTROL_READS \tab raw read count for interval using only reads from Control\cr
 DBA_SCORE_READS_FOLD \tab raw read count for interval from ChIP divided by read count for interval from control\cr
 DBA_SCORE_READS_MINUS \tab raw read count for interval from ChIP minus read count for interval from control\cr
 DBA_SCORE_READS_FULL \tab read count for interval from ChIP normalized based on Full Library size\cr
@@ -134,7 +135,7 @@ counting instead of the built-in counting code.
 This option is slower but uses the more standard counting function.
 If \code{TRUE}, all read files must be BAM (.bam extension), with associated index files 
 (.bam.bai extension). 
-The \code{insertLength} parameter must absent. 
+The \code{fragmentSize} parameter must absent. 
 
 See notes for when the \code{bRemoveDuplicates} parameter is set to \code{TRUE}, 
 where the built-in counting code may not correctly handle certain cases and 
@@ -166,23 +167,14 @@ all the read files must be of the same file type.
 if \code{TRUE}, use multicore to get counts for each read file in parallel
 }
 }
-%\details{
-%%  ~~ If necessary, more details than the description above ~~
-%}
+
 \value{
 DBA object with binding affinity matrix based on read count scores.
 }
-%\references{
-%% ~put references to the literature/web site here ~
-%}
+
 \author{
 Rory Stark and Gordon Brown
 }
-%\note{
-%%  ~~further notes~~
-%}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
  
  \seealso{
  \code{\link{dba.analyze}}

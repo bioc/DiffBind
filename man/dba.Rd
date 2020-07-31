@@ -45,7 +45,8 @@ If \code{minOverlap} is between zero and one, peak will be included from at leas
 data frame containing sample sheet, or file name of sample sheet to load (ignored if DBA is specified). 
 Columns names in sample sheet may include:
 \itemize{
-\item {\code{SampleID:}}	{Identifier string for sample}
+\item {\code{SampleID:}}	{Identifier string for sample. 
+Must be unique for each sample.}
 \item {\code{Tissue:}}	{Identifier string for tissue type}
 \item {\code{Factor:}}	{Identifier string for factor}
 \item {\code{Condition:}}	{Identifier string for condition}

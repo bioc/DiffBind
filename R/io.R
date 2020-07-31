@@ -36,7 +36,7 @@ pv.writePeakset <- function(pv,fname,peaks,numCols=4){
    }           
    
    if(!is.null(dim(peaks))) {
-      if(class(peaks[1,1])=="character") {
+      if(is(peaks[1,1],"character")) {
          bed <- pv.do_peaks2bed(peaks,NULL,fname,numCols=numCols)
       } else {
          bed <- pv.do_peaks2bed(peaks,pv$chrmap,fname,numCols=numCols)

@@ -20,7 +20,7 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
       return(NULL)	
    }
    
-   if(class(pv)=="ChIPQCexperiment"){
+   if(is(pv,"ChIPQCexperiment")){
       saveqc <- pv
       pv <- pv@DBA
       x <- "DBA object placeholder"
@@ -76,7 +76,7 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
    if(is.null(pv$config$DataType)) {
       pv$config$DataType=DBA_DATA_DEFAULT
       if(!is.null(pv$config$RangedData)) {
-         if(pv$config$RangedData==F) {
+         if(pv$config$RangedData==FALSE) {
             pv$config$DataType <- DBA_DATA_FRAME   	
          } 
       }
@@ -86,7 +86,7 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
       pv$config$bCorPlot <- FALSE
    }
    
-   if(class(pv$attributes) == "function") {
+   if(is(pv$attributes,"function")) {
       pv$attributes <- NULL
    }
    
@@ -125,22 +125,22 @@ pv.version <- function(pv,v1,v2,v3){
    
    warn <- FALSE
    if(is.null(pv$config$Version1)) {
-      warn <- T   	
+      warn <- TRUE   	
    } else {
       if(pv$config$Version1 != v1) {
-         warn <- T   	
+         warn <- TRUE   	
       }	
    }
    if(is.null(pv$config$Version2)) {
-      warn <- T   	
+      warn <- TRUE   	
    } else {
       if(pv$config$Version2 != v2) {
-         warn <- T   	
+         warn <- TRUE   	
       }	
    }
    
    if(warn) {
-      warning('Loading DBA object from a previous version -- updating...',call.=F)
+      warning('Loading DBA object from a previous version -- updating...',call.=FALSE)
    }
    
    if(!is.null(pv$contrasts)) {
@@ -180,15 +180,15 @@ checkQCobj <- function(resQC,res) {
       } else resQC=NULL
    } else resQC= NULL
    if(is.null(resQC)) {
-      warning("ChIPQexperiment out of sync -- returning new DBA object")
+      warning("ChIPQexperiment out of sync -- returning new DBA object",call.=FALSE)
       return(res)
    } else {
       return(resQC)
    }
 }
 
-pv.setScore <- function(pv,score,bLog=F,minMaxval,rescore=TRUE,filterFun=max,
-                        bSignal2Noise=T) {
+pv.setScore <- function(pv,score,bLog=FALSE,minMaxval,rescore=TRUE,filterFun=max,
+                        bSignal2Noise=TRUE) {
    
    doscore <- TRUE
    
@@ -264,14 +264,24 @@ pv.setScore <- function(pv,score,bLog=F,minMaxval,rescore=TRUE,filterFun=max,
                if(score == PV_SCORE_RPKM) {
                   pv$binding[,colnum] <- pv$peaks[[i]]$RPKM	
                } else if(score == PV_SCORE_RPKM_FOLD) {
-                  pv$binding[,colnum] <- pv$peaks[[i]]$RPKM/pv$peaks[[i]]$cRPKM
+                  numer <- pv$peaks[[i]]$RPKM
+                  numer[numer==0] <- 1
+                  denom <- pv$peaks[[i]]$cRPKM
+                  denom[denom==0] <- 1
+                  pv$binding[,colnum] <- numer/denom
                   if(bLog) {
                      pv$binding[,colnum] <- log2(pv$binding[,colnum])	
                   }
                } else if(score == PV_SCORE_READS) {
                   pv$binding[,colnum] <- pv$peaks[[i]]$Reads	
+               }  else if(score == PV_SCORE_CONTROL_READS) {
+                  pv$binding[,colnum] <- pv$peaks[[i]]$cReads	
                } else if(score == PV_SCORE_READS_FOLD) {
-                  pv$binding[,colnum] <- pv$peaks[[i]]$Reads/pv$peaks[[i]]$cReads	
+                  numer <- pv$peaks[[i]]$Reads
+                  numer[numer==0] <- 1
+                  denom <- pv$peaks[[i]]$cReads
+                  denom[denom==0] <- 1
+                  pv$binding[,colnum] <- numer/denom
                   if(bLog) {
                      pv$binding[,colnum] <- log2(pv$binding[,colnum])	
                   }
@@ -279,7 +289,7 @@ pv.setScore <- function(pv,score,bLog=F,minMaxval,rescore=TRUE,filterFun=max,
                   pv$binding[,colnum] <- pv$peaks[[i]]$Reads-pv$peaks[[i]]$cReads	
                } else if(score == PV_SCORE_SUMMIT || score == PV_SCORE_SUMMIT_ADJ) {
                   if(is.null(pv$peaks[[i]]$Heights)) {
-                     warning('DBA_SCORE_SUMMIT not available; re-run dba.count with summits=TRUE')   
+                     warning('DBA_SCORE_SUMMIT not available; re-run dba.count with summits=TRUE',call.=FALSE)   
                   } else {
                      pv$binding[,colnum] <- pv$peaks[[i]]$Heights
                      if (score == PV_SCORE_SUMMIT_ADJ) {
@@ -288,11 +298,13 @@ pv.setScore <- function(pv,score,bLog=F,minMaxval,rescore=TRUE,filterFun=max,
                   }
                } else if(score == PV_SCORE_SUMMIT_POS) {
                   if(is.null(pv$peaks[[i]]$Summits)) {
-                     warning('DBA_SCORE_SUMMIT_POS not available; re-run dba.count with summits=TRUE')   
+                     warning('DBA_SCORE_SUMMIT_POS not available; re-run dba.count with summits=TRUE',call.=FALSE)   
                   } else {
                      pv$binding[,colnum] <- pv$peaks[[i]]$Summits
                   }
                }
+               checkscores <- pv$binding[,colnum]
+               pv$binding[checkscores<0,colnum] <- 0
                pv$peaks[[i]]$Score <- pv$binding[,colnum]
             }
          }
@@ -301,6 +313,7 @@ pv.setScore <- function(pv,score,bLog=F,minMaxval,rescore=TRUE,filterFun=max,
    
    if(!missing(minMaxval)) {
       maxs <- apply(pv$binding[,4:ncol(pv$binding)],1,filterFun)
+      maxs[is.na(maxs)] <- 0
       tokeep <- maxs>=minMaxval
       if(sum(tokeep)>1 && (sum(tokeep) < length(tokeep)) ) {
          pv$binding <- pv$binding[tokeep,]
@@ -315,7 +328,7 @@ pv.setScore <- function(pv,score,bLog=F,minMaxval,rescore=TRUE,filterFun=max,
             pv$maxFilter <- 0
             pv$score <- NULL
             pv <- pv.setScore(pv,score=score,bLog=bLog,minMaxval=0,
-                              bSignal2Noise=F)
+                              bSignal2Noise=FALSE)
          }
          
          if(!is.null(pv$contrasts)) {
@@ -326,7 +339,7 @@ pv.setScore <- function(pv,score,bLog=F,minMaxval,rescore=TRUE,filterFun=max,
          }
       } else {
          if(sum(tokeep)<2) {
-            stop('No sites have activity greater than filter value')
+            stop('No sites have activity greater than filter value',call.=FALSE)
          }
       }
       pv$maxFilter <- minMaxval
@@ -348,14 +361,14 @@ pv.setScore <- function(pv,score,bLog=F,minMaxval,rescore=TRUE,filterFun=max,
 pv.whichPeaksets <- function(pv,mask) {
    
    if(missing(mask)) {
-      warning('mask required',call.=F)
+      warning('mask required',call.=FALSE)
       return(NULL)
    }
    if(is.null(mask)) {
-      warning('mask required',call.=F)
+      warning('mask required',call.=FALSE)
       return(NULL)
    }
-   if(class(mask)=='logical') {
+   if(is(mask,'logical')) {
       mask <- which(mask)
    }
    
@@ -394,7 +407,7 @@ fdebug <- function(str,file='debug.txt'){
       return()
    }
    
-   #write(sprintf('%s\n',str),file=file,append=T)
+   #write(sprintf('%s\n',str),file=file,append=TRUE)
    
 }
 
@@ -546,7 +559,7 @@ pv.contrast4 <- function(peaks,A,B,C,D,v1,v2,v3,v4){
 }
 
 
-pv.analysis <- function(pv,attributes=pv$attributes,bPCA=T,distMeth="pearson") {
+pv.analysis <- function(pv,attributes=pv$attributes,bPCA=TRUE,distMeth="pearson") {
    
    #require(amap)
    
@@ -562,7 +575,7 @@ pv.analysis <- function(pv,attributes=pv$attributes,bPCA=T,distMeth="pearson") {
    }
    
    if(nrow(peaks) <= length(pv$peaks) ) {
-      bPCA=F
+      bPCA <- FALSE
    }
    #values <- unique(values)
    cnames=NULL
@@ -669,7 +682,7 @@ pv.defaultScoreCol <- function(peak.format){
 
 FDRth=100
 pv.macs <- function(fn){
-   data <- read.table(fn,blank.lines.skip=T,header=T)
+   data <- read.table(fn,blank.lines.skip=TRUE,header=TRUE)
    res  <- pv.peaksort(data)
    return(res)
 }
@@ -720,19 +733,19 @@ pv.sicer <- function(fn){
    return(res[,c(1:3,7)]) 
 }
 
-pv.sourcedata <- function(fn,maxval){
-   data <- read.table(fn)
-   vals <- data[,6]
-   if(!missing(maxval)) {
-      vals[vals>maxval]=maxval
-   }
-   #vals <- vals/100
-   vals <- log2(vals)
-   vals[vals<0]=0
-   data <- cbind(data[,1:3],vals,data[,4:5])
-   data <- pv.peaksort(data)
-   return(data)
-}
+# pv.sourcedata <- function(fn,maxval){
+#    data <- read.table(fn)
+#    vals <- data[,6]
+#    if(!missing(maxval)) {
+#       vals[vals>maxval]=maxval
+#    }
+#    #vals <- vals/100
+#    vals <- log2(vals)
+#    vals[vals<0]=0
+#    data <- cbind(data[,1:3],vals,data[,4:5])
+#    data <- pv.peaksort(data)
+#    return(data)
+# }
 
 pv.csv <- function(fn){
    data <- read.csv(fn)
@@ -812,15 +825,15 @@ pv.minOverlap <- function(vec,minval){
    res <- sum(vec != -1)
    if(minval==0) {
       if (length(vec) == res) {
-         return(T)
+         return(TRUE)
       } else {
-         return(F)
+         return(FALSE)
       }
    } else {
       if(res >= minval) {
-         return(T)
+         return(TRUE)
       } else {
-         return(F)
+         return(FALSE)
       }
    }	
 }
@@ -850,7 +863,7 @@ pv.do_peaks2bed <- function(peaks,chrmap=NULL,fn,numCols=4) {
       ds <- options("scipen")
       options(scipen=8)
       write.table(peaks[,1:mcols],file=fn,#sprintf("%s.bed",fn), 
-                  quote=F,row.names=F,col.names=F,sep="\t")
+                  quote=FALSE,row.names=FALSE,col.names=FALSE,sep="\t")
       options(scipen=ds$scipen)
    }
    return(peaks[,1:mcols])
@@ -909,11 +922,11 @@ pv.addstr <- function(s1,a1) {
       return(s1)
    }
    
-   if(a1=="TRUE") {
-      a1 <- "T"
+   if(a1=="T") {
+      a1 <- "TRUE"
    }
-   if(a1=="FALSE") {
-      a1 <- "F"
+   if(a1=="F") {
+      a1 <- "FALSE"
    }
    
    if(is.null(s1)){
@@ -973,14 +986,14 @@ pv.merge <- function(allpeaks,peaks=NULL,classes,maxgap=-1,
 
 pv.CalledMasks <- function(pv,newpv,master) {
    master <- cbind(master[,1:3],1)
-   spare <- pv.peakset(pv,master,peak.caller='raw',scoreCol=4,bLowerScoreBetter=F)
+   spare <- pv.peakset(pv,master,peak.caller='raw',scoreCol=4,bLowerScoreBetter=FALSE)
    spare <- pv.model(spare)
    res   <- pv.list(spare,spare$masks$counts)
    masternum <- length(spare$peaks)
    resl <- NULL
    for(i in 1:nrow(res)) {
       sampl <- pv.matchingSamples(res[i,1],spare$class)
-      sampvec <- rep(F,nrow(master))
+      sampvec <- rep(FALSE,nrow(master))
       for(samp in sampl) {
          sampvec <- sampvec | pv.whichCalled(spare,samp,masternum)
       }
@@ -1004,11 +1017,11 @@ pv.whichCalled <- function(pv,called,master,minVal=-1) {
 
 
 ## pv.pairs -- compare all pairs of peaksets, rank by % overlap
-pv.pairs <- function(pv,mask,bPlot=F,attributes=pv$attributes,bAllVecs=T,
-                     CorMethod="pearson",bCorOnly=F,bNonZeroCors=F,minVal=0,bFixConstantVecs=T) {
+pv.pairs <- function(pv,mask,bPlot=FALSE,attributes=pv$attributes,bAllVecs=TRUE,
+                     CorMethod="pearson",bCorOnly=FALSE,bNonZeroCors=FALSE,minVal=0,bFixConstantVecs=TRUE) {
    
    if(missing(mask)) {
-      mask=rep(T,ncol(pv$class))
+      mask=rep(TRUE,ncol(pv$class))
       peaks <- pv$peaks
    } else {
       peaks <- NULL
@@ -1020,13 +1033,13 @@ pv.pairs <- function(pv,mask,bPlot=F,attributes=pv$attributes,bAllVecs=T,
    }
    
    tmp <- NULL
-   if(bAllVecs==T) {
+   if(bAllVecs==TRUE) {
       if(pv$totalMerged != nrow(pv$binding)) {
          pv <- pv.vectors(pv,minOverlap=1)  
       }
    }
    
-   tmp$binding    <- pv$binding[,c(T,T,T,mask)]
+   tmp$binding    <- pv$binding[,c(TRUE,TRUE,TRUE,mask)]
    tmp$class      <- pv$class[,mask]
    tmp$peaks      <- peaks
    tmp$chrmap     <- pv$chrmap
@@ -1038,7 +1051,7 @@ pv.pairs <- function(pv,mask,bPlot=F,attributes=pv$attributes,bAllVecs=T,
    resl <- NULL
    cvecs <- NULL
    for(first in 1:(numSets-1)) {
-      if(bCorOnly==F){
+      if(bCorOnly==FALSE){
          #cat(".")
       }
       for(second in (first+1):numSets) {
@@ -1083,22 +1096,22 @@ pv.pairs <- function(pv,mask,bPlot=F,attributes=pv$attributes,bAllVecs=T,
                               onlya,onlyb,inall,corval,prop))
       }
    }
-   if(bCorOnly==F) {
+   if(bCorOnly==FALSE) {
       #cat("\n")
    }
    cvecs <- unique(cvecs)
    if(!is.null(cvecs)) {
       cvecs <- sort(cvecs)
       for(cv in cvecs) {
-         #          warning(sprintf('Scores for peakset %s are all the same -- correlations set to zero.',cv),call.=F)	
+         #          warning(sprintf('Scores for peakset %s are all the same -- correlations set to zero.',cv),call.=FALSE)	
       }	
    }
    
-   o <- order(resm[,7],decreasing=T)
+   o <- order(resm[,7],decreasing=TRUE)
    colnames(resm) <- c("A","B","onlyA","onlyB","inAll","Cor","Overlap")
    
    if(bPlot & !bCorOnly){
-      warning('Plotting in pv.occupancy unsupported',call.=F)
+      warning('Plotting in pv.occupancy unsupported',call.=FALSE)
       #for(i in 1:length(o)) {
       #	 recnum <- o[i]
       #   pv.PlotContrast(pv,resl[[recnum]],resm[recnum,1],resm[recnum,2],attributes=attributes)
@@ -1117,12 +1130,12 @@ pv.overlapToLabels <- function(pv,overlap,labelatts=PV_ID) {
    return(data.frame(overlap))
 }
 
-pv.orderfacs <- function(facvec,decreasing=F) {
+pv.orderfacs <- function(facvec,decreasing=FALSE) {
    res <- order(as.numeric(as.character(facvec)),decreasing=decreasing)
    return(res)	
 }
 
-pv.normalize <- function(peaks,pCol,zeroVal=-1,bLog=F,bDensity=F){
+pv.normalize <- function(peaks,pCol,zeroVal=-1,bLog=FALSE,bDensity=FALSE){
    if(bDensity) {
       width   <- peaks[,3] - peaks[,2]
       width[width==0]=1
@@ -1157,7 +1170,7 @@ pv.addrow <- function(x,a,y){
    if(is.null(nm)) return(rbind(x,a))
    if(nm == 0)     return(x)
    ncl <- length(a)
-   return(rbind(x,matrix(a,nm,ncl,byrow=T)))
+   return(rbind(x,matrix(a,nm,ncl,byrow=TRUE)))
 }
 
 pv.reorderM <- function(ocm,dgram) {
@@ -1179,7 +1192,7 @@ pv.dval <- function(dgram) {
    }
 }
 
-pv.pcmask <- function(pv,numSites, mask, sites,removeComps,cor=F,bLog=T){
+pv.pcmask <- function(pv,numSites, mask, sites,removeComps,cor=FALSE,bLog=TRUE){
    
    if(missing(numSites)) numSites <- nrow(pv$binding)
    if(is.null(numSites)) numSites <- nrow(pv$binding)  
@@ -1188,19 +1201,19 @@ pv.pcmask <- function(pv,numSites, mask, sites,removeComps,cor=F,bLog=T){
    if(missing(sites)) sites <- 1:numSites
    if(is.null(sites)) sites <- 1:numSites
    
-   if(missing(mask)) mask <- rep(T,ncol(pv$class))
+   if(missing(mask)) mask <- rep(TRUE,ncol(pv$class))
    for(i in which(mask)) {
       if(nrow(pv$peaks[[i]])==0) {
-         mask[i]=F
+         mask[i] <- FALSE
       }
    }
    if(sum(mask)<2) {
-      stop('Need at least two samples for PCA.')
+      stop('Need at least two samples for PCA.',call.=FALSE)
    }
    
    res <- NULL   
    res$class <- pv$class
-   pv$values <- pv$binding[sites,c(F,F,F,mask)]
+   pv$values <- pv$binding[sites,c(FALSE,FALSE,FALSE,mask)]
    active   <- apply(pv$values,1,pv.activefun)
    numSites <- min(numSites,sum(active))
    
@@ -1237,7 +1250,7 @@ pv.Signal2Noise <- function(pv) {
          sns[i] <- sprintf("%1.2f",sn)
       }	
    }
-   if(sum(as.numeric(sns) > 0,na.rm=T)) {
+   if(sum(as.numeric(sns) > 0,na.rm=TRUE)) {
       return(sns)  	
    } else {
       return(NULL)
@@ -1314,7 +1327,7 @@ pv.peaksetCounts <- function(pv=NULL,peaks,counts,
                       factor      = factor,
                       condition   = condition,
                       treatment   = treatment,
-                      consensus   = T,
+                      consensus   = TRUE,
                       peak.caller = "counts",
                       reads       = NA,
                       replicate   = replicate,
@@ -1351,7 +1364,7 @@ pv.peaksetCounts <- function(pv=NULL,peaks,counts,
    return(res)
 }
 
-pv.DBA2SummarizedExperiment <- function(DBA, bAssays=T, report) {
+pv.DBA2SummarizedExperiment <- function(DBA, bAssays=TRUE, report) {
    if (!missing(report)) {
       peaks <- report[,1:9]
    } else {
@@ -1431,7 +1444,7 @@ stripSpaces <- function(data) {
          warning(sprintf("Removed white space from %s in column %s (%s %s)",
                          orig,cname,
                          if (length(rownums)==1) "row" else "rows",
-                         paste(rownums,sep=",",collapse=",")))
+                         paste(rownums,sep=",",collapse=",")),call.=FALSE)
          data[,cname] <- stripped
       }
    }
