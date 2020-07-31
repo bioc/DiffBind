@@ -13,7 +13,7 @@ namespace bode {
 struct chromComp {
   bool operator()(const std::string &lhs,const std::string &rhs) const {
     int ln = 0,rn = 0;
-    char lc[128],rc[128];
+    char lc[129],rc[129];
     char *ltrailing,*rtrailing;
     strncpy(lc,lhs.c_str(),128);
     strncpy(rc,rhs.c_str(),128);

@@ -65,7 +65,7 @@ int Croi::load(int maxReads,
       if (densities != NULL) {
         try {
           densities->add(x,read_iv->left(),read_iv->right());
-        } catch (std::out_of_range oor) {
+        } catch (const std::out_of_range &oor) {
           warning("trapped exception from intervalDensity");
         }
       }
