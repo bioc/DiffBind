@@ -1,0 +1,34 @@
+Package: DiffBind
+Type: Package
+<<<<<<< HEAD
+Version: 2.99.5
+=======
+Version: 2.99.4
+>>>>>>> da017ae521ee6c5ca582cd86d4ec650da7a80fd5
+Title: Differential Binding Analysis of ChIP-Seq Peak Data
+Authors@R: c(person("Rory","Stark", email="rory.stark@cruk.cam.ac.uk",
+                  role = c("aut", "cre")),
+             person("Gord","Brown",email="gdbzork@gmail.com",
+                  role="aut"))
+Description: Compute differentially bound sites from multiple ChIP-seq
+        experiments using affinity (quantitative) data. Also enables
+        occupancy (overlap) analysis and plotting functions.
+License: Artistic-2.0
+LazyLoad: yes
+Depends: R (>= 4.0), GenomicRanges, SummarizedExperiment
+Imports: RColorBrewer, amap, gplots, grDevices, limma,
+         GenomicAlignments, locfit, stats, utils, IRanges, lattice,
+         systemPipeR, tools, Rcpp, dplyr, ggplot2, BiocParallel, parallel,
+         S4Vectors, Rsamtools (>= 2.0), DESeq2, methods, graphics, ggrepel, 
+         apeglm, ashr, GreyListChIP
+Suggests: BiocStyle, testthat
+Enhances: rgl, XLConnect, edgeR, csaw, BSgenome
+LinkingTo: Rhtslib (>= 1.15.3), Rcpp
+SystemRequirements: GNU make
+Collate: core.R parallel.R model.R counts.R contrast.R normalize.R
+         analyze.R analyze_deseq2.R analyze_edgeR.R
+         blacklist.R report.R plots.R io.R helper.R
+         utils.R RcppExports.R cpp_wrapper.R DBA.R
+biocViews: Sequencing, ChIPSeq, DifferentialPeakCalling, 
+           ATACSeq, Epigenetics, FunctionalGenomics
+URL: http://DiffBind.starkhome.com/
