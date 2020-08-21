@@ -9,8 +9,7 @@ pv.contrast <- function(pv,group1,group2=!group1,name1,name2,
    if(bGetNames) {
       if(!is.logical(design)) {
          pv$design <- design
-         pv$DESeq2 <- NULL
-         pv$edgeR  <- NULL
+         pv$DESeq2 <- pv$edgeR <- NULL
       }
       return(pv.DESeq2ResultsNames(pv))
    }
@@ -81,13 +80,19 @@ pv.contrast <- function(pv,group1,group2=!group1,name1,name2,
          return(pv)
       }
       
+      if(!is.null(pv$design)) {
+         varnames <- all.vars(formula(pv$design))
+         categories <- pv.FactorVals[match(varnames,pv.FactorNames)]
+      }
+      
       if(!is.null(pv$contrasts)) {
          message("Clearing existing contrasts.")
          pv$contrasts <- NULL # clear existing contrasts
       }
-      pv$design <- NULL
-      pv$DESeq2 <- NULL
-      pv$edgeR  <- NULL
+      
+      olddesign <- pv$design
+      oldDESeq2 <- pv$DESeq2
+      pv$design <-  pv$DESeq2 <- pv$edgeR <- NULL
       
       if(missing(categories)) {
          attributes <- c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT)
@@ -133,15 +138,22 @@ pv.contrast <- function(pv,group1,group2=!group1,name1,name2,
       
       if(generateDesign && !is.null(res)) {
          pv$contrasts <- res
-         olddesign <- pv$design
-         pv <- pv.generateDesignFromContrasts(pv, attributes=attributes,bGetNames=bGetNames)
+         pv <- pv.generateDesignFromContrasts(pv, attributes=attributes,
+                                              bGetNames=FALSE)
          if(is.null(olddesign)){
-            pv$edgeR <- NULL
+            pv$edgeR  <- NULL
+            oldDESeq2 <- NULL
          } else {
             if(olddesign != pv$design) {
-               pv$edgeR <- NULL
+               pv$design <- pv.compareDesigns(olddesign, pv$design)
+               if(olddesign != pv$design) {
+                  pv$edgeR  <- NULL
+                  oldDESeq2 <- NULL
+               }
             }
          }
+         pv$DESeq2 <- oldDESeq2
+         pv$DESeq2$names <- pv.DESeq2ResultsNames(pv)
          if(!missing(reorderMeta)) {
             pv <- pv.CheckReleveledContrasts(pv)
          }
@@ -701,11 +713,11 @@ pv.contrastSDBs <- function(contrasts,th=th) {
             eres <- c(eres,sum(crec$edgeR$de$padj <= th))
          } else {
             if(is.null(crec$edgeR$LRT)) {
-               eres <- c(eres,sum(topTags(crec$edgeR$db,
-                                          nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR] <= th,na.rm=TRUE))
+               eres <- c(eres,sum(edgeR::topTags(crec$edgeR$db,
+                                                 nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR] <= th,na.rm=TRUE))
             } else {
-               eres <- c(eres,sum(topTags(crec$edgeR$LRT,
-                                          nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR+1] <= th,na.rm=TRUE))
+               eres <- c(eres,sum(edgeR::topTags(crec$edgeR$LRT,
+                                                 nrow(crec$edgeR$db$counts))$table[,EDGER_COL_FDR+1] <= th,na.rm=TRUE))
             }
          }
       } else {
@@ -718,8 +730,8 @@ pv.contrastSDBs <- function(contrasts,th=th) {
    eres <- NULL
    for(crec in contrasts) {
       if(!is.null(names(crec$edgeR$block))){
-         eres <- c(eres,sum(topTags(crec$edgeR$block$LRT,
-                                    nrow(crec$edgeR$block$counts))$table[,EDGER_COL_FDR+1] <= th,na.rm=TRUE))
+         eres <- c(eres,sum(edgeR::topTags(crec$edgeR$block$LRT,
+                                           nrow(crec$edgeR$block$counts))$table[,EDGER_COL_FDR+1] <= th,na.rm=TRUE))
       } else {
          eres <- c(eres,"-")
       }
@@ -861,8 +873,7 @@ pv.contrastDesign <- function(pv, design, contrast, name1, name2, bGetNames=FALS
                } else {
                   message("Replacing design.")
                }
-               pv$DESeq2 <- NULL
-               pv$edgeR  <- NULL
+               pv$DESeq2 <- pv$edgeR <- NULL
             } else {
                message("Replacing design.")
             }
@@ -929,6 +940,9 @@ pv.contrastDesign <- function(pv, design, contrast, name1, name2, bGetNames=FALS
          if(crec$contrastType=='simple') {
             crec$group1 <- pv.getSamplesForFactorVal(pv,contrast[1],contrast[2])
             crec$group2 <- pv.getSamplesForFactorVal(pv,contrast[1],contrast[3])    
+            if(sum(crec$group1)<=1 || sum(crec$group2)<=1) {
+               stop("Invalid contrast: no replicates in one group.")
+            }
          }   
          pv$contrasts <- pv.listadd(pv$contrasts,crec) 
       } else {
@@ -953,6 +967,16 @@ pv.checkDesign <- function(design) {
    return(varnames)
 }
 
+pv.compareDesigns <- function(oldd, newd){
+   oldv <-  all.vars(formula(oldd))
+   newv <-  all.vars(formula(newd))
+   if(all(newv %in% oldv)) {
+      return(oldd)
+   } else {
+      return(newd)
+   }
+}
+
 pv.DESeq2ResultsNames <- function(pv) {
    if(is.null(pv$design)) {
       stop('No design specified',call.=FALSE)
@@ -962,9 +986,10 @@ pv.DESeq2ResultsNames <- function(pv) {
       res <- suppressMessages(pv.DEinitDESeq2(pv,numReads=10))
       DESeq2::sizeFactors(res) <- rep(1,ncol(res))
       res <- suppressWarnings(suppressMessages(
-         DESeq2::estimateDispersions(res,fitType='local')))
+         DESeq2::estimateDispersionsGeneEst(res,quiet=TRUE,maxit=10)))
+      DESeq2::dispersions(res) <- S4Vectors::mcols(res)$dispGeneEst
       res <- suppressWarnings(suppressMessages(
-         DESeq2::nbinomWaldTest(res)))      
+         DESeq2::nbinomWaldTest(res, maxit=10, quiet=TRUE,useOptim=FALSE)))      
       names <- DESeq2::resultsNames(res)
    } else {
       names <- pv$DESeq2$names
@@ -1075,9 +1100,9 @@ pv.generateDesignFromContrasts <- function(pv,attributes=pv.FactorVals,
    
    factors <- pv.FactorNames[match(factors,pv.FactorVals)]
    pv$design <- paste("~",paste(factors,collapse =" + "),sep="")
-   #if(bGetNames) {
-   pv$DESeq2$names <- pv.DESeq2ResultsNames(pv)
-   #}
+   if(bGetNames) {
+      pv$DESeq2$names <- pv.DESeq2ResultsNames(pv)
+   }
    return(pv)
 }
 

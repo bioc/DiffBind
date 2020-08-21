@@ -7,276 +7,6 @@
 #####################################
 PV_DEBUG <- FALSE
 
-minCount <- 0
-
-## pv.model -- build model, e.g. from sample sheet
-pv.model <- function(model,mask,minOverlap=2,
-                     samplesheet='sampleSheet.csv',config=data.frame(RunParallel=FALSE),
-                     caller="raw",format, scorecol, bLowerBetter, skipLines=0,bAddCallerConsensus=TRUE,
-                     bRemoveM=TRUE, bRemoveRandom=TRUE,filter,
-                     attributes, dir) {
-  
-  if(missing(format))       format       <- NULL
-  if(missing(scorecol))     scorecol     <- NULL
-  if(missing(bLowerBetter)) bLowerBetter <- NULL
-  if(missing(filter))       filter       <- NULL   
-  
-  if(!missing(model)){
-    ChIPQCobj <- model$ChIPQCobj
-  } else ChIPQCobj <- NULL
-  
-  if(!missing(model)) {
-    if(missing(attributes)) {
-      if(is.null(model$attributes)) {   
-        attributes <- PV_ID
-      } else {
-        attributes <- model$attributes
-      }
-    }
-    config <- as.list(model$config)
-    allsame <- pv.allSame(model)
-    model <- pv.vectors(model,mask=mask,minOverlap=minOverlap,
-                        attributes=attributes,bAllSame=allsame)
-    model$config <- as.list(config)
-    model$ChIPQCobj <- ChIPQCobj
-    model$class[DBA_REPLICATE,is.na(model$class[DBA_REPLICATE,])] <- ""
-    if(!missing(mask)) {
-      if(length(model$config$fragmentSize) > 1) {
-        model$config$fragmentSize <- model$config$fragmentSize[mask]
-      }
-    }
-    return(model)
-  }
-  
-  if(missing(attributes)) {   
-    attributes <- PV_ID
-  }
-  
-  if(is.character(samplesheet)) {
-    if(!missing(dir)) {
-      samplesheet <- file.path(dir,samplesheet)
-    }
-    ext <- file_ext(samplesheet)
-    if (ext %in% c("xls","xlsx")) {
-      if (requireNamespace("XLConnect",quietly=TRUE)) {
-        samples <- XLConnect::readWorksheetFromFile(samplesheet,sheet=1)
-      } else {
-        stop("Package XLConnect is needed to read Excel-format sample sheets.",call.=FALSE)
-      }
-    } else {
-      samples <- read.table(samplesheet,sep=',',stringsAsFactors=FALSE,header=TRUE, 
-                            comment.char="")
-    }
-    samples <- stripSpaces(samples)
-  } else samples <- samplesheet
-  
-  if(is.null(samples$SampleID)){
-    samples$SampleID <- 1:nrow(samples)
-  }
-  if(is.null(samples$Tissue)){
-    samples$Tissue <- ""
-  } 
-  if(is.null(samples$Factor)){
-    samples$Factor <- ""
-  }
-  if(is.null(samples$Condition)){
-    samples$Condition <- ""
-  }
-  if(is.null(samples$Treatment)){
-    samples$Treatment <- ""
-  }
-  if(is.null(samples$Replicate)){
-    samples$Replicate <- ""
-  }
-  
-  if(sum(is.na(samples$SampleID)))  samples$SampleID[is.na(samples$SampleID)]=""
-  if(sum(is.na(samples$Tissue)))    samples$Tissue[is.na(samples$Tissue)]=""
-  if(sum(is.na(samples$Factor)))    samples$Factor[is.na(samples$Factor)]=""
-  if(sum(is.na(samples$Condition))) samples$Condition[is.na(samples$Condition)]=""
-  if(sum(is.na(samples$Treatment))) samples$Treatment[is.na(samples$Treatment)]=""
-  if(sum(is.na(samples$Replicate))) samples$Replicate[is.na(samples$Replicate)]=""
-  
-  # prepend working directory to file paths
-  if(!missing(dir)) {
-    if(!is.null(samples$Peaks)) {
-      samples$Peaks <- sapply(samples$Peaks,
-                              function(x){file.path(dir,x)})
-    }
-    if(!is.null(samples$bamReads)) {
-      samples$bamReads <- sapply(samples$bamReads,
-                                 function(x){file.path(dir,x)})
-    }
-    if(!is.null(samples$bamControl)) {
-      samples$bamControl <- sapply(samples$bamControl,
-                                   function(x){file.path(dir,x)})
-    }
-  }
-  
-  model <- NULL
-  if(is.character(config)) {
-    if(!is.null(config)) {
-      config  <- read.table(config,colClasses='character',sep=',',header=TRUE)
-      x <- config$DataType
-      if(!is.null(x)) {
-        if(x=="DBA_DATA_FRAME")	{
-          config$DataType <- DBA_DATA_FRAME
-        } else if(x=="DBA_DATA_RANGEDDATA"){
-          config$DataType <- DBA_DATA_RANGEDDATA            
-        } else {
-          config$DataType <- DBA_DATA_GRANGES
-        } 
-      }
-      x <- config$RunParallel
-      if(!is.null(x)) {
-        if(x=="FALSE") {
-          config$RunParallel=FALSE
-        } else {
-          config$RunParallel=TRUE
-        }
-      }
-    }
-    config <- as.list(config)
-  }
-  if(is.null(config$parallelPackage)){
-    config$parallelPackage=DBA_PARALLEL_MULTICORE
-  } else if (config$parallelPackage == "DBA_PARALLEL_MULTICORE") {
-    config$parallelPackage=DBA_PARALLEL_MULTICORE
-  } else if (config$parallelPackage == "DBA_PARALLEL_RLSF") {
-    config$parallelPackage=DBA_PARALLEL_RLSF  
-  }
-  
-  if(is.null(config$AnalysisMethod)){
-    config$AnalysisMethod <- DBA_DESEQ2
-  } else if(is.character(config$AnalysisMethod)){
-    x <- strsplit(config$AnalysisMethod,',')
-    if(length(x[[1]])==1) {
-      config$AnalysisMethod=pv.getMethod(config$AnalysisMethod)
-    }	 else if (length(x[[1]])==2) {
-      #config$AnalysisMethod <- c(pv.getMethod(x[[1]][1]),pv.getMethod(x[[1]][2]))	
-      config$AnalysisMethod <- pv.getMethod(x[[1]][1])
-    }
-  }
-  
-  model$config <- as.list(config)
-  curcontrol=1
-  for(i in 1:nrow(samples)) {
-    if(is.null(samples$PeakCaller[i])) {
-      peakcaller  <- caller
-    } else if(is.na(samples$PeakCaller[i])) {
-      peakcaller  <- caller
-    } else {
-      peakcaller <- as.character(samples$PeakCaller[i])
-    }
-    if(is.null(samples$PeakFormat[i])) {
-      peakformat  <- format
-    } else if(is.na(samples$PeakFormat[i])) {
-      peakformat  <- format
-    } else {
-      peakformat <- as.character(samples$PeakFormat[i])
-    } 
-    if(is.null(samples$ScoreCol[i])) {
-      peakscores  <- scorecol
-    } else if(is.na(samples$ScoreCol[i])) {
-      peakscores  <- scorecol
-    } else {
-      if(is.factor(samples$ScoreCol[i])) {
-        peakscores <- as.integer(as.character(samples$ScoreCol[i]))	
-      } else {
-        peakscores <- as.integer(samples$ScoreCol[i])
-      }
-    }
-    if(is.null(samples$LowerBetter[i])) {
-      peaksLowerBetter  <- bLowerBetter
-    } else if(is.na(samples$LowerBetter[i])) {
-      peaksLowerBetter  <- bLowerBetter
-    } else {
-      peaksLowerBetter <- as.logical(samples$LowerBetter[i])
-    }
-    if(is.null(samples$Filter[i])) {
-      peakfilter  <- filter
-    } else if(is.na(samples$Filter[i])) {
-      peakfilter  <- filter
-    } else {
-      if(is.factor(samples$Filter[i])) {
-        peakfilter <- as.integer(as.character(samples$Filter[i]))	
-      } else {
-        peakfilter <- as.integer(samples$Filter[i])
-      }
-    }
-    
-    controlid  <- pv.controlID(samples,i,model$class,curcontrol)
-    if(is.numeric(controlid)) {
-      curcontrol <- controlid+1
-      controlid <- sprintf("Control%d",controlid)
-    }
-    counts <- samples$Counts[i]
-    if(!is.null(counts)) {
-      if(is.na(counts)) {
-        counts =NULL
-      } else if (counts == "") {
-        counts =NULL
-      }
-    }
-    if(!is.null(counts)) {
-      peakcaller <- 'counts'
-    }
-    
-    message(as.character(samples$SampleID[i]),' ',
-            as.character(samples$Tissue[i]),' ',
-            as.character(samples$Factor[i]),' ',
-            as.character(samples$Condition[i]),' ',
-            as.character(samples$Treatment[i]),' ',
-            as.integer(samples$Replicate[i]),' ',peakcaller)
-    
-    model <- pv.peakset(model,
-                        peaks       = as.character(samples$Peaks[i]),
-                        sampID      = as.character(samples$SampleID[i]),
-                        tissue      = as.character(samples$Tissue[i]),
-                        factor      = as.character(samples$Factor[i]),
-                        condition   = as.character(samples$Condition[i]),
-                        treatment   = as.character(samples$Treatment[i]),
-                        consensus   = FALSE,
-                        peak.caller = peakcaller,
-                        peak.format = peakformat,
-                        scoreCol    = peakscores,
-                        bLowerScoreBetter = peaksLowerBetter,
-                        control     = controlid,
-                        reads       = NA,
-                        replicate   = as.integer(samples$Replicate[i]),
-                        readBam     = as.character(samples$bamReads[i]),
-                        controlBam  = as.character(samples$bamControl[i]),
-                        filter      = peakfilter,
-                        counts      = counts,
-                        bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,skipLines=skipLines)
-  }
-  
-  model$samples <- samples
-  
-  if(bAddCallerConsensus){
-    model <- pv.add_consensus(model)
-  }
-  
-  model <- pv.vectors(model,mask=mask,minOverlap=minOverlap,
-                      attributes=attributes,
-                      bAllSame <- (peakcaller=="counts")) 
-  
-  model$config <- as.list(model$config)
-  model$ChIPQCobj <- ChIPQCobj
-  model$class[DBA_REPLICATE,is.na(model$class[DBA_REPLICATE,])]=""
-  return(model)
-}
-
-pv.getMethod <- function(str) {   
-  if (str == "DBA_EDGER" || str == DBA_EDGER) {
-    ret=DBA_EDGER
-  } else if (str == "DBA_EDGER_GLM" || str == DBA_EDGER_GLM) {
-    ret=DBA_EDGER_GLM  
-  } else  if (str == "DBA_DESEQ2" || str == DBA_DESEQ2) {
-    ret=DBA_DESEQ2 
-  } else ret <- NULL
-  return(ret)
-}
-
 
 ## pv.counts -- add peaksets with scores based on read counts
 PV_RES_RPKM             <- 1
@@ -314,7 +44,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
                       bOnlyCounts=TRUE,bCalledMasks=TRUE,minMaxval,filterFun=max,
                       bParallel=FALSE,bUseLast=FALSE,bWithoutDupes=FALSE, bScaleControl=FALSE, bSignal2Noise=TRUE,
                       bLowMem=FALSE, readFormat=PV_READS_DEFAULT, summits, minMappingQuality=0,
-                      maxGap=-1, bRecentered=FALSE) {
+                      maxGap=-1, bRecentered=FALSE, minCount=0) {
   
   pv <- pv.check(pv)
   
@@ -473,18 +203,23 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
   if(!bUseLast) {
     pv <- dba.parallel(pv)
     if((pv$config$parallelPackage>0) && bParallel) {   	     
-      params  <- dba.parallel.params(pv$config,c("pv.do_getCounts","pv.getCounts","pv.bamReads","pv.BAMstats","fdebug",addfuns))            
+      params  <- dba.parallel.params(pv$config,c("pv.do_getCounts","pv.getCounts",
+                                                 "pv.bamReads","pv.BAMstats",
+                                                 "fdebug",addfuns))            
       results <- dba.parallel.lapply(pv$config,params,todorecs,
                                      pv.do_getCounts,bed,bWithoutDupes=bWithoutDupes,
-                                     bLowMem,yieldSize,mode,singleEnd,scanbamparam,readFormat,
-                                     summits,fragments,minMappingQuality)
+                                     bLowMem,yieldSize,mode,singleEnd,
+                                     scanbamparam,readFormat,
+                                     summits,fragments,minMappingQuality,minCount)
     } else {
       results <- NULL
       for(job in todorecs) {
         message('Sample: ',job,' ')
         results <- pv.listadd(results,pv.do_getCounts(job,bed,bWithoutDupes=bWithoutDupes,
-                                                      bLowMem,yieldSize,mode,singleEnd,scanbamparam,readFormat,
-                                                      summits,fragments,minMappingQuality))
+                                                      bLowMem,yieldSize,mode,singleEnd,
+                                                      scanbamparam,readFormat,
+                                                      summits,fragments,
+                                                      minMappingQuality,minCount))
       }	
     }
     if(PV_DEBUG){
@@ -500,7 +235,8 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
   
   pv.gc()
   
-  if ((defaultScore >= DBA_SCORE_TMM_MINUS_FULL) || (defaultScore <= DBA_SCORE_TMM_READS_EFFECTIVE_CPM) ) {
+  if ((defaultScore >= DBA_SCORE_TMM_MINUS_FULL) || 
+      (defaultScore <= DBA_SCORE_TMM_READS_EFFECTIVE_CPM) ) {
     redoScore <- defaultScore
     defaultScore <- PV_SCORE_READS_MINUS	
   } else redoScore <- 0
@@ -551,9 +287,11 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
         cont$rpkm   <- rep(minCount,length(cond$rpkm))   
       }
       
+      cond$counts[cond$counts<minCount] <- minCount
       rpkm_fold   <- cond$rpkm   / cont$rpkm
       reads_fold  <- cond$counts / cont$counts
       reads_minus <- cond$counts - cont$counts
+      reads_minus[reads_minus<minCount] <- minCount
       
       if(bLog) {
         rpkm_fold  <- log2(rpkm_fold)
@@ -663,6 +401,9 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
   if(bSignal2Noise) {
     res$SN <- pv.Signal2Noise(res)
   }
+  
+  res$minCount <- minCount
+  
   pv.gc()
   return(res)	
 }
@@ -707,21 +448,23 @@ pv.checkExists <- function(filelist){
 
 pv.do_getCounts <- function(countrec,intervals,bWithoutDupes=FALSE,
                             bLowMem=FALSE,yieldSize,mode,singleEnd,scanbamparam,
-                            fileType=0,summits,fragments,minMappingQuality=0) {
+                            fileType=0,summits,fragments,minMappingQuality=0,
+                            minCount=0) {
   
   res <- pv.getCounts(bamfile=countrec$bamfile,intervals=intervals,insertLength=countrec$insert,
                       bWithoutDupes=bWithoutDupes,
                       bLowMem=bLowMem,yieldSize=yieldSize,mode=mode,singleEnd=singleEnd,
                       scanbamparam=scanbamparam,
                       fileType=fileType,summits=summits,fragments=fragments,
-                      minMappingQuality=minMappingQuality)
+                      minMappingQuality=minMappingQuality,minCount=minCount)
   pv.gc()
   return(res)
   
 }
 pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=FALSE,
                          bLowMem=FALSE,yieldSize,mode,singleEnd,scanbamparam,
-                         fileType=0,summits=-1,fragments,minMappingQuality=0) {
+                         fileType=0,summits=-1,fragments,minMappingQuality=0,
+                         minCount=0) {
   
   bufferSize <- 1e6
   fdebug(sprintf('pv.getCounts: ENTER %s',bamfile))
@@ -730,8 +473,9 @@ pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=FALSE,
     if(minMappingQuality>0) {
       warning('minMappingQuality ignored for summarizeOverlaps, set in ScanBamParam.',call.=FALSE)
     }
-    res <- pv.getCountsLowMem(bamfile,intervals,bWithoutDupes,mode,yieldSize,singleEnd,fragments,
-                              scanbamparam)
+    res <- pv.getCountsLowMem(bamfile,intervals,bWithoutDupes,mode,yieldSize,
+                              singleEnd,fragments,
+                              scanbamparam,minCount=minCount)
     return(res)
   }
   
@@ -759,7 +503,8 @@ pv.filterRate <- function(pv,vFilter,filterFun=max) {
 
 pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=FALSE,
                                mode="IntersectionNotEmpty",yieldSize=5000000,
-                               singleEnd=TRUE,fragments=FALSE,params=NULL) {
+                               singleEnd=TRUE,fragments=FALSE,params=NULL,
+                               minCount=0) {
   
   intervals <- pv.peaks2DataType(intervals,DBA_DATA_GRANGES)
   
@@ -777,6 +522,7 @@ pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=FALSE,
   counts  <- assay(summarizeOverlaps(features=intervals,reads=bfl,
                                      ignore.strand=TRUE,singleEnd=singleEnd,
                                      fragments=fragments,param=params))
+  counts[counts<minCount] <- minCount
   libsize <- countBam(bfl)$records
   rpkm    <- (counts/(width(intervals)/1000))/(libsize/1e+06)
   
@@ -872,7 +618,7 @@ pv.controlID <- function(samples,i,class, curnum){
   return(res)
 }
 
-pv.resetCounts <- function(pv,counts) {
+pv.resetCounts <- function(pv,counts,minCount=0) {
   
   if(!is(counts,"data.frame")) {
     stop("New counts must be passed as a data.frame.",call.=FALSE)
@@ -903,3 +649,54 @@ pv.resetCounts <- function(pv,counts) {
   }
   return(pv)
 } 
+
+pv.get_reads <- function(pv,peaksets,bSubControl=TRUE,numReads){
+  
+  if(is.null(bSubControl)) {
+    bSubControl <- TRUE
+  }
+  if(missing(peaksets)) {
+    peaksets <- rep(TRUE,length(pv$peaks))
+  }
+  reads <- NULL
+  if(!is.null(pv$peaks_alt)) {
+    peaklist <- pv$peaks_alt
+  } else {
+    peaklist <- pv$peaks
+  }
+  
+  if(is.logical(peaksets)) {
+    peaksets <- which(peaksets)
+  }
+  
+  if(!missing(numReads)) {
+    numReads <- min(length(peaklist[[1]]$Reads),numReads)
+    for(peakset in peaksets) {
+      reads <- cbind(reads,as.integer(peaklist[[peakset]]$Reads[1:numReads]))
+      if(bSubControl) {
+        reads[,ncol(reads)] <- reads[,ncol(reads)] - 
+          as.integer(peaklist[[peakset]]$cReads[1:numReads])
+      }
+    }
+  } else {
+    for(peakset in peaksets) {
+      reads <- cbind(reads,as.integer(peaklist[[peakset]]$Reads))
+      if(bSubControl) {
+        reads[,ncol(reads)] <- reads[,ncol(reads)] - 
+          as.integer(peaklist[[peakset]]$cReads)
+      }
+    }
+  }
+  
+  if(!is.null(pv$minCount)) {
+    reads[reads<pv$minCount] <- pv$minCount
+  } else {
+    reads[reads<0] <- 0    
+  }
+  
+  rownames(reads) <- 1:nrow(reads)
+  
+  return(reads)
+}
+
+

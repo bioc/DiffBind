@@ -6,15 +6,17 @@
 #############################################
 
 ## dba	            Construct a dba object
-## dba.peakset	    Add a peakset to a dba object
 
+## dba.peakset	    Add a peakset to a dba object
 ## dba.overlap	    Compute binding site overlaps
 ## dba.blacklist    apply/generate blacklists and greylists
+
 ## dba.count  	    Count reads in binding sites
+## dba.normalize    Normalize dataset
 
 ## dba.contrast	    Establish contrast(s) for analysis
-## dba.analyze  	Execute affinity analysis
-## dba.report	    Generate report for a contrast analysis
+## dba.analyze  	  Execute affinity analysis
+## dba.report	      Generate report for a contrast analysis
 
 ## dba.plotClust	Cluster dendrogram plo
 ## dba.plotHeatmap	Heatmap plot
@@ -93,8 +95,9 @@ dba <- function(DBA,mask, minOverlap=2,
   
   
   
-  res <- pv.model(DBA, mask=mask, minOverlap=minOverlap, samplesheet=sampleSheet, config=config, 
-                  caller=peakCaller, format=peakFormat, scorecol=scoreCol,bLowerBetter=bLowerScoreBetter,
+  res <- pv.model(DBA, mask=mask, minOverlap=minOverlap, samplesheet=sampleSheet, 
+                  config=config, caller=peakCaller, format=peakFormat, 
+                  scorecol=scoreCol,bLowerBetter=bLowerScoreBetter,
                   skipLines=skipLines,bAddCallerConsensus=bAddCallerConsensus, 
                   bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,
                   filter=filter, attributes=attributes, dir)
@@ -159,9 +162,12 @@ dba <- function(DBA,mask, minOverlap=2,
 ## dba.peakset -- add a peakset to the model ##
 ###############################################
 
-dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor, condition, treatment, replicate,
-                        control, peak.caller, peak.format, reads=0, consensus=FALSE, bamReads, bamControl,
-                        scoreCol, bLowerScoreBetter, filter, counts, bRemoveM=TRUE, bRemoveRandom=TRUE,
+dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor, 
+                        condition, treatment, replicate,control, peak.caller, 
+                        peak.format, reads=0, consensus=FALSE, 
+                        bamReads, bamControl,
+                        scoreCol, bLowerScoreBetter, filter, counts, 
+                        bRemoveM=TRUE, bRemoveRandom=TRUE,
                         minOverlap=2, bMerge=TRUE,
                         bRetrieve=FALSE, writeFile, numCols=4,
                         DataType=DBA$config$DataType)
@@ -239,9 +245,11 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor, condition, trea
         }
       }
       res <- pv.peakset(DBA, peaks=peaks, 
-                        sampID=sampID, tissue=tissue, factor=factor,condition=condition,treatment=treatment,
+                        sampID=sampID, tissue=tissue, factor=factor,
+                        condition=condition,treatment=treatment,
                         replicate=replicate,control=control,
-                        peak.caller=peak.caller, peak.format=peak.format, reads=reads, consensus=consensus, 
+                        peak.caller=peak.caller, peak.format=peak.format, 
+                        reads=reads, consensus=consensus, 
                         readBam=bamReads, controlBam=bamControl,
                         scoreCol=scoreCol, bLowerScoreBetter=bLowerScoreBetter, 
                         bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,
@@ -331,7 +339,8 @@ dba.overlap <- function(DBA, mask, mode=DBA_OLAP_PEAKS,
     if( (!missing(contrast)) | (!missing(report)) ) {
       
       if(missing(report)) {
-        report   <- dba.report(DBA,method=method, contrast=contrast,th=th,bUsePval=bUsePval,DataType=DBA_DATA_FRAME)
+        report   <- dba.report(DBA,method=method, contrast=contrast,th=th,
+                               bUsePval=bUsePval,DataType=DBA_DATA_FRAME)
       } else {
         if(!is(report,"data.frame")) {
           stop('Class not supported for report parameter. Call dba.report with DataType=DBA_DATA_FRAME.')	
@@ -441,10 +450,11 @@ DBA_READS_DEFAULT <- PV_READS_DEFAULT
 DBA_READS_BAM     <- PV_READS_BAM
 DBA_READS_BED     <- PV_READS_BED
 
-dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL, bLog=FALSE,
-                      fragmentSize=DBA$config$fragmentSize, summits=250, filter=0, 
-                      bRemoveDuplicates=FALSE, bScaleControl=TRUE,mapQCth=DBA$config$mapQCth, filterFun=max, 
-                      bUseSummarizeOverlaps=FALSE, 
+dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL,
+                      fragmentSize=DBA$config$fragmentSize, summits=200, filter=5, 
+                      bRemoveDuplicates=FALSE, bScaleControl=TRUE,
+                      mapQCth=DBA$config$mapQCth, filterFun=max, minCount=0, 
+                      bLog=FALSE, bUseSummarizeOverlaps=FALSE,  
                       readFormat=DBA_READS_DEFAULT,bParallel=DBA$config$RunParallel) 
 {
   DBA <- pv.check(DBA,missing(peaks))
@@ -488,6 +498,14 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL
     }
   }
   
+  if(!missing(peaks)) {
+    if(is.null(peaks)) {
+      if(!is.null(DBA$minCount)) {
+        minCount <- DBA$minCount
+      }
+    }
+  }
+  
   if(!missing(peaks) || length(filter)>1) {
     if(is.null(peaks) || length(filter)>1) {
       callers <- unique(DBA$class[DBA_CALLER,])
@@ -497,12 +515,19 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL
           if(summits>0) {
             res <- pv.Recenter(DBA,summits,1:length(DBA$peaks),DBA$called)
             res <- pv.counts(res,peaks=res$merged,
-                             defaultScore=score, bLog=bLog, insertLength=fragmentSize, bOnlyCounts=TRUE,
-                             bCalledMasks=TRUE, minMaxval=filter, bParallel=bParallel, bUseLast=bUseLast,
-                             bWithoutDupes=bRemoveDuplicates,bScaleControl=bScaleControl,filterFun=filterFun,
-                             bLowMem=bUseSummarizeOverlaps,readFormat=readFormat,summits=0,
-                             minMappingQuality=mapQCth,bRecentered=TRUE)
+                             defaultScore=score, bLog=bLog, 
+                             insertLength=fragmentSize, bOnlyCounts=TRUE,
+                             bCalledMasks=TRUE, minMaxval=filter,
+                             bParallel=bParallel, bUseLast=bUseLast,
+                             bWithoutDupes=bRemoveDuplicates,
+                             bScaleControl=bScaleControl,filterFun=filterFun,
+                             bLowMem=bUseSummarizeOverlaps,
+                             readFormat=readFormat,summits=0,
+                             minMappingQuality=mapQCth,bRecentered=TRUE,
+                             minCount=minCount)
             res$summits <- summits
+            res$norm <- DBA$norm
+            res <- pv.reNormalize(res)
           } 
         } else {
           if(length(filter)>1) {
@@ -525,14 +550,20 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL
   
   if(is.null(res)) {
     res <- pv.counts(DBA, peaks=peaks, minOverlap=minOverlap, 
-                     defaultScore=score, bLog=bLog, insertLength=fragmentSize, bOnlyCounts=TRUE,
-                     bCalledMasks=TRUE, minMaxval=filter, bParallel=bParallel, bUseLast=bUseLast,
-                     bWithoutDupes=bRemoveDuplicates,bScaleControl=bScaleControl,filterFun=filterFun,
-                     bLowMem=bUseSummarizeOverlaps,readFormat=readFormat,summits=summits,
-                     minMappingQuality=mapQCth)
+                     defaultScore=score, bLog=bLog, insertLength=fragmentSize, 
+                     bOnlyCounts=TRUE, bCalledMasks=TRUE, minMaxval=filter,
+                     bParallel=bParallel, bUseLast=bUseLast,
+                     bWithoutDupes=bRemoveDuplicates,bScaleControl=bScaleControl,
+                     filterFun=filterFun,
+                     bLowMem=bUseSummarizeOverlaps,readFormat=readFormat,
+                     summits=summits,
+                     minMappingQuality=mapQCth,
+                     minCount=minCount)
     if(summits != -1) {
       res$summits <- summits
     }
+    res$norm <- DBA$norm
+    res <- pv.reNormalize(res)
   }
   if(resetContrasts && length(res$contrasts)>0) {
     for(i in 1:length(res$contrasts)) {
@@ -552,6 +583,81 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL
   if(!is.null(DBA$ChIPQCobj)) {
     res <- checkQCobj(DBA$ChIPQCobj,res)
   }
+  
+  return(res)
+}
+
+########################################  
+## dba.normalize -- normalize dataset ##
+######################################## 
+
+DBA_LIBSIZE_DEFAULT   <- PV_LIBSIZE_DEFAULT
+DBA_LIBSIZE_FULL      <- PV_LIBSIZE_FULL
+DBA_LIBSIZE_PEAKREADS <- PV_LIBSIZE_PEAKREADS
+DBA_LIBSIZE_CHRREADS  <- PV_LIBSIZE_CHRREADS
+DBA_LIBSIZE_USER      <- PV_LIBSIZE_USER
+
+DBA_NORM_DEFAULT        <- PV_NORM_DEFAULT
+DBA_NORM_LIB            <- PV_NORM_LIB
+DBA_NORM_TMM            <- PV_NORM_TMM 
+DBA_NORM_RLE            <- PV_NORM_RLE
+DBA_NORM_NATIVE         <- PV_NORM_NATIVE
+DBA_NORM_SPIKEIN        <- PV_NORM_SPIKEIN
+DBA_NORM_USER           <- PV_NORM_USER
+DBA_NORM_OFFSETS        <- PV_NORM_OFFSETS
+DBA_NORM_OFFSETS_ADJUST <- PV_NORM_OFFSETS_ADJUST
+
+DBA_OFFSETS_LOESS     <- PV_OFFSETS_LOESS 
+DBA_OFFSETS_USER      <- PV_OFFSETS_USER      
+
+dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
+                          normalize   = DBA_NORM_DEFAULT,
+                          library     = DBA_LIBSIZE_DEFAULT, 
+                          background, offsets=FALSE, 
+                          bSubControl = is.null(DBA$greylist),
+                          filter=5, filterFun=max, libFun=mean,
+                          bRetrieve=FALSE, ...) {
+  
+  DBA <- pv.check(DBA,TRUE)
+  
+  ### SET DEFAULTS ###
+  if(is.null(DBA$design) && !is.null(DBA$contrasts)) {
+    # defaults are pre-3.0
+    deflib  <- DBA_LIBSIZE_FULL
+    defnorm <- DBA_NORM_DEFAULT
+    defback <- FALSE    
+    
+  } else {
+    # defaults are 3.0+    
+    deflib  <- DBA_LIBSIZE_CHRREADS
+    if(!missing(background)) {
+      if(background==FALSE) {
+        deflib  <- DBA_LIBSIZE_FULL
+      } 
+    }
+    defnorm <- DBA_NORM_NATIVE
+    defback <- TRUE    
+  }
+  
+  if(length(library)==1 && library[1]==DBA_LIBSIZE_DEFAULT) {
+    library <- deflib
+  }
+  
+  if(length(normalize)==1 && normalize[1]==DBA_NORM_DEFAULT) {
+    normalize <- defnorm
+  }
+  
+  if(missing(background)) {
+    background <- defback
+  }
+  
+  res <- pv.normalize(DBA, method=method, 
+                      libSizes=library, normalize=normalize,
+                      bSubControl=bSubControl,
+                      filter=filter, filterFun=filterFun,
+                      libFun=libFun,
+                      background=background, offsets=offsets,
+                      bRetrieve=bRetrieve, ...)
   
   return(res)
 }
@@ -596,16 +702,9 @@ dba.contrast <- function(DBA, design=missing(group1), contrast,
 ###################################################################
 
 dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, 
-                        bSubControl=is.null(DBA$greylist), 
-                        bFullLibrarySize=TRUE, filter=0, filterFun=max, 
                         bRetrieveAnalysis=FALSE, bReduceObjects=TRUE, 
                         bParallel=DBA$config$RunParallel)
 {
-  
-  #if(bParallel && DBA$config$parallelPackage==DBA_PARALLEL_MULTICORE) {
-  #   warning('Parallel operation currently unreliable. Executing serially.')#,immediate.=TRUE)
-  #   bParallel=FALSE	
-  #}
   
   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
   
@@ -623,7 +722,26 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
     if(is.null(DBA$design)) {
       stop("Unable to return DEObject: design must be present, and analysis run.")
     } else {
-      stop("Unable to return DEObject: run dba.analyze() with bRetrieveDEObject=FALSE first.")
+      stop("Unable to return DEObject: run dba.analyze() with bRetrieveAnalysis=FALSE first.")
+    }
+  }
+  
+  if(sum(DBA$class[DBA_CALLER,] %in% c("source","counts"))==0) {
+    message("Forming consensus peakset and counting reads...")
+    DBA <- dba.count(DBA, bParallel=bParallel)
+  }
+  
+  if (DBA_EDGER %in% method) {
+    if(is.null(DBA$norm$edgeR)) {
+      message("Normalize edgeR with defaults...")
+      DBA <- dba.normalize(DBA, method=DBA_EDGER)
+    }
+  }
+  
+  if (DBA_DESEQ2 %in% method) {
+    if(is.null(DBA$norm$DESeq2)) {
+      message("Normalize DESeq2 with defaults...")
+      DBA <- dba.normalize(DBA, method=DBA_DESEQ2)
     }
   }
   
@@ -632,9 +750,8 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
   } else {
     bTagwise <- DBA$config$edgeR$bTagwise 
   }
-  res <- pv.DBA(DBA, method ,bSubControl,bFullLibrarySize,bTagwise=bTagwise,
-                minMembers=3,bParallel,
-                filter=filter, filterFun=filterFun)
+  res <- pv.DBA(DBA, method,bTagwise=bTagwise,
+                minMembers=3, bParallel=bParallel)
   
   if(bReduceObjects) {
     if(!is.null(res$contrasts)) {
@@ -649,7 +766,8 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
       if(!is.null(dim(rep))) {
         if(nrow(rep)>1) {
           warn=FALSE
-          x <- try(dba.plotHeatmap(res,contrast=1,method=method[1],correlations=TRUE),silent=TRUE)
+          x <- try(dba.plotHeatmap(res,contrast=1,method=method[1],
+                                   correlations=TRUE),silent=TRUE)
         }	
       }
     }
@@ -673,11 +791,13 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
 ## dba.report -- generate report for a contrast analysis ##
 ###########################################################
 
-dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod, th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
+dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod, 
+                       th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
                        fold=0, bNormalized=TRUE, bFlip=FALSE, precision,
                        bCalled=FALSE, bCounts=FALSE, bCalledDetail=FALSE,
                        bDB, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
-                       file,initString=DBA$config$reportInit,ext='csv',DataType=DBA$config$DataType) 
+                       file,initString=DBA$config$reportInit,ext='csv',
+                       DataType=DBA$config$DataType) 
   
 {
   
@@ -742,11 +862,14 @@ dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod, th=DBA$c
 ## dba.plotHeatmap -- Heatmap with clustering ##
 ################################################
 
-dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minval, maxval,
+dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000,
+                            minval, maxval,
                             contrast, method=DBA$config$AnalysisMethod, 
                             th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
                             report, score, bLog=TRUE, mask, sites, sortFun=sd, 
-                            correlations=TRUE, olPlot=DBA_COR, ColAttributes,RowAttributes, colSideCols, rowSideCols=colSideCols,
+                            correlations=TRUE, olPlot=DBA_COR, 
+                            ColAttributes, RowAttributes, colSideCols, 
+                            rowSideCols=colSideCols,
                             margin=10, colScheme="Greens", distMethod="pearson",
                             ...)
 {
@@ -787,14 +910,16 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minva
     }
   }
   
-  if(length(correlations)==1 & ((correlations[1] == DBA_OLAP_ALL) | (correlations[1] == TRUE)))  {
+  if(length(correlations)==1 & ((correlations[1] == DBA_OLAP_ALL) | 
+                                (correlations[1] == TRUE)))  {
     if(nrow(DBA$binding)>1) {
       if(!missing(sites)) {
         if(is.logical(sites)) {
           sites <- which(sites)	
         }	   
       } 	
-      correlations <- pv.occupancy(DBA, mask=mask, sites=sites, Sort='cor', bCorOnly=TRUE,CorMethod=distMethod)
+      correlations <- pv.occupancy(DBA, mask=mask, sites=sites, Sort='cor', 
+                                   bCorOnly=TRUE,CorMethod=distMethod)
     } else {
       warning('No correlation heatmap plotted -- contrast does not have enough differentially bound sites.')	
       return(NULL)   	     	
@@ -802,9 +927,12 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minva
   }
   
   if(correlations[1]!=FALSE) {
-    res <- pv.plotHeatmap(DBA, attributes=attributes, overlaps=correlations, olPlot=olPlot, mask=mask,
-                          ColScheme=colScheme, distMeth=distMethod, bReorder=TRUE, contrast=contrast,
-                          RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
+    res <- pv.plotHeatmap(DBA, attributes=attributes, overlaps=correlations, 
+                          olPlot=olPlot, mask=mask,
+                          ColScheme=colScheme, distMeth=distMethod, 
+                          bReorder=TRUE, contrast=contrast,
+                          RowAttributes=RowAttributes,ColAttributes=ColAttributes,
+                          rowSideCols=rowSideCols,colSideCols=colSideCols,
                           minval=minval, maxval=maxval, margins=c(margin,margin),
                           ...)
   } else {
@@ -814,8 +942,10 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minva
         warning('No heatmap plotted -- contrast does not have enough differentially bound sites.')	
         return(NULL)   	     	
       }
-      res <- pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes, contrast=contrast,
-                            RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
+      res <- pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes,
+                            contrast=contrast,
+                            RowAttributes=RowAttributes,ColAttributes=ColAttributes,
+                            rowSideCols=rowSideCols,colSideCols=colSideCols,
                             ColScheme=colScheme, distMeth=distMethod, 
                             margins=c(margin,margin), ...)
       res <- data.frame(DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)])
@@ -830,9 +960,12 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000, minva
         DBA <- pv.sort(DBA, sortFun, mask=mask)
       } else savevecs <- NULL
       
-      res <- pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes, mask=mask, sites=sites,
-                            RowAttributes=RowAttributes,ColAttributes=ColAttributes,rowSideCols=rowSideCols,colSideCols=colSideCols,
-                            minval=minval, maxval=maxval, ColScheme=colScheme, distMeth=distMethod, 
+      res <- pv.plotHeatmap(DBA, numSites=maxSites, attributes=attributes, 
+                            mask=mask, sites=sites,
+                            RowAttributes=RowAttributes,ColAttributes=ColAttributes,
+                            rowSideCols=rowSideCols,colSideCols=colSideCols,
+                            minval=minval, maxval=maxval, ColScheme=colScheme, 
+                            distMeth=distMethod, 
                             margins=c(margin,margin),...)
       res <- data.frame(DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)])
       if(!is.character(res[1,1])) {
@@ -962,7 +1095,7 @@ dba.plotMA <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                        th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
                        fold=0, bNormalized=TRUE,
                        factor="", bFlip=FALSE, bXY=FALSE, dotSize=.45, 
-                       bSignificant=TRUE, bSmooth=TRUE, 
+                       bSignificant=TRUE, bSmooth=TRUE, bLoess=TRUE,
                        xrange, yrange, ...)
   
 {
@@ -972,7 +1105,7 @@ dba.plotMA <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                       th=th, bUsePval=bUsePval, fold=fold,
                       facname=factor, bNormalized=bNormalized, cex=dotSize, 
                       bSignificant=bSignificant, bSmooth=bSmooth,bFlip=bFlip,
-                      xrange=xrange, yrange=yrange,...)
+                      xrange=xrange, yrange=yrange,bLoess=bLoess,...)
   
   invisible(res)
 }
@@ -997,33 +1130,12 @@ dba.plotVolcano <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
   invisible(as(res,"GRanges"))
 }
 
-###########################################################
-## dba.plotClust -- Hierarchical clister dengrogram plot ##
-###########################################################
-
-dba.plotClust <- function(DBA, mask, sites, attributes=DBA$attributes, distMethod="pearson",
-                          contrast, method=DBA$config$AnalysisMethod, th=DBA$config$th, bUsePval=DBA$config$bUsePval)
-{
-  
-  if(!missing(contrast)) {
-    
-    message('dba.plotClust: Contrast clustering not implemented.')
-    res <- NULL
-    
-  } else {
-    
-    res <- pv.plotClust(DBA, mask=mask, sites=sites, 
-                        attributes=attributes, distMeth=distMethod)
-  }
-  
-  return(res)
-}                         
-
 ####################################################
 ## dba.plotVenn -- Venn diagram plots of overlaps ##
 ####################################################
 
-dba.plotVenn <- function(DBA, mask, overlaps, label1, label2, label3, label4, main, sub, 
+dba.plotVenn <- function(DBA, mask, overlaps, label1, label2, label3, label4,
+                         main, sub, 
                          contrast, method=DBA$config$AnalysisMethod, 
                          th=DBA$config$th, bUsePval=DBA$config$bUsePval,
                          bDB=TRUE, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
@@ -1176,7 +1288,8 @@ dba.plotVenn <- function(DBA, mask, overlaps, label1, label2, label3, label4, ma
     sub <- ""
   }
   
-  pv.plotVenn(overlaps,label1=label1,label2=label2,label3=label3,label4=label4,main,sub)
+  pv.plotVenn(overlaps,label1=label1,label2=label2,label3=label3,label4=label4,
+              main,sub)
   
   if(DataType == DBA_DATA_DBAOBJECT) {
     if(!is.null(newDBA)) {
@@ -1209,8 +1322,8 @@ dba.show <- function(DBA, mask, attributes, bContrasts=FALSE, bDesign=FALSE,
 ## dba.mask -- mask samples or sites ##
 #######################################
 
-dba.mask <- function(DBA, attribute, value, combine='or', mask, merge='or', bApply=FALSE,
-                     peakset, minValue=-1)
+dba.mask <- function(DBA, attribute, value, combine='or', mask, merge='or', 
+                     bApply=FALSE,peakset, minValue=-1)
   
 {
   DBA <- pv.check(DBA)
@@ -1234,7 +1347,9 @@ dba.mask <- function(DBA, attribute, value, combine='or', mask, merge='or', bApp
 ## dba.save -- save a DBA object ##
 ###################################
 
-dba.save <- function(DBA, file='DBA', dir='.', pre='dba_', ext='RData', bMinimize=FALSE)
+dba.save <- function(DBA, file='DBA', dir='.', pre='dba_', ext='RData',
+                     bRemoveAnalysis=FALSE, bRemoveBackground=FALSE, 
+                     bCompress=FALSE)
 {
   
   if(is(DBA,"ChIPQCexperiment")) {
@@ -1246,6 +1361,7 @@ dba.save <- function(DBA, file='DBA', dir='.', pre='dba_', ext='RData', bMinimiz
     DBA$class <- rbind(DBA$class,'')
     rownames(DBA$class)[DBA_TREATMENT]='Treatment'	
   }
+  
   
   DBA$binding <- NULL	
   DBA$values  <- NULL
@@ -1267,13 +1383,21 @@ dba.save <- function(DBA, file='DBA', dir='.', pre='dba_', ext='RData', bMinimiz
   DBA$config$Version2 <- version[2]
   DBA$config$Version3 <- version[3]
   
+  if(bRemoveAnalysis) {
+    DBA$DESeq2$DEdata <- NULL
+    DBA$edgeR$DEdata <- NULL
+  }
+  
+  if(bRemoveBackground) {
+    DBA$norm$background$binned <- NULL
+  }
   if(!is.null(saveChIPQC)) {
     saveChIPQC@DBA <- DBA
     DBA <- saveChIPQC
   }
   res <- pv.save(DBA,file=file ,
                  dir=dir, pre=pre, ext=ext,
-                 compress=TRUE)
+                 compress=bCompress)
   
   return(res)
 } 
@@ -1336,20 +1460,20 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
     }
   }
   
-  if(is.null(res$config$saveDir)) {
-    res$config$saveDir <- "Robjects"
-  }
+  # if(is.null(res$config$saveDir)) {
+  #   res$config$saveDir <- "Robjects"
+  # }
   
   if(is.null(res$config$savePrefix)) {
-    res$config$saveDir <- "dba_"
+    res$config$savePrefix <- "dba_"
   }
   
   if(is.null(res$config$saveExt)) {
-    res$config$saveDir <- "RData"
+    res$config$saveExt <- "RData"
   }
   
   if(is.null(res$config$reportInit)) {
-    res$config$saveDir <- "reports/DBA"
+    res$config$reportInit <- "reports/DBA"
   }
   if(is.null(res$config$AnalysisMethod)){
     res$config$AnalysisMethod=DBA_DESEQ2
@@ -1370,6 +1494,8 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
     res$config$bUsePval=FALSE
   }   
   
+
+  
   res$config$lsfInit      <- NULL
   res$config$parallelInit <- NULL
   res$config$initFun      <- NULL
@@ -1378,6 +1504,7 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
   res$config$lapplyFun    <- NULL
   res$config$wait4jobsFun <- NULL
   res$config$parallelInit <- NULL
+  res$config$multicoreInit <- NULL
   
   res$config <- as.list(res$config)
   

@@ -32,7 +32,8 @@ load tamoxifen resistance dataset DBA object with count (affinity) data
 }
 
 \item{tamoxifen_analysis}{
-load tamoxifen resistance dataset DBA object with count (affinity) data and \code{DESeq2}-based differential binding analysis results
+load tamoxifen resistance dataset DBA object with count (affinity) data 
+and \code{DESeq2}-based differential binding analysis results
 }
 
 \item{tamoxifen_greylist}{
@@ -41,7 +42,8 @@ Generated as shown in \code{dba.blacklist} example: \code{\link{dba.blacklist}}.
 }
 }
 \details{
-The tamoxifen resistance dataset is used for the DBA vignette and man page examples. 
+The tamoxifen resistance dataset is used for the DBA vignette 
+and man page examples. 
 
 Data used to create these objects can be downloaded at
 \samp{http://DiffBind.starkhome.com/}.

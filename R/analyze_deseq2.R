@@ -1,6 +1,6 @@
 pv.DESeq2 <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
-                      bSubControl=TRUE,bFullLibrarySize=FALSE,bTagwise=TRUE,bGLM=TRUE,
-                      blockList=NULL,filter=0, filterFun=max){
+                      bSubControl=TRUE,bFullLibrarySize=FALSE,bTagwise=TRUE,
+                      bGLM=TRUE,blockList=NULL,filter=0, filterFun=max){
   
   if (!requireNamespace("DESeq2",quietly=TRUE)) {
     stop("Package DESeq2 not installed",call.=FALSE)
@@ -41,12 +41,19 @@ pv.DESeq2 <- function(pv,group1,group2,label1="Group 1",label2="Group 2",
       warning('Unsupported blocking attribute: ',attr,call.=FALSE)
       return(NULL)  
     }
-    fdebug(sprintf('pv.DESeq blocking analysis: %d db (%s/%s)',sum(res$de$padj<0.05),label1,label2))
+    fdebug(sprintf('pv.DESeq blocking analysis: %d db (%s/%s)',
+                   sum(res$de$padj<0.05),label1,label2))
   } 
   
+  # if(!is.null(pv$norm$DESeq2)) {
+  #   message("DESeq2: Using size factors from dba.normalize()")
+  #   DESeq2::sizeFactors(res$DEdata) <- pv$norm$DESeq2$norm.facs
+  # } else {
+  #   message("DESeq2: NO size factors from dba.normalize()")
   if(!bFullLibrarySize) {
     res$DEdata <- DESeq2::estimateSizeFactors(res$DEdata)
   }
+  # }
   
   res$facs   <- DESeq2::sizeFactors(res$DEdata)
   res$DEdata <- DESeq2::estimateDispersions(res$DEdata,fitType='local')
@@ -85,14 +92,10 @@ pv.DESeq2design <- function(pv,
                                 bFullLibrarySize=bFullLibrarySize,
                                 filter=filter, filterFun=filterFun)
   
-  if(!bFullLibrarySize) {
-    res$DEdata <- DESeq2::estimateSizeFactors(res$DEdata)
-  }
-  
   res$facs   <- DESeq2::sizeFactors(res$DEdata)
   
   #Can we avoid re fitting model?
-  if(!is.null(existing)) {
+  if(!is.null(existing$DEdata)) {
     if(!identical(existing$facs, res$facs)) {
       existing <- NULL
     } else if(bSubControl != existing$bSubControl) {
@@ -104,7 +107,7 @@ pv.DESeq2design <- function(pv,
     }
   }
   
-  if(is.null(existing)) {
+  if(is.null(existing$DEdata)) {
     if(!is.null(pv$config$DESeq2$fitType)) {
       fittype <- pv$config$DESeq2$fitType
     } else {
@@ -157,20 +160,54 @@ pv.DEinitDESeq2 <- function(pv,
     return(counts)	
   }
   
-  if(bFullLibrarySize) {
-    libsize <- as.numeric(pv$class[PV_READS,])
+  if(is(bFullLibrarySize,"logical")) {
+    if(bFullLibrarySize) {
+      libsize <- as.numeric(pv$class[PV_READS,])
+    } else {
+      libsize <- colSums(counts)
+    }
   } else {
-    libsize <- colSums(counts)
+    libsize <- bFullLibrarySize
+    bFullLibrarySize <- TRUE
   }
   
   meta <- pv.getMeta(pv)
+  if(is.null(pv$design)) {
+    designstr <- "~ 1"
+  } else {
+    designstr <- pv$design
+  }
   res <- suppressMessages(
-    DESeq2::DESeqDataSetFromMatrix(counts,meta,formula(pv$design))
+    DESeq2::DESeqDataSetFromMatrix(counts,meta,formula(designstr))
   )
   
-  if(bFullLibrarySize) {
-    DESeq2::sizeFactors(res) <- libsize/min(libsize)
-  }  
+  if(!is.null(pv$norm$DESeq2)) {
+    # message("DESeq2: Using size factors from dba.normalize()")
+    if(!is.null(pv$norm$DESeq2$norm.facs)) {
+      DESeq2::sizeFactors(res) <- pv$norm$DESeq2$norm.facs
+    }
+    if(pv$norm$DESeq2$norm.method == PV_NORM_OFFSETS ||
+       pv$norm$DESeq2$norm.method == PV_NORM_OFFSETS_ADJUST) {
+      if(!is.null(pv$norm$offsets$offsets)) {
+        # message("DESeq2: use offsets")
+        offsets <- assay(pv$norm$offsets$offsets, "offsets")
+        if(pv$norm$offsets$offset.method == PV_OFFSETS_LOESS ||
+           pv$norm$DESeq2$norm.method == PV_NORM_OFFSETS_ADJUST) {
+          offsets <- pv.offsetsAdjust(pv, offsets, res)
+        }
+        DESeq2::normalizationFactors(res) <- offsets
+      } else {
+        stop('Internal error: no offsets available.',call.=FALSE)
+      }
+    }
+  } else {
+    # message("DESeq2: NO size factors from dba.normalize()")
+    if(!bFullLibrarySize) {
+      res <- DESeq2::estimateSizeFactors(res)
+    } else {
+      DESeq2::sizeFactors(res) <- libsize/min(libsize)
+    }
+  }
   
   return(res)
 }
@@ -221,7 +258,8 @@ pv.allDESeq2 <- function(pv,block,bSubControl=FALSE,bFullLibrarySize=FALSE,
                                    bTagwise=bTagwise,bGLM=bGLM,
                                    filter=filter,filterFun=filterFun)
       for(i in 1:length(blist)) {
-        fdebug(sprintf('pv.allDESeq2: contrast %d gets bres %d (%d db)',blist[i],i,sum(bres[[i]]$de$padj<0.05)))
+        fdebug(sprintf('pv.allDESeq2: contrast %d gets bres %d (%d db)',
+                       blist[i],i,sum(bres[[i]]$de$padj<0.05)))
         reslist[[blist[i]]]$block <- bres[[i]]
       }    
     }     
@@ -286,13 +324,16 @@ pv.DESeq2Contrast <- function(pv, contrast, shrink=TRUE) {
   
   if(shrink) {
     if(contrast$contrastType=="byname") {
-      res$de <- suppressMessages(DESeq2::lfcShrink(pv$DESeq2$DEdata,coef=contrast$contrast,
+      res$de <- suppressMessages(DESeq2::lfcShrink(pv$DESeq2$DEdata,
+                                                   coef=contrast$contrast,
                                                    res=res$de,type="apeglm"))
     } else  if(contrast$contrastType=="results1") {
-      res$de <- suppressMessages(DESeq2::lfcShrink(pv$DESeq2$DEdata,coef=contrast$contrast[[1]],
+      res$de <- suppressMessages(DESeq2::lfcShrink(pv$DESeq2$DEdata,
+                                                   coef=contrast$contrast[[1]],
                                                    res=res$de,type="apeglm"))
     } else {
-      res$de <- suppressMessages(DESeq2::lfcShrink(pv$DESeq2$DEdata,contrast=contrast$contrast,
+      res$de <- suppressMessages(DESeq2::lfcShrink(pv$DESeq2$DEdata,
+                                                   contrast=contrast$contrast,
                                                    res=res$de,type="ashr"))
     }
   }
@@ -300,7 +341,9 @@ pv.DESeq2Contrast <- function(pv, contrast, shrink=TRUE) {
   res$de$pvalue[is.na(res$de$pvalue)]=1
   res$de$padj[is.na(res$de$padj)]=1
   res$de <- res$de[order(res$de$padj),]
-  res$de <- cbind(as.numeric(rownames(res$de)),res$de$pvalue,res$de$padj,res$de$log2FoldChange)
+  res$de <- cbind(as.numeric(rownames(res$de)),
+                  res$de$pvalue,res$de$padj,
+                  res$de$log2FoldChange)
   colnames(res$de) <- c("id","pval","padj","fold")
   
   rownames(res$de) <- res$de[,1]

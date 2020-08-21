@@ -5,12 +5,13 @@
 Perform differential binding affinity analysis
 }
 \description{
-Performs differential binding affinity analysis
+Performs differential binding affinity analysis. 
+Performs default generation of a consensus peakset, read counting,
+normalization, and setting up of contrasts if they have
+not been specified.
 }
 \usage{
 dba.analyze(DBA, method=DBA$config$AnalysisMethod, 
-            bSubControl=is.null(DBA$greylist), 
-            bFullLibrarySize=TRUE, filter=0, filterFun=max, 
             bRetrieveAnalysis=FALSE, bReduceObjects=TRUE, 
             bParallel=DBA$config$RunParallel)
 }
@@ -20,60 +21,40 @@ dba.analyze(DBA, method=DBA$config$AnalysisMethod,
 %\subsection{Required arguments}{}
 
   \item{DBA}{
-DBA object. If no contrasts are specified (\code{DBA$contrast} is \code{NULL}),
-default contrasts will be added via a call to \code{\link{dba.contrast}}.
+DBA object. 
+
+If no counts are included, a default consensus will be formed
+and read counts computed via a call to
+\code{\link{dba.count}} using defaults.
+
+Id read counts are included, but no normalization has been specified,
+the reads will be normalized via a call to
+\code{\link{dba.normalize}} using defaults.
+
+If no contrasts are specified (\code{DBA$contrast} is \code{NULL}),
+default contrasts will be added via a call to \code{\link{dba.contrast}}
+using defaults.
 }
-%\subsection{Optional/defaulted arguments}{}
+
 \item{method}{
-method, or vector of methods, by which to analyze differential binding affinity. Supported methods:
+Underlying method, or vector of methods, by which to analyze differential binding affinity. 
+
+Supported methods:
 \itemize{ 
-\item \code{\link{DBA_EDGER}}
-\item \code{\link{DBA_DESEQ2}}
+  \item{\code{\link{DBA_EDGER}}} {use \code{edgeR} package for analysis}
+  \item{\code{\link{DBA_DESEQ2}}} {use \code{DESeq2} package for analysis}
+  \item{\code{\link{DBA_ALL_METHODS}}} {perform two analyses, 
+using both \code{edgeR} and \code{DESeq2}}
 }
-%-also, for backward compatibility:
-%-\itemize{
-%-\item \link{DBA_DESEQ}
-%-}
-Additionally, if this value is set to \code{DBA_ALL_METHODS}, this is equivalent to 
-specifying \code{c(DBA_EDGER,DBA_DESEQ2)}.
 }
 
-\item{bSubControl}{
-logical indicating whether Control read counts are subtracted for each site in each sample 
-before performing analysis.
-If there are more overlapping control reads thns ChIP reads, the count will be set to zero.
-If \code{bSubControl} is not explicitly specified,
-it will be set to \code{TRUE} unless a greylist has been applied
-(see \code{\link{dba.blacklist}}).
-}
-\item{bFullLibrarySize}{
-logical indicating if the full library size (total number of reads in BAM/SAM/BED file) 
-for each sample is used for scaling normalization. 
-If \code{FALSE}, the total number of reads present in the peaks for each sample is used 
-(generally preferable if overall biding levels are expected to be similar between samples).
-}
-
-\item{filter}{
-value to use for filtering intervals with low read counts. 
-Each contrast will be filtered separately.
-The \code{filterFun} will be applied t each interval, and any scores below the \code{filter}
-value will be removed prior to analysis.
-}
-\item{filterFun}{
-function that will be invoked for each interval with a vector of scores for each sample. 
-Returns a score that will be evaluated against the \code{filter} value
-(only intervals with a score at least as high as \code{filter} will be kept). 
-Default is \code{max}, indicating that at least one sample should have a score of at least \code{filter}; 
-other useful values include \code{sum} (indicating that all the scores added together should be at least 
-\code{filter}) and \code{mean} (setting a minimum mean normalized count level). 
-Users can supply their own function as well.
-}
 \item{bRetrieveAnalysis}{
 If changed from \code{FALSE}, the underlying DE analysis object is returned instead of running a new analysis. Possible values for \code{bRetrieveAnalysis}:
 \itemize{
   \item{\code{DBA_DESEQ2}} {Returns the \code{DESeq2} \code{\link{DESeqDataSet}}}.
-  \item{\code{DBA_EDGER}} {Returns the \code{edgeR} \code{\link{DGEList}}}.  
-  \item{\code{TRUE}} {Returns the \code{DESeq2} \code{\link{DESeqDataSet}}, if present. If not, returns the \code{edgeR} \code{\link{DGEList}}, if present.}.
+  \item{\code{DBA_EDGER}} {Returns the \code{edgeR} \code{DGEList}}.  
+  \item{\code{TRUE}} {Returns the \code{DESeq2} \code{\link{DESeqDataSet}}, 
+  if present. If not, returns the \code{edgeR} \code{DGEList}, if present.}.
 }
 An analysis object will only be successfully returned if there is at least one contrast utilizing an explicit design (see \code{\link{dba.contrast}}), and an analysis has been carried out.
 }
@@ -87,32 +68,38 @@ logical indicating that the analyses is to be done in parallel using multicore (
 }
 }
 \details{
-In general, prior to calling \code{dba.analyze}, \code{\link{dba.count}} and \code{\link{dba.contrast}} 
+In general, prior to calling \code{dba.analyze}, \code{\link{dba.count}}
 should have been run.
 If no contrasts have been established prior to invoking \code{dba.analyze},
 then the default set of contrasts will be added using (\code{\link{dba.contrast}}).
 
-See the DBA User Guide for more details on how the \code{edgeR} and \code{DESeq2} analyses are carried out.  
+If no normalization parameters have been supplied by 
+calling \code{\link{dba.normalize}},
+default normalization parameters will be used.
+
+See the DBA User Guide for more details on how 
+the \code{edgeR} and \code{DESeq2} analyses are carried out.  
 }
 \value{
 DBA object with results of analysis added to \code{DBA$contrasts}.
 
 Alternatively, an analysis object (either a \code{\link{DESeqDataSet}}
-or a \code{\link{DGEList}}) if \code{bRetrieveAnalysis} if not \code{FALSE}.
+or a \code{DGEList}) if \code{bRetrieveAnalysis} if not \code{FALSE}.
 }
 
 \author{
 Rory Stark
 }
 \note{
-If there is a blocking factor for the contrast(s) specified using a previous call to 
-\code{\link{dba.contrast}}, a multi-factor analysis will automatically be carried out in addition to a single factor analysis.
+If there is a blocking factor for the contrast(s) specified using a 
+previous call to \code{\link{dba.contrast}} with \code{design=FALSE}, 
+a multi-factor analysis will automatically be carried out in addition to a single factor analysis.
 }
 
 
 \seealso{
 
-\code{\link{dba.contrast}}, \code{\link{dba.report}}
+\code{\link{dba.contrast}}, \code{\link{dba.normalize}}, \code{\link{dba.report}}
 
 }
 

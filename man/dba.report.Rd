@@ -222,10 +222,11 @@ tamoxifen.sset <- dba.report(tamoxifen, DataType=DBA_DATA_SUMMARIZED_EXPERIMENT)
 tamoxifen.sset
 
 #Retrieve report-based DBA object
-data(tamoxifen_counts)
+data(tamoxifen_analysis)
 tamoxifen <- dba.analyze(tamoxifen,method=DBA_ALL_METHODS)
 tamoxifen.DB <- dba.report(tamoxifen,method=c(DBA_EDGER,DBA_DESEQ2),
                           bDB=TRUE)
+tamoxifen.DB
 dba.plotVenn(tamoxifen.DB,1:2)
 }
 

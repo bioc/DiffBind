@@ -32,47 +32,64 @@ BiocStyle::latex()
    University of Cambridge
 }
 
-\date{Edited: 13 July 2020; Compiled: \today}
+\date{Edited: 21 August 2020; Compiled: \today}
 
 \maketitle
 
 \tableofcontents
 
+
 \section{Introduction}
 
 This document offers an introduction and overview of the
 \R~Bioconductor package  \DBA, which
-provides functions for processing ChIP-Seq data enriched for genomic loci where specific protein/DNA binding occurs, 
-including peak sets identified by ChIP-Seq peak callers and aligned sequence read datasets. 
+provides functions for processing ChIP-Seq data enriched for genomic loci 
+where specific protein/DNA binding occurs, 
+including peak sets identified by ChIP-Seq peak callers and 
+aligned sequence read datasets. 
 It is designed to work with multiple peak sets simultaneously, 
-representing different ChIP experiments (antibodies, transcription factor and/or histone marks, experimental conditions, replicates) 
+representing different ChIP experiments (antibodies, transcription factor 
+and/or histone marks, experimental conditions, replicates) 
 as well as managing the results of multiple peak callers. 
 
-The primary emphasis of the package is on identifying sites that are differentially bound between two sample groups. 
-It includes functions to support the processing of peak sets, including overlapping and merging peak sets, 
+The primary emphasis of the package is on identifying sites that are 
+differentially bound between two sample groups. 
+It includes functions to support the processing of peak sets, 
+including overlapping and merging peak sets, 
 counting sequencing reads overlapping intervals in peak sets, 
-and identifying statistically significantly differentially bound sites based on evidence of binding affinity 
+and identifying statistically significantly differentially bound sites
+based on evidence of binding affinity 
 (measured by differences in read densities). 
-To this end it uses statistical routines developed in an RNA-Seq context (primarily the Bioconductor packages 
+To this end it uses statistical routines developed in an RNA-Seq context
+(primarily the Bioconductor packages 
 \edgeR and \DESeq). 
 Additionally, the package builds on \R 
-graphics routines to provide a set of standardized plots to aid in binding analysis.
+graphics routines to provide a set of standardized plots to aid in 
+binding analysis.
 
-This guide includes a brief overview of the processing flow, followed by four sections of examples: 
-the first focusing on the core task of obtaining differentially bound sites based on affinity data, 
+This guide includes a brief overview of the processing flow, 
+followed by four sections of examples: 
+the first focusing on the core task of obtaining differentially bound sites 
+based on affinity data, 
 the second working through the main plotting routines, 
 the third discussing the use of multi-factor model designs, 
 and the fourth revisiting occupancy data (peak calls) in more detail, 
-as well as comparing the results of an occupancy-based analysis with an affinity-based one. 
-Finally, certain technical aspects of the how these analyses are accomplished are detailed.
+as well as comparing the results of an occupancy-based analysis with an 
+affinity-based one. 
+Finally, certain technical aspects of the how these analyses are 
+accomplished are detailed.
 
 \section{Processing overview}
 
-\DBA works primarily with peaksets, which are sets of genomic intervals representing candidate protein binding sites. 
-Each interval consists of a chromosome, a start and end position, and usually a score of some type 
+\DBA works primarily with peaksets, which are sets of 
+genomic intervals representing candidate protein binding sites. 
+Each interval consists of a chromosome, a start and end position, 
+and usually a score of some type 
 indicating confidence in, or strength of, the peak. 
-Associated with each peakset are metadata relating to the experiment from which the peakset was derived. 
-Additionally, files containing mapped sequencing reads (generally .bam files) can be associated with each peakset 
+Associated with each peakset are metadata relating to the experiment 
+from which the peakset was derived. 
+Additionally, files containing mapped sequencing reads (generally .bam files)
+can be associated with each peakset 
 (one for the ChIP data, and optionally another representing a control sample).
 
 Generally, processing data with \DBA involves five phases:
@@ -80,34 +97,55 @@ Generally, processing data with \DBA involves five phases:
 \item
 \Rcode{Reading in peaksets}:
 The first step is to read in a set of peaksets and associated metadata. 
-Peaksets are derived either from ChIP-Seq peak callers, such as MACS (\cite{zhang2008model}), 
+Peaksets are derived either from ChIP-Seq peak callers, 
+such as MACS (\cite{zhang2008model}), 
 or using some other criterion 
 (e.g. genomic windows, or all the promoter regions in a genome). 
-The easiest way to read in peaksets is using a comma-separated value (csv) sample sheet with one line for each peakset.
-(Spreadsheets in Excel\textsuperscript{\textregistered} format, with a \code{.xls} or \code{.xlsx} suffix, are also accepted.)  
+The easiest way to read in peaksets is using a comma-separated value (csv) 
+sample sheet with one line for each peakset.
+(Spreadsheets in Excel\textsuperscript{\textregistered} format, 
+with a \code{.xls} or \code{.xlsx} suffix, are also accepted.)  
 A single experiment can have more than one associated peakset; e.g. 
-if multiple peak callers are used for comparison purposes each sample would have more than one line in the sample sheet. 
-Once the peaksets are read in, a merging function finds all overlapping peaks and derives a single set of 
-unique genomic intervals covering all the supplied peaks (a \emph{consensus peakset} for the experiment).
+if multiple peak callers are used for comparison purposes each sample 
+would have more than one line in the sample sheet. 
+Once the peaksets are read in, a merging function finds all 
+overlapping peaks and derives a single set of 
+unique genomic intervals covering all the supplied peaks 
+(a \emph{consensus peakset} for the experiment).
 \item
 \Rcode{Occupancy analysis}:
-Peaksets, especially those generated by peak callers, provide an insight into the potential \emph{occupancy} 
+Peaksets, especially those generated by peak callers, 
+provide an insight into the potential \emph{occupancy} 
 of the protein being ChIPed for at specific genomic loci.  
-After the peaksets have been loaded, it can be useful to perform some exploratory plotting to determine how 
+After the peaksets have been loaded, it can be useful to perform 
+some exploratory plotting to determine how 
 these occupancy maps agree with each other, 
-e.g. between experimental replicates (re-doing the ChIP under the same conditions), 
+e.g. between experimental replicates 
+(re-doing the ChIP under the same conditions), 
 between different peak callers on the same experiment, 
 and within groups of samples representing a common experimental condition. 
-\DBA provides functions to enable overlaps to be examined, as well as functions to determine how well 
+\DBA provides functions to enable overlaps to be examined, 
+as well as functions to determine how well 
 similar samples cluster together. 
-Beyond quality control, the product of an occupancy analysis may be a \emph{consensus peakset}, 
-representing an overall set of candidate binding sites to be used in further analysis.
+In addition, peaks may be filtered based on
+published \emph{blacklists} of region known to be problematic,
+as well as custom \emph{greylists} derived from
+control track specific to the experiment.
+Beyond quality control, the product of an occupancy analysis may be a
+\emph{consensus peakset}, 
+representing an overall set of candidate binding sites to be used 
+in further analysis.
+The use of published blacklists and computed "greylists" may
+also be used to narrow down the peaks included in the consensus peakset.
 \item
 \Rcode{Counting reads}:
-Once a consensus peakset has been derived, \DBA can use the supplied sequence read files to count 
+Once a consensus peakset has been derived, 
+\DBA can use the supplied sequence read files to count 
 how many reads overlap each interval for each unique sample.
-By default, the peaks in the consensus peakset are be re-centered and trimmed based on 
-calculating their summits (point of greatest read overlap) in order to provide more standardized peak intervals.
+By default, the peaks in the consensus peakset are 
+re-centered and trimmed based on 
+calculating their summits (point of greatest read overlap) 
+in order to provide more standardized peak intervals.
 The final result of counting is a \emph{binding affinity matrix} containing a 
 (normalized) read count for each sample at every potential binding site. 
 With this matrix, the samples can be re-clustered using affinity, 
@@ -117,40 +155,59 @@ differential analysis.
 \item
 \Rcode{Differential binding affinity analysis}:
 The core functionality of \DBA is the differential binding affinity analysis, 
-which enables binding sites to be identified that are statistically significantly 
-differentially bound between sample groups. 
-To accomplish this, first a model design is established and a contrast (or contrasts) is specified,
-dividing the samples into groups to be compared. 
-Next the core analysis routines are executed, by default using \DESeq. 
-This will assign a p-value and FDR to each candidate binding site indicating confidence 
-that they are differentially bound.
+which enables binding sites to be identified that are 
+significantly differentially bound between sample groups. 
+This step includes normalizing the experimental data and establishing a 
+model design and a contrast (or contrasts).
+Next the underlying core analysis routines are executed, by default using \DESeq. 
+This will assign a p-value and FDR to each candidate binding site 
+indicating confidence that they are differentially bound.
 \item
 \Rcode{Plotting and reporting}:
-Once one or more contrasts have been run, \DBA provides a number of functions for reporting and plotting the results. 
-MA and volcano plots give an overview of the results of the analysis, while correlation heatmaps and PCA plots 
+Once one or more contrasts have been run,
+\DBA provides a number of functions for reporting and plotting the results. 
+MA and volcano plots give an overview of the results of the analysis, 
+while correlation heatmaps and PCA plots 
 show how the groups cluster based on differentially bound sites. 
-Boxplots show the distribution of reads within differentially bound sites corresponding to whether 
+Boxplots show the distribution of reads within differentially bound sites 
+corresponding to whether 
 they gain or lose affinity between the two sample groups. 
-A reporting mechanism enables differentially bound sites to be extracted for further processing, 
+A reporting mechanism enables differentially bound sites to be 
+extracted for further processing, 
 such as annotation, motif, and pathway analyses.
 \end{enumerate}
 
 \section{Example: Obtaining differentially bound sites}
 
-This section offers a quick example of how to use \DBA to identify significantly differentially bound sites 
+This section offers a quick example of how to use 
+\DBA to identify significantly differentially bound sites 
 using affinity (read count) data.
 
-The dataset for this example consists of ChIPs against the transcription factor ERa using 
-five breast cancer cell lines (\cite{ross2012differential}). 
-Three of these cell lines are responsive to tamoxifen treatment, while two others are resistant to tamoxifen. 
-There are at least two replicates for each of the cell lines, with one cell line having three replicates,
+The dataset for this example consists of ChIPs against the 
+transcription factor ERa using 
+five breast cancer cell lines\cite{ross2012differential}. 
+Three of these cell lines are responsive to tamoxifen treatment, 
+while two others are resistant to tamoxifen. 
+There are at least two replicates for each of the cell lines, 
+with one cell line having three replicates,
 for a total of eleven sequenced libraries. 
-Of the five cell lines, two are based on MCF7 cells: the regular tamoxifen responsive line, 
-as well as MCF7 cells specially treated with tamoxifen until a tamoxifen resistant cell line is obtained.
-For each sample, we have one peakset originally derived using the MACS peak caller  (\cite{zhang2008model}), 
+Of the five cell lines, two are based on MCF7 cells: 
+the regular tamoxifen responsive line, 
+as well as MCF7 cells specially treated with tamoxifen 
+until a tamoxifen resistant cell line is obtained.
+For each sample has an associated  peakset originally derived 
+using the MACS peak caller\cite{zhang2008model}, 
 for a total of eleven peaksets. 
-Note that to save space in the package, only data for chromosome 18 is used for the vignette. 
-The metadata and peak data are available in the \Rcode{extra} subdirectory of the \DBA package directory;
+Note that to save space in the package, 
+only data for chromosome 18 is used for the vignette. 
+The metadata and peak data\footnote{Note that 
+due to space limitations the reads 
+are not shipped with the package. 
+See Section 10 xx.xx for options to obtain the full dataset. 
+It is highly recommended that your obtain the 500M dataset to
+work through this vignette.} 
+are available in the \Rcode{extra} 
+subdirectory of the \DBA package directory;
 you can make this your working directory by entering:
 
 <<eval=TRUE,echo=FALSE,results=hide>>=
@@ -168,15 +225,35 @@ library(DiffBind)
 setwd(system.file('extra',package='DiffBind'))
 @
 
-\footnote{Note that due to space limitations the reads are not shipped with the package. 
-See Section 10 for options to obtain the full dataset.}
 
-Obtaining the sites significantly differentially bound (DB) between the samples that respond to tamoxifen 
-and those that are resistant can be done in a five-step script:
+
+Obtaining the sites significantly differentially bound (DB) 
+between the samples that respond to tamoxifen 
+and those that are resistant can be done in three steps,
+first reading in the samplesheet to form a \Rclass{DBA object},
+then running a default analysis,
+and finally extracting the derived differentially bound sites
+as follows:
+
+<<eval=FALSE,echo=TRUE,results=hide>>=
+tamoxifen <- dba(sampleSheet="tamoxifen.csv")
+tamoxifen <- dba.analyze(tamoxifen)
+tamoxifen.DB <- dba.report(tamoxifen)
+@
+
+The \Rcode{dba.analyze} function simplifies processing if you
+want to perform an analysis using only defaults.
+However it is often necessary to
+perform each step separately in order to have greater control
+of the analysis.
+There are six such steps (as well an one additional recommended step,
+applying blacklists, discussed in  subsequent section),
+as follows:
 
 <<eval=FALSE,echo=TRUE,results=hide>>=
 tamoxifen <- dba(sampleSheet="tamoxifen.csv")
 tamoxifen <- dba.count(tamoxifen)
+tamoxifen <- dba.normalize(tamoxifen)
 tamoxifen <- dba.contrast(tamoxifen)
 tamoxifen <- dba.analyze(tamoxifen)
 tamoxifen.DB <- dba.report(tamoxifen)
@@ -189,7 +266,8 @@ The following subsections describe these steps in more detail
 The easiest way to set up an experiment to analyze is with a sample sheet. 
 The sample sheet can be a \Robject{dataframe}, 
 or it can be read directly from a \Rcode{csv} file.
-Here is the example sample sheet read into a \Rcode{dataframe} from a \Rcode{csv} file:
+Here is the example sample sheet read into a 
+\Rcode{dataframe} from a \Rcode{csv} file:
 
 <<sampSheet, eval=TRUE,echo=TRUE,results=verbatim>>=
 samples <- read.csv(file.path(system.file("extra", package="DiffBind"),
@@ -205,12 +283,19 @@ tamoxifen <- dba(sampleSheet="tamoxifen.csv",
                  dir=system.file("extra", package="DiffBind"))
 @
 
-The result is a \Rclass{DBA object}; the metadata associated with this object can be displayed simply as follows:
+Alternatively, the previously read-in sample sheet could be used directly
+to create the \Rclass{DBA object}:
+
+<<dbaConstructDF, eval=FALSE,echo=TRUE,results=verbatim>>=
+tamoxifen <- dba(sampleSheet=samples)
+@
+
+The result is a \Rclass{DBA object}; 
+the metadata associated with this object can be displayed simply as follows:
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
 tamoxifen
 @
-
 
 This shows how many peaks are in each peakset, as well as (in the first line) 
 the total number of unique peaks after merging overlapping ones
@@ -218,42 +303,46 @@ the total number of unique peaks after merging overlapping ones
 and the dimensions of the default binding matrix of 11 samples by the
 \Sexpr{nrow(tamoxifen$binding)}
 sites that overlap in at least two of the samples. 
-This object is available for loading using \Rcode{data(tamoxifen\_peaks)}.
 
-Using only this peak caller data, a correlation heatmap can be generated which gives an initial clustering 
+Note: \emph{This \Rcode{DBA object}, \Rcode{tamoxifen}, 
+is available for loading using \Rcode{data(tamoxifen\_peaks)}.}
+
+Using the data from the peak calls, 
+a correlation heatmap can be generated which gives an initial clustering 
 of the samples using the cross-correlations of each row of the binding matrix:
 
 <<tamox_occ_corhm, fig=TRUE, include=FALSE, width=9, height=9 >>=
 plot(tamoxifen)
 @
-\incfig{DiffBind-tamox_occ_corhm}{.66\textwidth}{Correlation heatmap, using occupancy (peak caller score) data.}
-  {Generated by: \Rcode{plot(tamoxifen)}; can also be generated by: \Rcode{dba.plotHeatmap(tamoxifen).}}
+\incfig{DiffBind-tamox_occ_corhm}{.66\textwidth}
+{Correlation heatmap, using occupancy (peak caller score) data.}
+  {Generated by: \Rcode{plot(tamoxifen)}; 
+  can also be generated by: \Rcode{dba.plotHeatmap(tamoxifen).}}
   
-The resulting plot (Figure~\ref{DiffBind-tamox_occ_corhm}) shows that while the replicates for each cell line 
+The resulting plot (Figure~\ref{DiffBind-tamox_occ_corhm}) 
+shows that while the replicates for each cell line 
 cluster together appropriately, 
-the cell lines do not cluster into groups corresponding to those that are responsive (MCF7, T47D, and ZR75) 
+the cell lines do not cluster into groups corresponding 
+to those that are responsive (MCF7, T47D, and ZR75) 
 vs. those resistant (BT474 and MCF7r) to tamoxifen treatment.
-It also shows that the two most highly correlated cell lines are the two MCF7-based ones, 
-even though they respond differently to tamoxifen treatment. 
+It also shows that the two most highly correlated cell lines are the two
+MCF7-based ones, even though they respond differently to tamoxifen treatment. 
 
 \subsection{Counting reads}
-The next step is to calculate a binding matrix with scores based on read counts 
-for every sample (affinity scores), 
-rather than confidence scores for only those peaks called in a specific sample (occupancy scores). 
-These reads are obtained using the \Rcode{dba.count} function.
-\footnote{Note that due to space limitations the reads are not shipped with the package. 
+The next step is to calculate a binding matrix with scores 
+based on read counts for every sample (affinity scores), 
+rather than confidence scores for only those peaks 
+called in a specific sample (occupancy scores). 
+These reads are obtained using the \Rcode{dba.count} function:
+\footnote{Note that due to space limitations the 
+reads are not shipped with the package. 
 See Section 10 for options to obtain the full dataset.
-Alternatively, you can get the result of the \Rcode{dba.count} call by loading the supplied \R 
+You can get the end result of the \Rcode{dba.count} call by 
+loading the supplied \R 
 object by invoking \Rcode{data(tamoxifen\_counts)}}
-As this example is based on a transcription factor that binds to the DNA, resulting in "punctate", 
-relatively narrow peaks, 
-the default option to re-center each peak around the point of greatest enrichment is appropriate. 
-This keeps the peaks at a consistent width (in this case, the default \Rcode{summits=250}, 
-results in 501bp-wide intervals,
-extending 250bp up- and down- stream of the summit):
 
 <<eval=FALSE,echo=TRUE,results=hide>>=
-tamoxifen <- dba.count(tamoxifen) # default summits=250
+tamoxifen <- dba.count(tamoxifen) 
 @
 <<eval=TRUE,echo=FALSE,results=hide>>=
 data(tamoxifen_counts)
@@ -261,92 +350,208 @@ data(tamoxifen_counts)
 
 If you do not have the raw reads available to you, this object is available 
 for loading using \Rcode{data(tamoxifen\_counts)}.
+
 After the \Rcode{dba.count} call, the \Rclass{DBA object} can be examined:
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
 tamoxifen
 @
 
-This shows that all the samples are using the same, \Sexpr{nrow(tamoxifen$binding)} length consensus peakset. 
+This shows that all the samples are using the same,
+\Sexpr{nrow(tamoxifen$binding)} length consensus peakset. 
 Also, two new columns have been added. 
-The first shows the number of aligned reads for each samples,
-The second, is labeled \Rcode{FRiP}, which stands for Fraction of Reads in Peaks. 
-This is the proportion of reads for that sample that overlap a peak in the consensus peakset, 
+The first shows the total number of aligned reads for each sample 
+(the "Full" library sizes).
+The second is labeled \Rcode{FRiP}, 
+which stands for \emph{Fraction of Reads in Peaks}. 
+This is the proportion of reads for that sample that 
+overlap a peak in the consensus peakset, 
 and can be used to indicate which samples show more enrichment overall.
-For each sample, multiplying the value in the \Rcode{Reads} column by the corresponding \Rcode{FRiP}
+For each sample, multiplying the value in the \Rcode{Reads} 
+column by the corresponding \Rcode{FRiP}
 value will yield the number of reads that overlap a consensus peak.
+This can be done using the \Rcode{dba.show} function:
 
-We can also plot a new correlation heatmap based on the affinity scores, 
-seen in Figure~\ref{DiffBind-tamox_aff_corhm}. 
-While this shows a slightly different clustering, with overall higher levels of correlation 
-(due to using normalized read counts instead of whether not a peak was called),
-responsiveness to tamoxifen treatment does not appear to form a basis for clustering 
-when using all of the affinity scores. 
-(Note that the clustering can change based on what normalization scoring metric is used; 
-see Section 4.6 for more details).
+<<eff_lib_size,eval=TRUE,echo=TRUE,results=verbatim>>=
+info <- dba.show(tamoxifen)
+libsizes <- cbind(LibReads=info$Reads, FRiP=info$FRiP, 
+                  PeakReads=round(info$Reads * info$FRiP))
+rownames(libsizes) <- info$ID
+libsizes
+@
+
+As this example is based on a transcription factor that binds to the DNA, 
+resulting in "punctate", relatively narrow peaks, 
+the default option to re-center each peak around the point of 
+greatest enrichment is appropriate. 
+This keeps the peaks at a consistent width 
+(in this case, the default \Rcode{summits=\Sexpr{tamoxifen$summits}}
+results in \Sexpr{tamoxifen$summits*2+1}bp-wide intervals,
+extending \Sexpr{tamoxifen$summits}bp up- and down- stream of the summit)
+
+We can also plot a new correlation heatmap based on the count scores, 
+seen in Figure~\ref{DiffBind-tamox_aff_corhm} 
+(compare to Figure~\ref{DiffBind-tamox_occ_corhm}). 
+While this shows a slightly different clustering,
+with overall higher levels of correlation 
+(due to using normalized read counts instead of 
+whether or not a peak was called),
+responsiveness to tamoxifen treatment does not appear to 
+form a basis for clustering when using all of the affinity scores. 
+(Note that the clustering can change based on what normalization 
+scoring metric is used; see Section 4.6 xx.xx for more details).
 
 <<tamox_aff_corhm, fig=TRUE, include=FALSE, width=9, height=9 >>=
 plot(tamoxifen)
 @
-\incfig{DiffBind-tamox_aff_corhm}{.66\textwidth}{Correlation heatmap, using affinity (read count) data.}
-  {Generated by: \Rcode{plot(tamoxifen)}; can also be generated by: \Rcode{dba.plotHeatmap(tamoxifen)}}
+\incfig{DiffBind-tamox_aff_corhm}{.66\textwidth}
+{Correlation heatmap, using affinity (read count) data.}
+  {Generated by: \Rcode{plot(tamoxifen)}; 
+  can also be generated by: \Rcode{dba.plotHeatmap(tamoxifen)}}
 
-\subsection{Establishing a contrast}
-Before running the differential analysis, we need to tell \DBA which cell lines fall in which groups. 
+\subsection{Normalizing the data}
+
+The next step is to tell \DBA how the data are to be normalized.
+This is done using the \Rcode{dba.normalize} function:
+
+<<normalize,eval=TRUE,echo=TRUE,results=verbatim>>=
+tamoxifen <- dba.normalize(tamoxifen)
+@
+
+The default normalization is based on dividing the reference genome
+into large non-overlapping bins, and counting the reads in each one.
+The assumption is that there should not be any particular changes in
+enrichment in 
+large bins (default \Sexpr{tamoxifen$norm$background$bin.size})
+as the binding sites are small (default \Sexpr{tamoxifen$summits*2+1}),
+so any variation between samples are attributable to differences in
+sequencing depth and ChIP efficiency.\footnote{If you are
+using the object supplied with the package
+and loaded via \Rcode{data(tamoxifen\_counts)},
+this includes pre-computed counts for the bins on Chromosome 18.}
+
+The result of the normalization can be examined:
+
+<<show_norm,eval=TRUE,echo=TRUE,results=verbatim>>=
+norm <- dba.normalize(tamoxifen, bRetrieve=TRUE)
+norm
+@
+
+This returns information about the normalization for the
+default analysis method, \DESeq.
+It shows that background reads we used,
+as well as the normalization method used (\Sexpr{norm$norm.method}),
+the default or "native" normalization method in \DESeq.
+The calculated normalization factors are shown for each sample,
+along with the library sizes (which include all of the reads),
+from which we can calculate the normalized library sizes:
+
+<<norm_facs,eval=TRUE,echo=TRUE,results=verbatim>>=
+normlibs <- cbind(FullLibSize=norm$lib.sizes, NormFacs=norm$norm.factors,
+                  NormLibSize=round(norm$lib.sizes/norm$norm.factors))
+rownames(normlibs) <- info$ID
+normlibs
+@
+
+Other values show that the
+that control reads were subtracted from the ChIP reads
+(this is done by default because no blacklists/greylists were applied,
+see Section xx.xx for more details),
+and that any consensus peak intervals without at least one sample with
+at least five reads for that interval was filtered from further analysis.
+
+Normalization of ChIP (and related assays such as ATAC) data is a complex area. 
+Please see Section xx.xx for a more in-depth discussion
+of normalization in \DBA.
+
+\subsection{Establishing a model design and contrast}
+Before running the differential analysis,
+we need to tell \DBA which about how
+to model the data, including which comparison(s) we are interested in. 
 This is done using the \Rcode{dba.contrast} function, as follows:
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
-tamoxifen <- dba.contrast(tamoxifen, categories=DBA_CONDITION)
-dba.show(tamoxifen, bContrasts=TRUE)
+tamoxifen <- dba.contrast(tamoxifen)
+tamoxifen
 @
 
-This uses the \emph{Condition} metadata to set up a contrast with 
-7 samples in the Responsive group and
-4 samples in the Resistant group.
-\footnote{This step is actually optional: 
-if the main analysis function \Rcode{dba.analyze} is invoked with no contrasts established, 
-\DBA will set up a default set of contrasts automatically,
-which in this case will be the one we are interested in.}
+This call will set up any "default" contrasts by examining
+the project metadata factors and assuming we want to
+look at the differences between any two sample groups
+with at least three replicates in each side of the comparison
+(that is, any factor that has two different values where there
+are at least three samples that share each value.)
+In the current case, there is only once such comparison:
+The \Rcode{Condition} metadata factor has two values,
+\Rcode{Resistant} and \Rcode{Responsive}, that 
+have at least thee replicates each 
+(we see that there are four \Rcode{Resistant} sample replicates
+and seven \Rcode{Responsive} sample replicates.)
+
+This function also establishes the default design,
+which includes only the metadata factor directly involved in the
+contrast (\emph{\Sexpr{dba.show(tamoxifen,bDesign=TRUE)}}).
+
+While in this example we are using \Rcode{dba.contrast} in the default mode,
+it does allow for fine-grained control over the 
+design and contrasts one wishes to model.
+See Section xx.xx for a more detailed discussion of how
+including the \Rcode{Tissue} factor in the design
+provides for better modeling of the example experiment.
 
 \subsection{Performing the differential analysis}
 The main differential analysis function is invoked as follows:
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
 tamoxifen <- dba.analyze(tamoxifen)
-tamoxifen
+dba.show(tamoxifen, bContrasts=TRUE)
 @
 
-This will run a \DESeq analysis (see Section 8.1 discussing the technical details of the analysis).
-Displaying the resultant \Rcode{DBA object} shows that
+This will run the default \DESeq analysis
+(see Section xx.xx discussing the technical details of the analysis).
+Displaying the results from the \Rcode{DBA object} shows that
 \Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)}
 of the
 \Sexpr{nrow(tamoxifen$merged)}
-sites are identified as being significantly differentially bound (DB) 
+sites are identified as being significantly differentially bound (DB)
 using the default threshold of FDR <= \Sexpr{tamoxifen$config$th}
 
-A correlation heatmap can be plotted, based on the result of the analysis, 
-as shown in Figure~\ref{DiffBind-tamox_sdb_corhm}. 
+A correlation heatmap can be plotted,
+correlating only the
+\Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)}
+differentially bound sites identified by the the analysis,
+as shown in Figure~\ref{DiffBind-tamox_sdb_corhm}.
+
 <<tamox_sdb_corhm, fig=TRUE, include=FALSE, width=9, height=9 >>=
 plot(tamoxifen, contrast=1)
 @
+\incfig{DiffBind-tamox_sdb_corhm}{.66\textwidth}
+{Correlation heatmap, using only significantly differentially bound sites.}
+  {Generated by: \Rcode{plot(tamoxifen, contrast=1)};
+  can also be generated by: \Rcode{dba.plotHeatmap(tamoxifen, contrast=1)}}
 
-\incfig{DiffBind-tamox_sdb_corhm}{.66\textwidth}{Correlation heatmap, using only significantly differentially bound sites.}
-  {Generated by: \Rcode{plot(tamoxifen, contrast=1)}; can also be generated by: \Rcode{dba.plotHeatmap(tamoxifen, contrast=1)}}
-  
-Using only the differentially bound sites, we now see that the four tamoxifen resistant samples 
-(representing two cell lines) cluster together, 
-although the tamoxifen-responsive MCF7 replicates cluster closer to them 
-than to the other tamoxifen responsive samples. 
-Comparing Figure~\ref{DiffBind-tamox_aff_corhm}, which uses all 
-\Sexpr{nrow(tamoxifen$merged)} 
-consensus binding sites, with Figure~\ref{DiffBind-tamox_sdb_corhm}, which uses only the 
-\Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)} 
-differentially bound sites, demonstrates how the differential binding analysis isolates sites 
+Using only the differentially bound sites,
+we now see that the four tamoxifen resistant samples
+(representing two cell lines) cluster together,
+although the tamoxifen-responsive MCF7 replicates cluster closer to them
+than to the other tamoxifen responsive samples.
+Comparing Figure~\ref{DiffBind-tamox_aff_corhm}, which uses all
+\Sexpr{nrow(tamoxifen$merged)}
+consensus binding sites, with Figure~\ref{DiffBind-tamox_sdb_corhm},
+which uses only the
+\Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)}
+differentially bound sites, demonstrates how
+the differential binding analysis isolates sites
 that help distinguish between the Resistant and Responsive sample groups.
-Note this is plot is not a "result" in the sense that the analysis is selecting 
-for sites that differ between the two conditions, 
-and hence are expected to form clusters representing the conditions. 
-Indeed, the fact that these site do not enable a perfect clustering show the importance of checking the results at this stage.
+
+Note this is plot is not a "result" in the sense that the analysis is selecting
+for sites that differ between the two conditions,
+and hence are expected to form clusters representing the conditions.
+Indeed, the fact that these site do not enable a perfect clustering
+show the importance of checking the results at this stage.
+
+See Section xx.xx, where a multi-factor design is applied to this analysis,
+for a better way to model these data.
 
 \subsection{Retrieving the differentially bound sites}
 The final step is to retrieve the differentially bound sites as follows:
@@ -355,127 +560,192 @@ The final step is to retrieve the differentially bound sites as follows:
 tamoxifen.DB <- dba.report(tamoxifen)
 @
 
-These are returned as a \Rclass{GRanges} object, appropriate for downstream processing:
+These are returned as a \Rclass{GRanges} object,
+appropriate for downstream processing:
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
 tamoxifen.DB
 @
 
 
-The value columns show the mean read concentration over all the samples 
-(the default calculation uses log2 normalized ChIP read counts with control read counts subtracted) 
-and the mean concentration over the first (Resistant) group and second (Responsive) group. 
-The Fold column shows the difference in mean concentrations between the two groups 
-(Conc\_Resistant - Conc\_Responsive), 
-with a positive value indicating increased binding affinity in the Resistant group 
-and a negative value indicating increased binding affinity in the Responsive group. 
-The final two columns give confidence measures for identifying these sites as differentially bound, 
-with a raw p-value and a multiple testing corrected FDR in the final column.
+The metadata columns show the mean read concentration over all the samples
+(the default calculation uses log2 normalized read counts)
+and the mean concentration over the samples in each of
+the first (Resistant) group and second (Responsive) group.
+The Fold column shows the log fold changes (LFCs)
+between the two groups, as calculated by the \DESeq analysis.
+A positive value indicates increased binding affinity in the Resistant group,
+and a negative value indicates increased binding affinity
+in the Responsive group. The final two columns give confidence measures for
+identifying these sites as differentially bound,
+with a raw p-value and a multiple-testing corrected FDR in the final column
+(also calculated by the \DESeq analysis).
 
-\section{Example: Plotting}
+We can compare the number of differentially bound sites
+that have enriched ER binding in the tamoxifen Resistant samples
+and those with enriched binding in the tamoxifen Responsive samples:
 
-Besides the correlation heatmaps we have been looking at, 
-a number of other plots are available using the affinity data. 
-This sections covers Venn diagrams, MA plots, Volcano plots, PCA plots, Boxplots, and Heatmaps.
+<<eval=TRUE,echo=TRUE,results=verbatim>>=
+sum(tamoxifen.DB$Fold>0)
+sum(tamoxifen.DB$Fold<0)
+@
+
+The bias towards enriched binding in the Responsive case can
+be visualized using MA and Volcano plots, as shown in the following Section.
+
+\section{Plotting in \DBA}
+
+Besides the correlation heatmaps we have been looking at,
+a number of other plots are available using the affinity data.
+This sections covers Venn diagrams, MA plots, Volcano plots,
+PCA plots, Boxplots, and Heatmaps.
 
 \subsection{Venn diagrams}
 
-Venn diagrams are useful for examining overlaps between peaksets, 
-particularly when determining how best to derive consensus 
-peaksets for further analysis. 
-Section 6, which discusses consensus peaksets, shows a number of
-Venn plots in context, 
+Venn diagrams illustrate overlaps between different sets of peaks.
+For example, amongst the differentially bound sites,
+we can see the differences between the "Gain" sites
+(those that increase binding enrichment in the Resistant condition)
+and the "Loss" sites (those with lower enrichment) as follows:
+
+<<tamox_sdb_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
+dba.plotVenn(tamoxifen, contrast=1, bDB=TRUE,
+             bGain=TRUE, bLoss=TRUE, bAll=FALSE)
+@
+\incfig{DiffBind-tamox_sdb_venn}{.66\textwidth}
+{Veen diagram of Gain vs Loss differentially bound sites.}
+  {Generated by: \Rcode{dba.plotVenn(tamoxifen, contrast=1, bDB=TRUE,
+             bGain=TRUE, bLoss=TRUE, bAll=FALSE)}}
+
+Venn diagrams are also useful for examining overlaps between peaksets,
+particularly when determining how best to derive consensus
+peaksets for read counting and further analysis.
+Section 6 xx.xx, which discusses consensus peaksets, shows a number of
+Venn plots in context,
 and the help page for \Rcode{dba.plotVenn} has a number of additional examples.
 
 \subsection{PCA plots}
-While the correlation heatmaps already seen are good for showing clustering, 
-plots based on principal components analysis can be used to give a deeper insight into how samples are associated. 
-A PCA plot corresponding to Figure~\ref{DiffBind-tamox_aff_corhm}, 
-which includes normalized read counts for all \Sexpr{nrow(tamoxifen$binding)} binding sites, can be obtained as follows:
+While the correlation heatmaps already seen are good for showing clustering,
+plots based on principal components analysis can be used to give
+a deeper insight into how samples are associated.
+A PCA plot corresponding to Figure~\ref{DiffBind-tamox_aff_corhm},
+which includes normalized read counts for all \Sexpr{nrow(tamoxifen$binding)}
+binding sites, can be obtained as follows:
 
 <<tamox_aff_pca, fig=TRUE, include=FALSE, width=9, height=9 >>=
-data(tamoxifen_analysis)
 dba.plotPCA(tamoxifen,DBA_TISSUE,label=DBA_CONDITION)
 @
-\incfig{DiffBind-tamox_aff_pca}{.66\textwidth}{PCA plot using affinity data for all sites.}
-  { Generated by: \Rcode{dba.plotPCA(tamoxifen,DBA\_TISSUE,label=DBA\_CONDITION)}}
-  
-The resulting plot (Figure~\ref{DiffBind-tamox_aff_pca}) shows all the MCF7-derived samples (red) 
-clustering on one side of the first (horizontal) component, 
-with the Responsive and Resistant not separable either in the first nor
-in the second (vertical) component.
-\footnote{Note that they are separable in the second and third components; 
-try \Rcode{dba.plotPCA(tamoxifen,DBA\_CONDITION,
+\incfig{DiffBind-tamox_aff_pca}{.66\textwidth}
+{PCA plot using affinity data for all sites.}
+  {Generated by:
+  \Rcode{dba.plotPCA(tamoxifen,DBA\_TISSUE,label=DBA\_CONDITION)}}
+
+The resulting plot (Figure~\ref{DiffBind-tamox_aff_pca})
+shows all the MCF7-derived samples (red)
+clustering on one side of the first (horizontal) component,
+with the Responsive and Resistant samples not separable either in the first nor
+in the second (vertical) component.\footnote{Note
+that they are separable in the second and third components;
+try \Rcode{dba.plotPCA(tamoxifen,
+DBA\_CONDITION,
 label=DBA\_TISSUE, components=2:3)}}
- 
-A PCA plot using only the \Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)} 
-differentially bound sites (corresponding to Figure~\ref{DiffBind-tamox_sdb_corhm}), 
+
+A PCA plot using only the
+\Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)}
+differentially bound sites
+(corresponding to Figure~\ref{DiffBind-tamox_sdb_corhm}),
 using an FDR threshold of 0.05, can be drawn as follows:
 
 <<tamox_sdb_pca, fig=TRUE, include=FALSE, width=9, height=9 >>=
 dba.plotPCA(tamoxifen, contrast=1, label=DBA_TISSUE)
 @
-\incfig{DiffBind-tamox_sdb_pca}{.66\textwidth}{PCA plot using affinity data for only differentially bound sites.}
-  { Generated by: \Rcode{dba.plotPCA(tamoxifen,contrast=1,label=DBA\_TISSUE)}}
-  
-This plot (Figure~\ref{DiffBind-tamox_sdb_pca}) shows how the differential analysis identifies sites
-that can be used to separate the Resistant and Responsive sample groups along the first component.
+\incfig{DiffBind-tamox_sdb_pca}{.66\textwidth}
+{PCA plot using affinity data for only differentially bound sites.}
+{Generated by: \Rcode{dba.plotPCA(tamoxifen,contrast=1,label=DBA\_TISSUE)}}
 
-The \Rcode{dba.plotPCA} function is customizable. 
-For example, if you want to see where the replicates for each of the unique cell lines lies, type
+This plot (Figure~\ref{DiffBind-tamox_sdb_pca})
+shows how the differential analysis identifies sites
+that can be used to separate the Resistant and Responsive sample groups
+along the first component.
 
-\Rcode{dba.plotPCA(tamoxifen, attributes=c(DBA\_TISSUE,DBA\_CONDITION),label=DBA\_REPLICATE)}. 
+The \Rcode{dba.plotPCA} function is customizable.
+For example, if you want to see where the replicates
+for each of the unique cell lines lies, type
 
-If your installation of \R 
-supports 3D graphics using the \Rpackage{rgl} package, 
-try \Rcode{dba.plotPCA(tamoxifen, b3D=TRUE)}. 
-Seeing the first three principal components can be a useful exploratory exercise.
+\Rcode{dba.plotPCA(tamoxifen, attributes=c(DBA\_TISSUE,DBA\_CONDITION),
+label=DBA\_REPLICATE)}.
+
+If your installation of \R
+supports 3D graphics using the \Rpackage{rgl} package,
+try \Rcode{dba.plotPCA(tamoxifen,contrast=1,  b3D=TRUE)}.
+Seeing the first three principal components
+can be a useful exploratory exercise.
 
 \subsection{MA plots}
-MA plots are a useful way to visualize the effect of normalization on data, 
-as well as seeing which of the datapoints are being identified as differentially bound. 
+MA plots are a useful way to visualize the relationship between
+the overall binding level at each site and the magnitude of the
+change in binding enrichment between conditions,
+as well as the effect of normalization on data.
 An MA plot can be obtained for the Resistant vs Responsive contrast as follows
-(note that a contrast is required for a MA plot, with the default being \Rcode{contrast=1}:
+(note that a contrast is required for a MA plot,
+with the default being \Rcode{contrast=1}:
 
 <<tamox_sdb_ma, fig=TRUE, include=FALSE, width=12, height=9 >>=
 dba.plotMA(tamoxifen)
 @
-\incfig{DiffBind-tamox_sdb_ma}{.66\textwidth}{MA plot of Resistant-Responsive contrast.}
-  {Sites identified as significantly differentially bound shown in red. Generated by: \Rcode{dba.plotMA(tamoxifen)}}
+\incfig{DiffBind-tamox_sdb_ma}{.66\textwidth}
+{MA plot of Resistant-Responsive contrast.}
+  {Sites identified as significantly differentially bound shown in red.
+  Generated by: \Rcode{dba.plotMA(tamoxifen)}}
 
-The plot is shown in Figure~\ref{DiffBind-tamox_sdb_ma}. 
-Each point represents a binding site, 
-with points in red representing sites identified as differentially bound. 
-The plot shows how the differentially bound sites appear to have an absolute log fold difference of at least 2. 
-It also suggests that more ERa binding sites lose binding affinity in the 
-tamoxifen resistant condition than gain binding affinity, 
-as evidenced by more red dots below the center line than are above it. 
-This same data can also be shown with the concentrations of each sample groups 
+The plot is shown in Figure~\ref{DiffBind-tamox_sdb_ma}.
+Each point represents a binding site,
+with the \Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)}
+points in magenta representing sites identified as differentially bound.
+There is a blue horizontal line through the origin (0 LFC), as well as
+a horizontal red curve representing a non-linear loess fit showing the underlying
+relationship between coverage levels and fold changes.
+The plot shows how the differentially bound sites appear
+to have a minimum absolute log fold difference of somewhere
+between one and two.
+As we have already seen, it also shows that more ERa binding sites
+lose binding affinity in the tamoxifen resistant condition
+than gain binding affinity,
+as evidenced by more red dots below the center line than are above it.
+This same data can also be shown with the concentrations of each sample groups
 plotted against each other plot using \Rcode{dba.plotMA(tamoxifen, bXY=TRUE)}.
 
 \subsection{Volcano plots}
 
-Similar to MA plots, Volcano plots also highlight significantly differentially bound sites and show their fold changes. 
-Here, however, the confidence statistic (FDR or p-value) is 
-shown on a negative log scale.
+Similar to MA plots, Volcano plots also highlight significantly differentially
+bound sites and show their fold changes.
+Here, however, the confidence statistic (FDR or p-value) is
+shown on a negative log scale, helping visualize the
+relationship between the magnitude of fold changes and the
+confidence that sites are differentially bound.
 
-For example, the same data as plotted in Figure~\ref{DiffBind-tamox_sdb_ma} can be visualized as a volcano plot:
+For example, the same data as plotted in Figure~\ref{DiffBind-tamox_sdb_ma}
+can be visualized as a volcano plot:
 <<tamox_sdb_volcano, fig=TRUE, include=FALSE, width=12, height=9 >>=
 dba.plotVolcano(tamoxifen)
 @
-\incfig{DiffBind-tamox_sdb_volcano}{.66\textwidth}{Volcano plot of Resistant-Responsive contrast.}
-  {Sites identified as significantly differentially bound shown in red. Generated by: \Rcode{dba.plotVolcano(tamoxifen)}}
+\incfig{DiffBind-tamox_sdb_volcano}{.66\textwidth}
+ {Volcano plot of Resistant-Responsive contrast.}
+ {Sites identified as significantly differentially bound shown in red.
+ Generated by: \Rcode{dba.plotVolcano(tamoxifen)}}
 
-The plot is shown in  Figure~\ref{DiffBind-tamox_sdb_volcano}. 
+The plot is shown in  Figure~\ref{DiffBind-tamox_sdb_volcano}.
 
 \subsection{Boxplots}
 
-Boxplots provide a way to view how read distributions differ between classes of binding sites. Consider the example, where  
-\Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)} 
-differentially bound sites are identified. 
-The MA plot (Figure~\ref{DiffBind-tamox_sdb_ma}) shows that these are not distributed evenly 
-between those that increase binding affinity in the Responsive group vs. 
-those that increase binding affinity in the Resistant groups. 
+Boxplots provide a way to view how read distributions differ between
+classes of binding sites. Consider the example, where
+\Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)}
+differentially bound sites are identified.
+The MA plot (Figure~\ref{DiffBind-tamox_sdb_ma}) shows that these
+are not distributed evenly
+between those that increase binding affinity in the Responsive group vs.
+those that increase binding affinity in the Resistant groups.
 This can be seen quantitatively using the sites returned in the report:
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
@@ -483,32 +753,41 @@ sum(tamoxifen.DB$Fold<0)
 sum(tamoxifen.DB$Fold>0)
 @
 
-But how are reads distributed amongst the different classes of differentially bound sites and sample groups? 
+But how are reads distributed amongst the different classes of
+differentially bound sites and sample groups?
 These data can be more clearly seen using a boxplot:
 
 <<tamox_sdb_box, fig=TRUE, include=FALSE, width=9, height=9 >>=
 pvals <- dba.plotBox(tamoxifen)
 @
-\incfig{DiffBind-tamox_sdb_box}{.66\textwidth}{Box plots of read distributions for significantly 
-differentially bound (DB) sites.}
-  {Tamoxifen Resistant samples are shown in blue, and Responsive samples are shown in red. 
-  Left two boxes show distribution of reads over all DB sites in the Resistant and Responsive groups; 
-  middle two boxes show distributions of reads in DB sites that increase in affinity in the Resistant group; 
-  last two boxes show distributions of reads in DB sites that increase in affinity in the Responsive group. 
-  Generated by: \Rcode{dba.plotBox(tamoxifen)}}
-  
 
-The default plot (Figure~\ref{DiffBind-tamox_sdb_box}) shows in the first two boxes that
+\incfig{DiffBind-tamox_sdb_box}{.66\textwidth}
+{Box plots of read distributions for
+ significantly differentially bound (DB) sites.}
+ {Tamoxifen Resistant samples are shown in blue,
+ and Responsive samples are shown in red.
+ Left two boxes show distribution of reads over all DB sites
+ in the Resistant and Responsive groups;
+ middle two boxes show distributions of reads in DB sites that
+ increase in affinity in the Resistant group;
+ last two boxes show distributions of reads in DB sites that
+ increase in affinity in the Responsive group.
+ Generated by: \Rcode{dba.plotBox(tamoxifen)}}
+
+The default plot (Figure~\ref{DiffBind-tamox_sdb_box}) shows in the
+first two boxes that
 amongst differentially bound sites overall,
 the Responsive samples have a somewhat higher mean read concentration.
-The next two boxes show the distribution of reads in differentially bound sites that exhibit
-increased affinity in the Resistant samples,
-while the final two boxes show the distribution of reads in differentially bound sites
-that exhibit increased affinity in the Responsive samples.
+The next two boxes show the distribution of reads in differentially bound sites
+that exhibit increased affinity in the Resistant samples,
+while the final two boxes show the distribution of reads in
+differentially bound sites that exhibit increased affinity
+in the Responsive samples.
 
 \Rcode{dba.plotBox} returns a matrix of p-values (computed using a two-sided
 Wilcoxon `Mann-Whitney' test, paired where appropriate)
-indicating which of these distributions are significantly different from another distribution.
+indicating which of these distributions are significantly different
+from another distribution.
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
 pvals
@@ -526,70 +805,87 @@ have p-values computed as
 
 \subsection{Heatmaps}
 
-\DBA provides two types of heatmaps. This first, correlation heatmaps, we have already seen. 
-For example, the heatmap shown in Figure~\ref{DiffBind-tamox_aff_corhm} can be generated as follows:
+\DBA provides two types of heatmaps. This first, correlation heatmaps,
+we have already seen.
+For example, the heatmap shown in Figure~\ref{DiffBind-tamox_aff_corhm}
+can be generated as follows:
 <<eval=TRUE,echo=TRUE,results=hide>>=
 corvals <- dba.plotHeatmap(tamoxifen)
 @
 
 The effect of different scoring methods (normalization) can be examined in these plots by
-setting the \Rcode{score} parameter to a different value.  
-The default value, \Rcode{DBA\_SCORE\_READS\_MINUS\_FULL}, 
-normalizes based on relative library size (total number of aligned reads), 
-with control reads subtracted first. 
-Another scoring method is to use RPKM fold (RPKM of the ChIP reads divided by RPKM of the control reads; 
-a correlation heatmap for all the data using this scoring method can be 
-obtained by typing \Rcode{dba.plotHeatmap(tamoxifen, score=DBA\_SCORE\_RPKM\_FOLD)}.
+setting the \Rcode{score} parameter to a different value.
+The default value, \Rcode{DBA\_SCORE\_READS\_MINUS\_FULL},
+normalizes based on relative library size (total number of aligned reads),
+with control reads subtracted first.
+Another scoring method is to use RPKM fold
+(RPKM of the ChIP reads divided by RPKM of the control reads);
+a correlation heatmap for all the data using this scoring method can be
+obtained by typing
+\Rcode{dba.plotHeatmap(tamoxifen, score=DBA\_SCORE\_RPKM\_FOLD)}.
 
-Another way to view the patterns of binding affinity directly in the differentially bound sites 
-is via a binding affinity heatmap, showing the read scores for some or all of the binding sites.
+Another way to view the patterns of binding affinity directly in the differentially bound sites
+is via a \emph{binding affinity heatmap},
+showing the read scores for some or all of the binding sites.
 This can be plotted for the example case as follows:
 
 <<tamox_sdb_hm, fig=TRUE, include=FALSE, width=9, height=9 >>=
 readscores <- dba.plotHeatmap(tamoxifen, contrast=1, correlations=FALSE)
 @
-\incfig{DiffBind-tamox_sdb_hm}{.66\textwidth}{Binding affinity heatmap showing affinities for 
-differentially bound sites.}
-{Samples cluster first by whether they are responsive to tamoxifen treatment, then by cell line. 
-Clusters of binding sites show distinct patterns of affinity levels.
-Generated by: \Rcode{dba.plotHeatmap(tamoxifen, contrast=1, correlations=FALSE)}}
+\incfig{DiffBind-tamox_sdb_hm}{.66\textwidth}
+ {Binding affinity heatmap showing affinities for differentially bound sites.}
+ {Samples cluster first by whether they are responsive to tamoxifen treatment,
+ then by cell line.
+ Clusters of binding sites show distinct patterns of affinity levels.
+ Generated by:
+ \Rcode{dba.plotHeatmap(tamoxifen, contrast=1, correlations=FALSE)}}
 
-Figure~\ref{DiffBind-tamox_sdb_hm} shows the affinities and clustering 
-of the differentially bound sites (rows), 
-as well as the sample clustering (columns). 
-This plot can be tweaked to change the contrast, for example by using row-scaling 
+Figure~\ref{DiffBind-tamox_sdb_hm} shows the affinities and clustering
+of the differentially bound sites (rows),
+as well as the sample clustering (columns).
+This plot can be tweaked to change the contrast,
+for example by using row-scaling
 \Rcode{dba.plotHeatmap(tamoxifen, contrast=1, correlations=FALSE, scale="row")}.
 
 \section{Example: Differential binding analysis using a multi-factor design}
-     
-The previous example showed how to perform a differential binding analysis using a single 
-factor with two values; 
-that is, finding the significantly differentially bound sites between two sample groups. 
+
+The previous discussion showed how to perform a differential binding analysis
+using a single factor (\Rcode{Condition}) with two values (\Rcode{Resistant}
+and \Rcode{Responsive});
+that is, finding the significantly differentially bound sites between
+two sample groups.
 This section extends the example by including other factors in the design.
 
-One example of this is where there is a second factor, potentially with multiple values, 
-that represents a confounding condition. 
+One example of this is where there is a second factor,
+potentially with multiple values,
+that represents a confounding condition.
 Examples include cases where  there are potential batch effects,
-with samples from the two conditions prepared together, 
-or a matched design (e.g. matched normal and tumor pairs, 
-where the primary factor of interest is to discover sites consistently differentially bound 
-between normal and tumor samples). 
-More complex designs can include specific interactions between factors.
+with samples from the two conditions prepared together,
+or a matched design (e.g. matched normal and tumor pairs,
+where the primary factor of interest is to discover sites
+consistently differentially bound between normal and tumor samples).
+More complex designs can also include specific interactions between factors.
 
-In the current example, the  effect we want to control for is the 
-fact that some samples in both of the sample groups, based on different Condition values
+In the current example, the  effect we want to control for is the
+fact that some samples in both of the sample groups,
+based on different \Rcode{Condition} values
 (one tamoxifen responsive and one tamoxifen resistant),
-are both derived from the same Tissue (MCF7 cell line).
+are both derived from the same \Rcode{Tissue} (MCF7 cell line).
 
-In the previous analysis, the two MCF7-derived cell lines tended to cluster together. 
-While the differential binding analysis was able to identify sites that could be used to
-separate the resistant from the responsive samples, 
-the confounding effect of the common ancestry could still be seen even when considering only 
-the significantly differentially bound sites (Figure~\ref{DiffBind-tamox_aff_corhm}).
+In the previous analysis,
+the two MCF7-derived cell lines tended to cluster together.
+While the differential binding analysis was able to
+identify sites that could be used to separate the
+resistant from the responsive samples,
+the confounding effect of the common ancestry
+could still be seen even when considering only
+the significantly differentially bound sites
+(Figure~\ref{DiffBind-tamox_aff_corhm}).
 
-Using the generalized linear modeling (GLM) functionality included in \edgeR and \DESeq, 
-the confounding factor can be explicitly modeled. 
-This is done by specifying a design formula explicitly to  \Rcode{dba.contrast}. 
+Using the generalized linear modeling (GLM) functionality
+included in \DESeq and \edgeR,
+the confounding factor can be modeled enabling more sensitive results.
+This is done by specifying a design formula explicitly to \Rcode{dba.contrast}.
 
 <<eval=TRUE,echo=TRUE,results=hide>>=
 tamoxifen <- dba.contrast(tamoxifen,design="~Tissue + Condition")
@@ -603,84 +899,138 @@ tamoxifen <- dba.analyze(tamoxifen)
 tamoxifen
 @
 
-This indicates that where the standard, single-factor \DESeq analysis identifies 
-\Sexpr{length(tamoxifen.DB)} 
-differentially bound sites, the analysis using the blocking factor finds 
-\Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)} 
-such sites. An MA plot shows how the analysis has changed:
+This shows that where the standard, single-factor \DESeq analysis identifies
+\Sexpr{length(tamoxifen.DB)}
+differentially bound sites, the analysis using the two-factor design finds
+\Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)}
+such sites. MA and Volcano plots show how the analysis has changed:
 
 <<tamox_block_ma, fig=TRUE, include=FALSE, width=12, height=9 >>=
 dba.plotMA(tamoxifen)
 @
-\incfig{DiffBind-tamox_block_ma}{.66\textwidth}{MA plot of Resistant-Responsive contrast,
-using a multi-factor design "~Tissue + Condition".}
-{Sites identified as significantly differentially bound shown in red. 
+\incfig{DiffBind-tamox_block_ma}{.66\textwidth}
+ {MA plot of Resistant-Responsive contrast,
+ using a multi-factor design "\Sexpr{tamoxifen$design}".}
+ {Sites identified as significantly differentially bound shown in magenta.
   Generated by: \Rcode{dba.plotMA(tamoxifen)}}
 
-The resulting plot is shown in Figure~\ref{DiffBind-tamox_block_ma}. 
-Comparing this to Figure~\ref{DiffBind-tamox_sdb_ma}, at least two differences can be observed. 
-The analysis has become more sensitive, with sites being identified as significantly differentially 
-bound with lower magnitude fold changes (as low as twofold, as this plot is on a log2 scale).
-Secondly, the distribution of differentially bound sites has shifted.
-In the single-factor analysis, they were mostly concentrated in the lower left,of the plot,
-identifying sites with increased binding in the Responsive condition, but with relatively low concentrations.
-In the multi-factor analysis, sites are identified as being significantly differentially bound
-across a wider range of concentrations and more are identified that gain binding affinity in the Resistant condition.
+<<tamox_block_vol, fig=TRUE, include=FALSE, width=12, height=9 >>=
+dba.plotVolcano(tamoxifen)
+@
+\incfig{DiffBind-tamox_block_vol}{.66\textwidth}
+ {Volcano plot of Resistant-Responsive contrast,
+ using a multi-factor design "\Sexpr{tamoxifen$design}".}
+ {Sites identified as significantly differentially bound shown in magenta.
+  Generated by: \Rcode{dba.plotVolcano(tamoxifen)}}
 
-It is also interesting to compare the performance of \Biocpkg{edgeR} with that of  \Biocpkg{DESeq2} on this dataset:
+
+The resulting plots are shown in Figure~\ref{DiffBind-tamox_block_ma}
+and Figure~\ref{DiffBind-tamox_block_vol}
+Comparing these to Figure~\ref{DiffBind-tamox_sdb_ma}
+and Figure~\ref{DiffBind-tamox_sdb_volcano},
+a number of differences can be observed.
+The analysis has become more sensitive, with sites being identified as
+significantly differentially bound with lower magnitude fold changes.
+Secondly, the distribution of differentially bound sites has shifted.
+In the single-factor analysis, they were mostly concentrated in
+the lower left of the plot,
+identifying sites with increased binding in the Responsive condition,
+but with relatively low concentrations.
+In the multi-factor analysis, sites are identified as being
+significantly differentially bound
+across a wider range of concentrations and more are identified that
+gain binding affinity in the Resistant condition.
+Finally, the horizontal red loess fit line appears to better fit
+the calculated fold changes while showing an overall slight loss of
+binding enrichment.
+
+These observations can be quantified from the report data:
+<<eval=TRUE,echo=TRUE,results=verbatim>>=
+multifactor.DB <- dba.report(tamoxifen)
+@
+
+Looking at sensitivity, we can compare the distribution of fold changes
+of the differentially bound sites identified by the single- and multi-factor
+analyses:
+
+<<eval=TRUE,echo=TRUE,results=verbatim>>=
+min(abs(tamoxifen.DB$Fold))
+min(abs(multifactor.DB$Fold))
+@
+
+Likewise, we can compare the proportions of sites identified as
+being differentially bound between those that gain binding
+enrichment in the Resistant condition over those more enriched
+in the Responsive conditions, between the single- and multi-factor analyses:
+
+<<eval=TRUE,echo=TRUE,results=verbatim>>=
+sum(tamoxifen.DB$Fold > 0) / sum(tamoxifen.DB$Fold < 0)
+sum(multifactor.DB$Fold > 0) / sum(multifactor.DB$Fold < 0)
+@
+
+
+It is also interesting to compare the performance of
+\edgeR with that of  \DESeq on this dataset:
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
 tamoxifen <- dba.analyze(tamoxifen,method=DBA_ALL_METHODS)
 dba.show(tamoxifen,bContrasts=TRUE)
 @
 
-We see that  \Biocpkg{edgeR} identifies a higher number of sites than \Biocpkg{DESeq2}.
-You can check this by looking at the identified sites using \Rcode{dba.report}, 
-and performing MA, heatmap, and PCA plots.
+We see that  \edgeR identifies a somewhat lower number
+of sites than \Biocpkg{DESeq2}.
+You can check this by looking at the identified sites using \Rcode{dba.report},
+and performing MA, Volcano, heatmap, and PCA plots.
 
-We can also compare the sites identified using \Biocpkg{edgeR} and \Biocpkg{DESeq2}. 
-An easy way to do this is to use a special feature of the \Rfunction{dba.plotVenn} function that
-shows the overlaps of contrast results: 
+We can also compare the sites identified using \edgeR and \DESeq.
+An easy way to do this is to use a special feature of the
+\Rfunction{dba.plotVenn} function that
+shows the overlaps of contrast results:
 
 <<tamox_block_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
-tamoxifen.OL <- dba.plotVenn(tamoxifen,contrast=1,method=DBA_ALL_METHODS,bDB=TRUE)
+tamoxifen.OL <- dba.plotVenn(tamoxifen,contrast=1,method=DBA_ALL_METHODS,
+                             bDB=TRUE)
 @
-\incfig{DiffBind-tamox_block_venn}{.66\textwidth}{Venn diagram showing overlap of 
-differentially bound peaks identified using \Biocpkg{edgeR} 
-and \Biocpkg{DESeq2} to do a multi-factor analysis.}
-{Generated by plotting the result of: 
+\incfig{DiffBind-tamox_block_venn}{.66\textwidth}
+{Venn diagram showing overlap of
+differentially bound peaks identified using \edgeR
+and \DESeq to do a multi-factor analysis.}
+{Generated by plotting the result of:
 \Rcode{dba.plotVenn(tamoxifen,contrast=1,method=DBA\_ALL\_METHODS,bDB=TRUE)}}
 
-The overlap is shown in Figure~\ref{DiffBind-tamox_block_venn}. 
+The overlap is shown in Figure~\ref{DiffBind-tamox_block_venn}.
 The largest group of sites are identified by
-both \Biocpkg{edgeR} and \Biocpkg{DESeq2}.
-Note that the binding sites unique to \Rcode{edgeR}, \Rcode{DESeq2}, and common to both are
+both \edgeR and \DESeq.
+Note that the binding sites unique to \edgeR, \DESeq, and common to both are
 returned in the variable \Rcode{tamoxifen.OL}.
 
-The main difference between the two methods is how they normalize the raw read counts.
-The \edgeR method relies on TMM normalization, which assumes that a) most of the binding affinity levels do not change,
-and b) there is no major imbalance among those that do change between gains and losses in binding affinity.
-As a result, \edgeR detects more sites that gain binding affinity in the Resistant condition:
+To further illustrate the ability to model the data, consider
+another comparison.
+Suppose we'd like to identify ER binding sites that a differentially bound
+in all of the MCF7 samples compared to the T47D samples.
+We can do this by adding a contrast.
+For illustrative purposes, we will also re-order the values for the
+the \Rcode{Tissue} factor to make MCF7 the reference group:
 
-<<tamox_gain_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
-tamoxifen.OL <- dba.plotVenn(tamoxifen,contrast=1,method=DBA_ALL_METHODS,
-                             bDB=TRUE,bAll=FALSE, bGain=TRUE)
+<<eval=TRUE,echo=TRUE,results=verbatim>>=
+tamoxifen <- dba.contrast(tamoxifen,contrast=c("Tissue","MCF7","T47D"),
+                          reorderMeta = list(Tissue="MCF7"))
+tamoxifen <- dba.analyze(tamoxifen,method=DBA_ALL_METHODS)
+dba.show(tamoxifen,bContrasts=TRUE)
 @
-\incfig{DiffBind-tamox_gain_venn}{.66\textwidth}{Venn diagram showing overlap of 
-differentially bound peaks that gain binding affinity in the tamoxifen resistant condition,
-identified using \Biocpkg{edgeR} 
-and \Biocpkg{DESeq2} to do a multi-factor analysis.}
-{Generated by plotting the result of: 
-\Rcode{dba.plotVenn(tamoxifen,contrast=1,method=DBA\_ALL\_METHODS,bDB=TRUE,bAll=FALSE,bGain=TRUE)}}
 
-Figure~\ref{DiffBind-tamox_gain_venn} shows that while \edgeR identifies all 
-\Sexpr{length(tamoxifen.OL$inAll)} of the Gain sites that \DESeq does,
-it also identifies an additional 
-\Sexpr{length(tamoxifen.OL$onlyA)} sites that gain binding affinity in the tamoxifen resistant condition.
+
+\section{Blacklists and Greylists}
+
+-TBD-
+
+\section{Normalization}
+
+-TBD-
 
 \section{Example: Occupancy analysis and overlaps}
 
-In this section, we look at the tamoxifen resistance ER-binding dataset in some more detail, 
-showing what a pure occupancy-based analysis would look like, 
+In this section, we look at the tamoxifen resistance ER-binding dataset in some more detail,
+showing what a pure occupancy-based analysis would look like,
 and comparing it to the results obtained using the affinity data.
 For this we will start by re-loading the peaksets:
 
@@ -690,20 +1040,20 @@ data(tamoxifen_peaks)
 
 \subsection{Overlap rates}
 
-One reason to do an occupancy-based analysis is to determine 
-what candidate sites should be used in a subsequent affinity-based analysis. 
-In the example so far, we took all sites that were identified in peaks 
-in at least two of the eleven peaksets, reducing the number of sites from 
+One reason to do an occupancy-based analysis is to determine
+what candidate sites should be used in a subsequent affinity-based analysis.
+In the example so far, we took all sites that were identified in peaks
+in at least two of the eleven peaksets, reducing the number of sites from
 \Sexpr{nrow(tamoxifen$merged)}
-overall to the 
+overall to the
 \Sexpr{nrow(tamoxifen$binding)}
 sites used in the differential analysis.
-We could have used a more stringent criterion, 
-such as only taking sites identified in five or six of the peaksets, or a less stringent one, such as including all 
+We could have used a more stringent criterion,
+such as only taking sites identified in five or six of the peaksets, or a less stringent one, such as including all
 \Sexpr{nrow(tamoxifen$merged)}
-sites. In making the decision of what criteria to use many factors come into play, 
-but it helps to get an idea of the rates at which the peaksets overlap 
-(for more details on how overlaps are determined, see Section 7.2 on peak merging). 
+sites. In making the decision of what criteria to use many factors come into play,
+but it helps to get an idea of the rates at which the peaksets overlap
+(for more details on how overlaps are determined, see Section 7.2 on peak merging).
 A global overview can be obtained using the \Rcode{RATE} mode of the \Rcode{dba.overlap} function as follows:
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
@@ -715,21 +1065,23 @@ The returned data in \Rcode{olap.rate} is a vector containing the number of peak
 These values can be plotted to show the overlap rate drop-off curve:
 
 <<tamox_rate, fig=TRUE, include=FALSE, width=9, height=6 >>=
-plot(olap.rate,type='b',ylab='# peaks', xlab='Overlap at least this many peaksets') 
+plot(olap.rate,type='b',ylab='# peaks', xlab='Overlap at least this many peaksets')
 @
 \incfig{DiffBind-tamox_rate}{.66\textwidth}{Overlap rate plot.}
-{Shows how the number of overlapping peaks decreases as the overlap criteria becomes more stringent. X axis shows the number of peaksets in which the site is identified, while the Y axis shows the number of overlapping sites. 
+{Shows how the number of overlapping peaks decreases as the overlap criteria becomes more stringent. X axis shows the number of peaksets in which the site is identified, while the Y axis shows the number of overlapping sites.
 Generated by plotting the result of: \Rcode{dba.overlap(tamoxifen,mode=DBA\_OLAP\_RATE)}}
 
 The rate plot is shown in Figure~\ref{DiffBind-tamox_rate}. These curves typically exhibit a roughly geometric drop-off, with the number of overlapping sites halving as the overlap criterion become stricter by one site. When the drop-off is extremely steep, this is an indication that the peaksets do not agree very well. For example, if there are replicates you expect to agree, there may be a problem with the experiment. In the current example, peak agreement is high and the curve exhibits a better than geometric drop-off.
 
 \subsection{Deriving consensus peaksets}
-When performing an overlap analysis, it is often the case that the overlap criteria are set stringently in order to lower noise and drive down false positives.
-\footnote{It is less clear that limiting the potential binding sites in this way is appropriate 
-when focusing on affinity data, as the differential binding analysis method will identify 
-only sites that are significantly differentially bound, even if operating on peaksets 
-that include incorrectly identified sites.} 
-The presence of a peak in multiple peaksets is an indication that it is a "real" binding site, in the sense of being identifiable in a repeatable manner. The use of biological replicates (performing the ChIP multiple times), as in the tamoxifen dataset, can be used to guide derivation of a consensus peakset. Alternatively, an inexpensive but less powerful way to help accomplish this is to use multiple peak callers for each ChIP dataset and look for agreement between peak callers (\cite{li2011measuring}). 
+When performing an overlap analysis, it is often the case that
+the overlap criteria are set stringently in order to lower noise and
+drive down false positives.\footnote{It is less clear that
+limiting the potential binding sites in this way is appropriate
+when focusing on affinity data, as the differential binding analysis method will identify
+only sites that are significantly differentially bound, even if operating on peaksets
+that include incorrectly identified sites.}
+The presence of a peak in multiple peaksets is an indication that it is a "real" binding site, in the sense of being identifiable in a repeatable manner. The use of biological replicates (performing the ChIP multiple times), as in the tamoxifen dataset, can be used to guide derivation of a consensus peakset. Alternatively, an inexpensive but less powerful way to help accomplish this is to use multiple peak callers for each ChIP dataset and look for agreement between peak callers (\cite{li2011measuring}).
 
 Consider for example the standard (tamoxifen responsive) MCF7 cell line, represented by three replicates in this dataset. How well do the replicates agree on their peak calls? The overlap rate for just the positive MCF7 samples can be isolated using a \emph{sample mask}. A set of sample masks are automatically associated with a \Rcode{DBA object} in the \Rcode{\$masks} field:
 
@@ -744,9 +1096,9 @@ dba.overlap(tamoxifen,tamoxifen$masks$MCF7 & tamoxifen$masks$Responsive,
             mode=DBA_OLAP_RATE)
 @
 
-There are 
+There are
 \Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$MCF7 & tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)[3]}
-peaks (out of 
+peaks (out of
 \Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$MCF7 & tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)[1]})
 identified in all three replicates. A finer grained view of the overlaps can be obtained with the \Rcode{dba.plotVenn} function:
 
@@ -757,10 +1109,10 @@ dba.plotVenn(tamoxifen, tamoxifen$masks$MCF7 & tamoxifen$masks$Responsive)
 \incfig{DiffBind-tamox_mcf7_venn}{.66\textwidth}{Venn diagram showing how the ER peak calls for three replicates of responsive MCF7 cell line overlap.}
 {Generated by plotting the result of: \Rcode{dba.venn(tamoxifen,tamoxifen\$masks\$MCF7 \& tamoxifen\$masks\$Responsive)}}
 
-The resultant plot is shown as Figure~\ref{DiffBind-tamox_mcf7_venn}. This plot shows the 
+The resultant plot is shown as Figure~\ref{DiffBind-tamox_mcf7_venn}. This plot shows the
 \Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$MCF7 & tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)[3]}
-consensus peaks identified as common to all replicates, but further breaks down how the replicates relate to each other. 
-The same can be done for each of the replicated cell line experiments, and rather than applying a global cutoff (3 of 11), each cell line could be dealt with individually in deriving a final peakset. 
+consensus peaks identified as common to all replicates, but further breaks down how the replicates relate to each other.
+The same can be done for each of the replicated cell line experiments, and rather than applying a global cutoff (3 of 11), each cell line could be dealt with individually in deriving a final peakset.
 A separate consensus peakset for each of the replicated sample types can be added to the DBA object using \Rcode{dba.peakset}:
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
@@ -819,8 +1171,8 @@ dba.overlap(tamoxifen,tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)
 
 Requiring that consensus peaks overlap in at least one third of the samples in each group results in
 \Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$Resistant,mode=DBA_OLAP_RATE)[2]}
-sites for the Resistant group and 
-\Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)[3]} 
+sites for the Resistant group and
+\Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)[3]}
 sites for the Responsive group:
 
 <<tamox_cons_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
@@ -830,17 +1182,17 @@ dba.plotVenn(tamoxifen,tamoxifen$masks$Consensus)
 \incfig{DiffBind-tamox_cons_venn}{.66\textwidth}{Venn diagram showing how the ER peak calls for two response groups overlap.}
 {Generated by plotting the result of: \Rcode{dba.plotVenn(tamoxifen, tamoxifen\$masks\$Consensus)}}
 
-Figure~\ref{DiffBind-tamox_cons_venn} shows that 
-\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyA)} 
-sites are unique to the Resistant group, and 
-\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyB)} 
+Figure~\ref{DiffBind-tamox_cons_venn} shows that
+\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyA)}
+sites are unique to the Resistant group, and
+\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyB)}
 sites are unique to the Responsive group, with
-\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$inAll)} 
-sites being identified in both groups (meaning in at least half the Resistant samples and at least three of the seven Responsive samples). 
+\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$inAll)}
+sites being identified in both groups (meaning in at least half the Resistant samples and at least three of the seven Responsive samples).
 If our primary interest is in finding binding sites that are different between the two groups, it may seem reasonable to consider the
-\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$inAll)} 
-common sites to be uninteresting, and focus on the 
-\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyA) + nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyB)} 
+\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$inAll)}
+common sites to be uninteresting, and focus on the
+\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyA) + nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyB)}
 sites that are unique to a specific group. These unique sites can be obtained using \Rcode{dba.overlap}:
 
 <<eval=TRUE,echo=TRUE,results=hide>>=
@@ -859,23 +1211,23 @@ The scores associated with each site are derived from the peak caller confidence
 
 \subsection{Comparison of occupancy and affinity based analyses}
 
-So how does this occupancy-based analysis compare to the previous affinity-based analysis? 
+So how does this occupancy-based analysis compare to the previous affinity-based analysis?
 
 First, different criteria were used to select the overall consensus peakset. We can compare them to see how well they agree:
 
 <<tamox_compare_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
-tamoxifen <- dba.peakset(tamoxifen,tamoxifen$masks$Consensus, 
+tamoxifen <- dba.peakset(tamoxifen,tamoxifen$masks$Consensus,
             minOverlap=1,sampID="OL Consensus")
 tamoxifen <- dba.peakset(tamoxifen,!tamoxifen$masks$Consensus,
-            minOverlap=3,sampID="Consensus_3") 
+            minOverlap=3,sampID="Consensus_3")
 dba.plotVenn(tamoxifen,14:15)
 @
 \incfig{DiffBind-tamox_compare_venn}{.66\textwidth}{Venn diagram showing how the ER peak calls for two different ways of deriving consensus peaksets.}
 {Generated by plotting the result of: \Rcode{dba.plotVenn(tamoxifen,14:15)}}
 
-Figure~\ref{DiffBind-tamox_compare_venn} shows that the two sets agree on about 85\% of their sites, so the results should be directly comparable between the differing parameters used to establish 
-the consensus peaksets.\footnote{Alternatively, 
-we could re-run the analysis using the newly derived consensus peakset by passing 
+Figure~\ref{DiffBind-tamox_compare_venn} shows that the two sets agree on about 85\% of their sites, so the results should be directly comparable between the differing parameters used to establish
+the consensus peaksets.\footnote{Alternatively,
+we could re-run the analysis using the newly derived consensus peakset by passing
 it into the counting function: \Rcode{tamoxifen <- dba.count(tamoxifen, peaks=tamoxifen\$masks\$Consensus)}}
 
 Next re-load the affinity analysis:
@@ -901,12 +1253,12 @@ bothGroups <- tamoxifen.rep$Called1>= 2 & tamoxifen.rep$Called2>=3
 sum(bothGroups)
 @
 
-Comparing these numbers verifies the similarity with those seen in Figure~\ref{DiffBind-tamox_cons_venn}, showing again how the basic analysis is not oversensitive to differences in how the consensus peaksets are formed. 
+Comparing these numbers verifies the similarity with those seen in Figure~\ref{DiffBind-tamox_cons_venn}, showing again how the basic analysis is not oversensitive to differences in how the consensus peaksets are formed.
 This overlap analysis suggests that
 \Sexpr{sum(onlyResistant)+sum(onlyResponsive)}
 of the sites are uniquely bound in either the Responsive or Resistant groups, while
 \Sexpr{sum(bothGroups)}
-sites are common to both. 
+sites are common to both.
 
 Completing a full differential analysis and focusing on only those sites identified as significantly differentially bound (FDR <= 0.1), however, shows a different story than that obtainable using only occupancy data:
 
@@ -920,94 +1272,94 @@ bothGroups.DB <- tamoxifen.DB$Called1>=2 & tamoxifen.DB$Called2>=3
 sum(bothGroups.DB)
 @
 
-There are a number of notable differences in the results. 
-First, overall there are many fewer sites identified as differentially bound 
-(\Sexpr{sum(onlyResistant.DB)}+\Sexpr{sum(onlyResponsive.DB)}+\Sexpr{sum(bothGroups.DB)} <- 
+There are a number of notable differences in the results.
+First, overall there are many fewer sites identified as differentially bound
+(\Sexpr{sum(onlyResistant.DB)}+\Sexpr{sum(onlyResponsive.DB)}+\Sexpr{sum(bothGroups.DB)} <-
 \Sexpr{length(tamoxifen.DB$Called1)})
 than are unique to one condition
 (\Sexpr{sum(onlyResistant)}+\Sexpr{sum(onlyResponsive)} =
 \Sexpr{sum(onlyResistant)+sum(onlyResponsive)}).
-Indeed, most of the sites identified in the occupancy analysis as unique to a 
-sample group are not found to be significantly differentially bound using the affinity data. 
-While partly this is a result of the stringency of the statistical tests, 
-it shows how the affinity analysis can discriminate between sites where 
-peak callers are making occupancy decisions that do not reflect significant differences 
-in read densities at these sites. 
-Note that only about 
+Indeed, most of the sites identified in the occupancy analysis as unique to a
+sample group are not found to be significantly differentially bound using the affinity data.
+While partly this is a result of the stringency of the statistical tests,
+it shows how the affinity analysis can discriminate between sites where
+peak callers are making occupancy decisions that do not reflect significant differences
+in read densities at these sites.
+Note that only about
 \Sexpr{round(sum(sum(onlyResistant.DB), sum(onlyResponsive.DB))/sum(sum(onlyResistant),sum(onlyResponsive))*100)}\%
-of sites unique to one condition are identifiable as significantly differentially bound 
+of sites unique to one condition are identifiable as significantly differentially bound
 (\Sexpr{sum(onlyResistant.DB)}+\Sexpr{sum(onlyResponsive.DB)} =
-\Sexpr{sum(onlyResistant.DB) + sum(onlyResponsive.DB)} 
-out of 
+\Sexpr{sum(onlyResistant.DB) + sum(onlyResponsive.DB)}
+out of
 \Sexpr{sum(onlyResistant)+sum(onlyResponsive)}).
-Secondly, differentially bound sites are as likely to be called in the consensus 
-of both response groups as they are to be unique to one group, 
-as about 20\% of the total sites identified as significantly differentially bound 
+Secondly, differentially bound sites are as likely to be called in the consensus
+of both response groups as they are to be unique to one group,
+as about 20\% of the total sites identified as significantly differentially bound
 (\Sexpr{sum(sum(onlyResistant.DB),sum(onlyResponsive.DB),sum(bothGroups.DB))})
-are called as peaks in \emph{both} response groups (\Sexpr{sum(bothGroups.DB)}). 
+are called as peaks in \emph{both} response groups (\Sexpr{sum(bothGroups.DB)}).
 
-A final advantage of a quantitative analysis is that 
-the differentially bound peaks identified using the affinity analysis 
-are associated with significance statistics (p-value and FDR) 
+A final advantage of a quantitative analysis is that
+the differentially bound peaks identified using the affinity analysis
+are associated with significance statistics (p-value and FDR)
 that can be used to rank them for further examination,
-while the occupancy analysis yields a relatively unordered list of peaks, 
-as the peak caller statistics refer only to the significance of occupancy, 
+while the occupancy analysis yields a relatively unordered list of peaks,
+as the peak caller statistics refer only to the significance of occupancy,
 and not of differential binding.
 
 \section{Technical notes}
 This section includes some technical notes explaining some of the  technical details of \DBA processing.
 
 \subsection{Loading peaksets}
-There are a number of ways to get peaksets loaded into a DBA object. 
-Peaksets can be read in from files or loaded from interval sets already stored in an R object. 
-Samples can be specified either in a sample sheet  
+There are a number of ways to get peaksets loaded into a DBA object.
+Peaksets can be read in from files or loaded from interval sets already stored in an R object.
+Samples can be specified either in a sample sheet
 (using \Rfunction{dba}) or loaded one at a time (using \Rfunction{dba.peakset}).
 
-When loading in peaksets from files, 
-specifying what peak caller generated the file 
-enables peaks from supported peak callers to be read in. 
-See the help page for \Rfunction{dba.peakset} for a list of supported peak callers. 
-Any string can be used to indicate the peak caller; 
-if it is not one of the supported callers, a default "raw" format is assumed, 
-consisting of a text file with three or four columns 
-(indicating the chromosome, start position, and end position, 
-with a score for each interval found in the fourth column, if present). 
+When loading in peaksets from files,
+specifying what peak caller generated the file
+enables peaks from supported peak callers to be read in.
+See the help page for \Rfunction{dba.peakset} for a list of supported peak callers.
+Any string can be used to indicate the peak caller;
+if it is not one of the supported callers, a default "raw" format is assumed,
+consisting of a text file with three or four columns
+(indicating the chromosome, start position, and end position,
+with a score for each interval found in the fourth column, if present).
 You can further control how peaks are read using the
-\Rcode{PeakFormat}, \Rcode{ScoreCol}, and \Rcode{bLowerBetter} fields 
-if you want to override the defaults for the specified peak caller identifier. 
-For example, with the tamoxifen dataset used in this tutorial, the peaks were called using the MACS peak caller, but the data are supplied as  text files in BED format, 
-not the expected MACS "xls" format. 
-To maintain the peak caller in the metadata, 
-we could specify the \Rcode{PeakCaller} as "macs" 
-but the \Rcode{PeakFormat} as "bed". 
-If we wanted to use peak scores from a column other than the fifth, 
-the \Rcode{scorecol} parameter could be set to indicate the appropriate column number.  
-When handling scoring, \DBA by default assumes that a higher score indicates a "better" peak. 
-If this is not the case, for example if the score is a p-value or FDR, 
+\Rcode{PeakFormat}, \Rcode{ScoreCol}, and \Rcode{bLowerBetter} fields
+if you want to override the defaults for the specified peak caller identifier.
+For example, with the tamoxifen dataset used in this tutorial, the peaks were called using the MACS peak caller, but the data are supplied as  text files in BED format,
+not the expected MACS "xls" format.
+To maintain the peak caller in the metadata,
+we could specify the \Rcode{PeakCaller} as "macs"
+but the \Rcode{PeakFormat} as "bed".
+If we wanted to use peak scores from a column other than the fifth,
+the \Rcode{scorecol} parameter could be set to indicate the appropriate column number.
+When handling scoring, \DBA by default assumes that a higher score indicates a "better" peak.
+If this is not the case, for example if the score is a p-value or FDR,
 we could set  \Rcode{bLowerScoreBetter} to \Rcode{TRUE}.
 
-When using a sample sheet,  
-values for fields missing in the sample sheet can be supplied when calling \Rfunction{dba}. 
-In addition to the minimal sample sheet used for the tutorial, 
-an equivalent sample sheet with all the metadata fields is included, called "tamoxifen\_allfields.csv". 
+When using a sample sheet,
+values for fields missing in the sample sheet can be supplied when calling \Rfunction{dba}.
+In addition to the minimal sample sheet used for the tutorial,
+an equivalent sample sheet with all the metadata fields is included, called "tamoxifen\_allfields.csv".
 See the help page for \Rfunction{dba} for an example using this sample sheet.
 
 \subsection{Merging peaks}
-When forming the global binding matrix consensus peaksets, 
-\DBA first identifies all unique peaks amongst the relevant peaksets. 
-As part of this process, it merges overlapping peaks, 
-replacing them with a single peak representing the narrowest region 
-that covers all peaks that overlap by at least one base. 
+When forming the global binding matrix consensus peaksets,
+\DBA first identifies all unique peaks amongst the relevant peaksets.
+As part of this process, it merges overlapping peaks,
+replacing them with a single peak representing the narrowest region
+that covers all peaks that overlap by at least one base.
 There are at least two consequences of this that are worth noting.
 
-First, as more peaksets are included in analysis, 
-the average peak width tends to become longer as more overlapping peaks are detected 
-and the start/end points are adjusted outward to account for them. 
-Secondly, peak counts may not appear to add up as you may expect due to merging. 
+First, as more peaksets are included in analysis,
+the average peak width tends to become longer as more overlapping peaks are detected
+and the start/end points are adjusted outward to account for them.
+Secondly, peak counts may not appear to add up as you may expect due to merging.
 For example, if one peakset contains two small peaks near to each other,
-while a second peakset includes a single peak that overlaps both of these by at least one base, 
+while a second peakset includes a single peak that overlaps both of these by at least one base,
 these will all be replaced in the merged matrix with a single peak. A
-s more peaksets are added, multiple peaks from multiple peaksets may be merged together 
+s more peaksets are added, multiple peaks from multiple peaksets may be merged together
 to form a single, wider peak.
 Use of the "summits" parameter is recommended to control for this widening effect.
 
@@ -1016,6 +1368,10 @@ Use of the "summits" parameter is recommended to control for this widening effec
 -TBD-
 
 \section{Technical notes on underlying analysis methods}
+
+\subsection{Notes on changes in DiffBind 3.0}
+
+-TBD-
 
 \subsection{\Biocpkg{DESeq2} analysis}
 
@@ -1082,8 +1438,9 @@ The fold changes used in subsequent reports and plots are those estimated from t
 
 \subsection{\Biocpkg{edgeR} analysis}
 
-When \Rfunction{dba.analyze} is invoked using the \Rcode{method=DBA\_EDGER}
-\footnote{Note that \Biocpkg{edgeR} can be made the default analysis method for a DBA object by setting \Rcode{DBA\$config\$AnalysisMethod} to \Rcode{DBA\_EDGER}.}, 
+When \Rfunction{dba.analyze} is invoked using the 
+\Rcode{method=DBA\_EDGER}\footnote{Note that 
+\Biocpkg{edgeR} can be made the default analysis method for a DBA object by setting \Rcode{DBA\$config\$AnalysisMethod} to \Rcode{DBA\_EDGER}.}, 
 a standardized differential analysis is performed using the \Rpackage{edgeR} package (\cite{Robinson:2010p249}). 
 This section details the precise steps in that analysis.
 
@@ -1117,8 +1474,9 @@ Before having \Rpackage{edgeR} estimate dispersion, a design matrix is created f
 specified design formula.
 This is passed to \Rfunction{edgeR::estimateGLMTrendedDisp} along with the \Rcode{DGEList}.
 By default, \Rfunction{edgeR::estimateGLMTagwiseDisp} is called next;
-this can be bypassed by setting \Rcode{DBA\$config\$edgeR\$bTagwise=FALSE}.
-\footnote{In versions prior to 3.0, \Rcode{bTagwise} was a parameter to \Rfunction{dba.analyze()}.}
+this can be bypassed by setting 
+\Rcode{DBA\$config\$edgeR\$bTagwise=FALSE}.\footnote{In versions prior to 3.0,
+\Rcode{bTagwise} was a parameter to \Rfunction{dba.analyze()}.}
 
 The model is fitted by calling \Rfunction{edgeR::glmQLFit} with the design matrix.
 The final results, as a \Rclass{DGEGLM} object, are accessible
@@ -1180,8 +1538,10 @@ If a blocking factor has been added to the contrast, an additional \Biocpkg{DESe
 \Rcode{DBA\$contrasts[[n]]\$DESeq2\$block\$DEdata}. 
 
 \subsection{\edgeR analysis}
-When \Rfunction{dba.analyze} is invoked using the \Rcode{method=DBA\_EDGER}
-\footnote{Note that \Biocpkg{edgeR} can be made the default analysis method for a DBA object by setting \Rcode{DBA\$config\$AnalysisMethod=DBA\_EDGER}.}, 
+When \Rfunction{dba.analyze} is invoked using the 
+\Rcode{method=DBA\_EDGER}\footnote{Note that 
+\Biocpkg{edgeR} can be made the default analysis method for a DBA object by 
+setting \Rcode{DBA\$config\$AnalysisMethod=DBA\_EDGER}.}, 
 a standardized differential analysis is performed using the \edgeR package (\cite{Robinson:2010p249}). This section details the precise steps in that analysis.
 
 For each contrast, a separate analysis is performed. 

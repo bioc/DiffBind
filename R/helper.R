@@ -304,7 +304,12 @@ pv.setScore <- function(pv,score,bLog=FALSE,minMaxval,rescore=TRUE,filterFun=max
                   }
                }
                checkscores <- pv$binding[,colnum]
-               pv$binding[checkscores<0,colnum] <- 0
+               if(is.null(pv$minCount)) {
+                  minRead <- 0
+               } else {
+                  minRead <- pv$minCount
+               }
+               pv$binding[checkscores<minRead,colnum] <- minRead
                pv$peaks[[i]]$Score <- pv$binding[,colnum]
             }
          }
@@ -1135,7 +1140,7 @@ pv.orderfacs <- function(facvec,decreasing=FALSE) {
    return(res)	
 }
 
-pv.normalize <- function(peaks,pCol,zeroVal=-1,bLog=FALSE,bDensity=FALSE){
+pv.normalizeScores <- function(peaks,pCol,zeroVal=-1,bLog=FALSE,bDensity=FALSE){
    if(bDensity) {
       width   <- peaks[,3] - peaks[,2]
       width[width==0]=1

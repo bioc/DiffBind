@@ -1,12 +1,12 @@
 pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
                          bUsePval=FALSE,fold=0,facname="",bNormalized=TRUE,
                          cex=.15,bSignificant=TRUE, bSmooth=TRUE, bFlip=FALSE,
-                         xrange, yrange, ...) {
+                         xrange, yrange, bLoess=TRUE, ...) {
   
   if(missing(contrast)){
     contrast <- 1:length(pv$contrasts)
   } else {
-    if(contrast > length(pv$contrasts)) {
+    if(max(contrast) > length(pv$contrasts)) {
       stop('Specified contrast number is greater than number of contrasts',call.=FALSE)
       return(NULL)
     }
@@ -81,14 +81,12 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
           
           if(bSmooth | !bSignificant) {
             plotfun(res$Conc,res$Fold,pch=20,cex=cex,col=crukBlue,
-                    #colramp <- colorRampPalette(c("white", crukBlue)),
                     xaxp=c(xmin,xmax,xmax-xmin),xlim=c(xmin,xmax),
                     xlab='log concentration',
                     yaxp=c(ymin,ymax,(ymax-ymin)),ylim=c(ymin,ymax),
                     ylab=ylabstr,main=mainstr,...)              	
           } else {
             plotfun(res$Conc[!idx],res$Fold[!idx],pch=20,cex=cex, col=crukBlue,
-                    #colramp <- colorRampPalette(c("white", crukBlue)),                          
                     xaxp=c(xmin,xmax,xmax-xmin),xlim=c(xmin,xmax),
                     xlab='log concentration',
                     yaxp=c(ymin,ymax,(ymax-ymin)),ylim=c(ymin,ymax),
@@ -98,6 +96,11 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
             points(res$Conc[idx],res$Fold[idx],pch=20,cex=cex,col=crukMagenta)
           }
           abline(h=0,col='dodgerblue')
+          if(bLoess) {
+            lfit <- limma::loessFit(y=res$Fold,x=res$Conc)
+            o <- order(res$Conc)
+            lines(res$Conc[o],lfit$fitted[o],col="red")
+          } 
         }
       }
       if(bXY){
@@ -142,7 +145,7 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
                 ylab=sprintf('log concentration :%s',name1),
                 main=mainstr,...)
         points(res[idx,6],res[idx,5],pch=20,cex=cex,col=crukMagenta)
-        abline(0,1,col='dodgerblue')
+        abline(0,1,col='red')
       }
     }
   }      	

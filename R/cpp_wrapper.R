@@ -43,12 +43,11 @@ cpp_count_reads <- function(bamfile,insertLength,fileType,bufferSize,
                    heights.vec)
   
   # RJS 10 July 2020 -- Added minVal parameter  
-  if(minVal>0) {
-    counts[counts==0]  <- minVal
-  }
+  mincounts <- counts
+  mincounts[mincounts<minVal] <- minVal
   
   widths = intervals[,3] - intervals[,2]
-  rpkm = (counts/(widths/1000))/(libsize/1E6)
+  rpkm = (mincounts/(widths/1000))/(libsize/1E6)
   
   result <- list(counts=counts,rpkm=rpkm,libsize=libsize)
   if (bSummits==TRUE) {

@@ -4,6 +4,7 @@ export(dba,
        dba.blacklist,
        dba.count,
        dba.contrast,
+       dba.normalize,
        dba.analyze,
        dba.report,
        dba.plotHeatmap,
@@ -85,7 +86,23 @@ export(dba,
        DBA_BLACKLIST_DM6,
        DBA_BLACKLIST,
        DBA_GREYLIST,
-       DBA_BLACKLISTED_PEAKS)
+       DBA_BLACKLISTED_PEAKS,
+       DBA_LIBSIZE_DEFAULT,
+       DBA_LIBSIZE_FULL,
+       DBA_LIBSIZE_PEAKREADS,
+       DBA_LIBSIZE_CHRREADS,
+       DBA_LIBSIZE_USER,
+       DBA_NORM_DEFAULT,
+       DBA_NORM_NATIVE,
+       DBA_NORM_LIB,
+       DBA_NORM_TMM,
+       DBA_NORM_RLE,
+       DBA_NORM_SPIKEIN,
+       DBA_NORM_USER,
+       DBA_NORM_OFFSETS,
+       DBA_NORM_OFFSETS_ADJUST,
+       DBA_OFFSETS_LOESS,
+       DBA_OFFSETS_USER)
 
 exportClasses("DBA")
 
@@ -99,16 +116,16 @@ importFrom(amap, Dist)
 
 importFrom(gplots, heatmap.2)
 
-importFrom(edgeR,   
-           estimateCommonDisp, estimateGLMCommonDisp, estimateGLMTagwiseDisp,
-           estimateTagwiseDisp, exactTest, glmFit, glmLRT,
-           topTags,calcNormFactors, DGEList)
+#importFrom(edgeR,   
+#           estimateCommonDisp, estimateGLMCommonDisp, estimateGLMTagwiseDisp,
+#           estimateTagwiseDisp, exactTest, glmFit, glmLRT,
+#           topTags,calcNormFactors, DGEList)
 
 importFrom(IRanges, IRanges, overlapsAny, "%over%")
 
 importFrom(GenomicRanges, GRanges, GRangesList, seqnames, width, union)
 
-importFrom(SummarizedExperiment, SummarizedExperiment, assay)
+importFrom(SummarizedExperiment, SummarizedExperiment, assay, assays)
 
 importFrom(graphics, abline, boxplot, plot, points, smoothScatter,
            "axis", "hist", "image", "layout", "lines",
@@ -126,7 +143,7 @@ importFrom(stats, model.matrix, p.adjust, t.test,
 
 importFrom(utils, read.table, write.csv, write.table, packageVersion,"read.csv")
 
-importFrom(limma,nonEstimable)
+importFrom(limma,nonEstimable, loessFit)
 
 import(GenomicAlignments)
 
@@ -149,7 +166,7 @@ if (tools:::.OStype() == "unix") {
   importFrom(parallel, mcparallel, mccollect)
 }
 
-importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-")
+importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-", mcols)
 
 importFrom(Rsamtools, BamFileList, ScanBamParam, scanBamFlag, countBam)
 
@@ -162,6 +179,6 @@ importFrom(ggrepel,geom_text_repel)
 import(apeglm)
 import(ashr)
 import(GreyListChIP)
-import(BSgenome)
+# import(BSgenome)
 importFrom("methods", "new")
 importFrom("utils", "data")

@@ -1,6 +1,5 @@
-pv.DBA <- function(pv,method='edgeR',bSubControl=TRUE,bFullLibrarySize=FALSE,bTagwise=TRUE,
-                   minMembers=3,bParallel=FALSE, block,
-                   filter=0,filterFun=max) {
+pv.DBA <- function(pv,method='edgeR',bTagwise=TRUE,
+                   minMembers=3,bParallel=FALSE, block) {
   
   if(bParallel) {
     setParallel <- TRUE
@@ -10,6 +9,7 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=TRUE,bFullLibrarySize=FALSE,bTa
   }
   
   if(is.null(pv$contrasts)) {
+    message("Adding contrasts(s)...")
     if(missing(block)) {
       pv <- pv.contrast(pv,minMembers=minMembers)
     } else {
@@ -18,7 +18,7 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=TRUE,bFullLibrarySize=FALSE,bTa
   }
   
   if(is.null(pv$contrasts)) {
-    stop('Unable to perform analysis: no contrasts specified.',call.=FALSE)	
+    stop('Unable to perform analysis: no contrasts specified.')	
   }
   
   noreps <- FALSE
@@ -45,15 +45,13 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=TRUE,bFullLibrarySize=FALSE,bTa
   
   results <- NULL
   
-  if('edgeRGLM' %in% method) {
+  if(!is.null(pv$design)) { ## establish design-based analyses
     
-    if(!is.null(pv$design)) {
-      pv$edgeR <- pv.edgeRdesign(pv,bSubControl=bSubControl,
-                                 bFullLibrarySize=bFullLibrarySize,
-                                 bTagwise=bTagwise,
-                                 existing=pv$edgeR,
-                                 filter=filter,filterFun=filterFun)
-    }
+    pv <- pv.designAnalysis (pv, method, tagwise=bTagwise, setParallel)
+    
+  }
+  
+  if('edgeRGLM' %in% method) {
     
     if(bParallel && (pv$config$parallelPackage > 0)) {
       numjobs <- numjobs + 1
@@ -61,14 +59,17 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=TRUE,bFullLibrarySize=FALSE,bTa
       fdebug('submit job: pv.all')
       jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,
                                                   pv.allDEedgeR,pv,
-                                                  bFullLibrarySize=bFullLibrarySize,bParallel=TRUE,
-                                                  bSubControl=bSubControl,bTagwise=bTagwise,bGLM=TRUE,
-                                                  filter=filter,filterFun=filterFun))
+                                                  bFullLibrarySize=(pv$norm$edgeR$lib.method!=DBA_LIBSIZE_PEAKREADS),
+                                                  bParallel=TRUE,
+                                                  bSubControl=pv$norm$edgeR$bSubControl,
+                                                  bTagwise=bTagwise,bGLM=TRUE,
+                                                  filter=pv$norm$edgeR$filter.val,filterFun=pv$norm$edgeR$filter.fun))
     } else {
       results <- pv.listadd(results, pv.allDEedgeR(pv,block=block,
-                                                   bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                   bSubControl=pv$norm$edgeR$bSubControl,
+                                                   bFullLibrarySize=(pv$norm$edgeR$lib.method!=DBA_LIBSIZE_PEAKREADS),
                                                    bParallel=setParallel,bTagwise=bTagwise,bGLM=TRUE,
-                                                   filter=filter,filterFun=filterFun))
+                                                   filter=pv$norm$edgeR$filter.val,filterFun=pv$norm$edgeR$filter.fun))
     }
   }
   
@@ -76,25 +77,21 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=TRUE,bFullLibrarySize=FALSE,bTa
     if (!requireNamespace("DESeq2",quietly=TRUE)) {
       stop("Package DESeq2 not installed",call.=FALSE)
     }
-    
-    if(!is.null(pv$design)) {
-      pv$DESeq2 <- pv.DESeq2design(pv,bSubControl=bSubControl,
-                                   bFullLibrarySize=bFullLibrarySize,
-                                   existing=pv$DESeq2,
-                                   filter=filter,filterFun=filterFun)
-    }
-    
+
     if(bParallel && (pv$config$parallelPackage > 0)) {
       numjobs <- numjobs + 1
       params <- dba.parallel.params(pv$config,c('pv.DESeq2'))
       jobs <- pv.listadd(jobs,dba.parallel.addjob(pv$config,params,pv.allDESeq2,pv,
-                                                  bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+                                                  bSubControl=pv$norm$DESeq2$bSubControl,
+                                                  bFullLibrarySize=(pv$norm$DESeq2$lib.method!=DBA_LIBSIZE_PEAKREADS),
                                                   bTagwise=bTagwise,bGLM=FALSE,
-                                                  bParallel=TRUE,filter=filter,filterFun=filterFun))
+                                                  bParallel=TRUE,
+                                                  filter=pv$norm$DESeq2$filter.val,filterFun=pv$norm$DESeq2$filter.fun))
     } else {
-      results <- pv.listadd(results,pv.allDESeq2(pv,bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
+      results <- pv.listadd(results,pv.allDESeq2(pv,bSubControl=pv$norm$DESeq2$bSubControl,
+                                                 bFullLibrarySize=(pv$norm$DESeq2$lib.method!=DBA_LIBSIZE_PEAKREADS),
                                                  bTagwise=bTagwise,bGLM=FALSE,bParallel=setParallel,
-                                                 filter=filter,filterFun=filterFun))
+                                                 filter=pv$norm$DESeq2$filter.val,filterFun=pv$norm$DESeq2$filter.fun))
     }
   }
   
@@ -120,8 +117,8 @@ pv.DBA <- function(pv,method='edgeR',bSubControl=TRUE,bFullLibrarySize=FALSE,bTa
     jnum <- jnum+1
   } 
   
-  pv$filter    <- filter
-  pv$filterFun <- filterFun
+  # pv$filter    <- filter
+  # pv$filterFun <- filterFun
   
   fdebug(sprintf('Exit pv.DBA: %f',pv$contrasts[[1]]$edgeR$counts[7,1]))
   return(pv)
@@ -177,15 +174,37 @@ pv.DEinit <- function(pv,mask1,mask2,group1=1,group2=2,method='edgeR',
   }
   
   groups <- factor(c(rep(group1,length(g1)),rep(group2,length(g2))))
+  
+  
   if(bFullLibrarySize) {
     libsize <- as.numeric(pv$class[PV_READS,c(g1,g2)])
   } else {
     libsize <- colSums(counts)
   }
+  
   if(!bRawCounts) {
+    
     if(edgeR) {
-      res <- edgeR::DGEList(counts,lib.size=libsize,
-                     group=groups,genes=as.character(1:nrow(counts)))
+      
+      normfacs <- NULL
+      
+      # if(!is.null(pv$norm$edgeR)) {
+      #   message("edgeR: Ignoring lib.size from dba.normalize()")
+      #   libsize <- pv$norm$edgeR$lib.sizes
+      # } else {
+      #   message("edgeR: NO lib.size from dba.normalize()")
+      # }
+      # 
+      # if(!is.null(pv$norm$edgeR)) {
+      #   message("edgeR: Ignoring norm.factors from dba.normalize()")
+      #   normfacs <- pv$norm$edgeR$norm.facs
+      # } else {
+      #   message("edgeR: NO norm.factors from dba.normalize()")
+      #   normfacs <- NULL
+      # }
+      
+      res <- edgeR::DGEList(counts,lib.size=libsize,norm.factors=normfacs,
+                            group=groups,genes=as.character(1:nrow(counts)))
       rownames(res$counts) <- 1:nrow(res$counts)
       fdebug(sprintf('DGEList counts: %f',res$counts[7,1]))
     }
@@ -197,9 +216,20 @@ pv.DEinit <- function(pv,mask1,mask2,group1=1,group2=2,method='edgeR',
       } else {
         res <- DESeq2::DESeqDataSetFromMatrix(counts,data.frame(targets),formula(~ group))     		
       }
+      
+      # if(!is.null(pv$norm$DESeq2)) {
+      #   message("DESeq2: Using size factors from dba.normalize()")
+      #   DESeq2::sizeFactors(res) <- pv$norm$DESeq2$norm.facs
+      # } else {
+      #   message("DESeq2: NO size factors from dba.normalize()")
+      
       if(bFullLibrarySize) {
         DESeq2::sizeFactors(res) <- libsize/min(libsize)
-      }  
+      }  else {
+        res <- DESeq2::estimateSizeFactors(res)
+      }
+      # }
+      
     }
   }                
   return(res)
@@ -314,4 +344,57 @@ pv.normLibsize <- function(pv, score) {
   return(counts)
 }
 
+pv.designAnalysis <- function(pv, method, tagwise=TRUE, bParallel=TRUE) {
+  
+  reslist <- NULL
+  if(bParallel && (pv$config$parallelPackage > 0)) {
+    pv <- dba.parallel(pv)
+    reslist <- dba.parallel.lapply(pv$config,NULL,method,
+                                   pv.designAnalysis_parallel,pv,
+                                   tagwise)
+  } else {
+    reslist <- NULL
+    for(meth in method) {
+      reslist <- pv.listadd(reslist,pv.designAnalysis_parallel(meth,pv,tagwise))
+    }
+  }
+  
+  for(i in 1:length(method)) {
+    if(method[i] == DBA_EDGER) {
+      pv$edgeR <- reslist[[i]]
+    } else if(method[i] == DBA_DESEQ2) {
+      pv$DESeq2 <- reslist[[i]]
+    }
+  }
+  
+  return(pv)
+}
+
+pv.designAnalysis_parallel <- function(method,pv,tagwise) {
+  
+  if(method == DBA_EDGER) {
+    res <- pv.edgeRdesign(pv,bSubControl=pv$norm$edgeR$bSubControl,
+                          bTagwise=tagwise,
+                          existing=pv$edgeR,
+                          filter=pv$norm$edgeR$filter.val,
+                          filterFun=pv$norm$edgeR$filter.fun)
+  } else if(method == DBA_DESEQ2) {
+    res <- pv.DESeq2design(pv,bSubControl=pv$norm$DESeq2$bSubControl,
+                           existing=pv$DESeq2,
+                           filter=pv$norm$DESeq2$filter.val,
+                           filterFun=pv$norm$DESeq2$filter.fun)
+  }
+  return(res)
+}
+
+pv.getMethod <- function(str) {   
+  if (str == "DBA_EDGER" || str == DBA_EDGER) {
+    ret=DBA_EDGER
+  } else if (str == "DBA_EDGER_GLM" || str == DBA_EDGER_GLM) {
+    ret=DBA_EDGER_GLM  
+  } else  if (str == "DBA_DESEQ2" || str == DBA_DESEQ2) {
+    ret=DBA_DESEQ2 
+  } else ret <- NULL
+  return(ret)
+}
 

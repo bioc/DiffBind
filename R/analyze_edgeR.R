@@ -9,8 +9,14 @@ pv.DEedgeR <- function(pv,group1,group2,label1="Group 1",label2="Group 2",blockL
   res <- pv.DEinit(pv,group1,group2,label1,label2,method='edgeR',
                    bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
                    filter=filter, filterFun=filterFun)
+  
+  # if(is.null(pv$norm$edgeR))  {
+  # message("edgeR: re-calc norm.factors")
   res <- edgeR::calcNormFactors(res,method="TMM",doWeighting=bWeighting)
   fdebug(sprintf('calcNormFactors: %f',res$counts[7,1]))
+  # }  else {
+  #   message("edgeR: DONT re-calc norm.factors (use  dba.normalize())")
+  # }
   
   if(bNormOnly) {
     return(res)	
@@ -49,7 +55,7 @@ pv.DEedgeR <- function(pv,group1,group2,label1="Group 1",label2="Group 2",blockL
     fdebug('pv.DEedgeR: estimateTagwiseDisp complete')
     
     fdebug(sprintf('pv.DEedgeR: exactTest complete:%s-%s',res$db$comparison[1],res$db$comparison[2]))
-    #res$db$fdr <- topTags(res$db,nrow(res$db$counts))
+    #res$db$fdr <- edgeR::topTags(res$db,nrow(res$db$counts))
   } else {
     fdebug('pv.DEedgeR: BLOCKING FACTOR')
     
@@ -79,7 +85,15 @@ pv.DEedgeR <- function(pv,group1,group2,label1="Group 1",label2="Group 2",blockL
       return(NULL)	
     }
     message('edgeR multi-factor analysis.')
-    res <- edgeR::calcNormFactors(res,method="TMM",doWeighting=bWeighting)
+    
+    # if(is.null(pv$norm$edgeR))  {
+    # message("edgeR: re-calc norm.factors")
+    # res <- edgeR::calcNormFactors(res,method="TMM",doWeighting=bWeighting)
+    # fdebug(sprintf('calcNormFactors: %f',res$counts[7,1]))
+    # }  else {
+    #   message("edgeR: DONT re-calc norm.factors (use  dba.normalize())")
+    # }
+    
     res <- edgeR::estimateGLMCommonDisp(res,res$designmatrix)
     if(bTagwise) {
       res <- edgeR::estimateGLMTagwiseDisp(res,res$designmatrix)
@@ -87,7 +101,7 @@ pv.DEedgeR <- function(pv,group1,group2,label1="Group 1",label2="Group 2",blockL
     res$GLM <- edgeR::glmFit(res,res$designmatrix)
     res$LRT <- edgeR::glmLRT(res$GLM,ncol(res$designmatrix))
     res$counts <- NULL	 
-    #res$fdr <- topTags(res$LRT,nrow(res$counts))
+    #res$fdr <- edgeR::topTags(res$LRT,nrow(res$counts))
   }
   
   res$bSubControl      <- bSubControl
@@ -145,11 +159,14 @@ pv.allDEedgeR <- function(pv,block,bFullLibrarySize=FALSE,bParallel=FALSE,bSubCo
   reslist <- NULL
   
   if(bParallel && (pv$config$parallelPackage > 0)) {
-    params <- dba.parallel.params(pv$config,c('pv.DEedgeR_parallel','pv.DEedgeR','pv.DEinit','calcNormFactors',
-                                              'estimateCommonDisp','estimateTagwiseDisp',
-                                              'estimateGLMCommonDisp','estimateGLMTagwiseDisp',
-                                              'exactTest','topTags',
-                                              'glmFit','glmLRT'))
+    params <- dba.parallel.params(pv$config,c('pv.DEedgeR_parallel','pv.DEedgeR',
+                                              'pv.DEinit','calcNormFactors',
+                                              'edgeR::estimateCommonDisp',
+                                              'edgeR::estimateTagwiseDisp',
+                                              'edgeR::estimateGLMCommonDisp',
+                                              'edgeR::estimateGLMTagwiseDisp',
+                                              'edgeR::exactTest','edgeR::topTags',
+                                              'edgeR::glmFit','edgeR::glmLRT'))
     reslist <- dba.parallel.lapply(pv$config,params,1:length(pv$contrasts),pv.DEedgeR_parallel,pv,
                                    NULL,bSubControl,bFullLibrarySize,bTagwise,bGLM=bGLM,
                                    filter=filter,filterFun=filterFun)
@@ -199,7 +216,7 @@ pv.allDEedgeR <- function(pv,block,bFullLibrarySize=FALSE,bParallel=FALSE,bSubCo
 }
 
 pv.edgeRdesign <- function(pv,
-                           bSubControl=TRUE,bFullLibrarySize=TRUE,
+                           bSubControl=TRUE,
                            bTagwise=TRUE, bWeighting=FALSE,
                            existing=NULL,
                            filter=0, filterFun=max){
@@ -209,26 +226,34 @@ pv.edgeRdesign <- function(pv,
   }
   
   #Can we avoid re fitting model?
-  if(!is.null(existing)) {
+  if(!is.null(existing$DEdata)) {
     if(bTagwise != existing$bTagwise) {
       existing <- NULL
     } else if(bSubControl != existing$bSubControl) {
       existing <- NULL
-    } else if(bFullLibrarySize != existing$bFullLibrarySize) {
-      existing <- NULL
-    }
+    } 
+    # else if(bFullLibrarySize != existing$bFullLibrarySize) {
+    #   existing <- NULL
+    # }
   }
   
   res <- existing
   
-  if(is.null(existing)) {
+  if(is.null(existing$DEdata)) {
     
     res$DEdata <- pv.DEinitedgeR(pv,
                                  bSubControl=bSubControl,
-                                 bFullLibrarySize=bFullLibrarySize,
+                                 # bFullLibrarySize=bFullLibrarySize,
                                  filter=filter, filterFun=filterFun)
     
-    res$DEdata <- edgeR::calcNormFactors(res$DEdata,method="TMM",doWeighting=bWeighting)
+    if(is.null(pv$norm$edgeR))  {
+      # message("edgeR: re-calc norm.factors")
+      res$DEdata <- edgeR::calcNormFactors(res$DEdata,method="TMM",
+                                           doWeighting=bWeighting)
+      fdebug(sprintf('calcNormFactors: %f',res$counts[7,1]))
+    }  else {
+      # message("edgeR: DONT re-calc norm.factors (use  dba.normalize())")
+    }
     
     design <- pv$design
     design.matrix <- pv.edgeRdesign.matrix(pv,design)
@@ -240,7 +265,7 @@ pv.edgeRdesign <- function(pv,
     res$DEdata <- edgeR::glmQLFit(res$DEdata,design=design.matrix)
     
     res$bSubControl      <- bSubControl
-    res$bFullLibrarySize <- bFullLibrarySize
+    # res$bFullLibrarySize <- bFullLibrarySize
     res$bTagwise         <- bTagwise
     res$design           <- design.matrix
     
@@ -258,7 +283,8 @@ pv.edgeRdesign.matrix <- function(pv,design){
 }
 
 pv.DEinitedgeR <- function(pv,
-                           bSubControl=FALSE,bFullLibrarySize=FALSE,
+                           bSubControl=FALSE,
+                           bFullLibrarySize,
                            bRawCounts=FALSE,
                            filter=0,filterFun=max,
                            numReads) {
@@ -272,7 +298,7 @@ pv.DEinitedgeR <- function(pv,
     stop('Error: no samples present with read counts',call.=FALSE)
   }
   
-  counts  <- pv.get_reads(pv, srcmask,bSubControl=bSubControl,numReads=numReads)
+  counts  <- pv.get_reads(pv, srcmask, bSubControl=bSubControl,numReads=numReads)
   
   if(filter > 0){
     scores <- apply(counts,1,filterFun)
@@ -289,17 +315,52 @@ pv.DEinitedgeR <- function(pv,
     return(counts)	
   }
   
-  if(bFullLibrarySize) {
-    libsize <- as.numeric(pv$class[PV_READS,srcmask])
+  if(!is.null(pv$norm$edgeR)) {
+    # message("edgeR: Using lib.sizes from dba.normalize()")
+    libsize <- pv$norm$edgeR$lib.size
   } else {
-    libsize <- colSums(counts)
+    if(missing(bFullLibrarySize)) {
+      stop('Internal error: bFullLibrarySize missing.')
+    }
+    # message("edgeR: NO lib.sizes from dba.normalize()")
+    if(!is(bFullLibrarySize,"logical")) {
+      libsize <- bFullLibrarySize
+    } else {
+      if(bFullLibrarySize) {
+        libsize <- as.numeric(pv$class[PV_READS,srcmask])
+      } else {
+        libsize <- colSums(counts)
+      }
+    }
+  }
+  
+  offsets <- NULL
+  if(!is.null(pv$norm$edgeR)) {
+    # message("edgeR: Using norm.factors from dba.normalize()")
+    normfacs <- pv$norm$edgeR$norm.facs
+    if(pv$norm$edgeR$norm.method == PV_NORM_OFFSETS) {
+      if(!is.null(pv$norm$offsets$offsets)) {
+        # message("edgeR: use offsets")
+        offsets <- assay(pv$norm$offsets$offsets, "offsets")
+      } else {
+        stop('Internal error: no offsets available.',call.=FALSE)
+      }
+    }
+  } else {
+    # message("edgeR: NO norm.factors from dba.normalize()")
+    normfacs <- NULL
   }
   
   meta <- pv.getMeta(pv)
   res <- #suppressMessages(
-    res <- edgeR::DGEList(counts,lib.size=libsize,
-                          samples=meta,genes=as.character(1:nrow(counts)))
+    edgeR::DGEList(counts,lib.size=libsize, norm.factors=normfacs,
+                   samples=meta,genes=as.character(1:nrow(counts)))
   #)
+  
+  if(!is.null(offsets)) {
+    # res <- edgeR::scaleOffset(res,offsets)
+    res$offset <- offsets
+  }
   
   return(res)
 }
@@ -325,7 +386,7 @@ pv.edgeRContrast <- function(pv, contrast, shrink=TRUE) {
     stop("edgeR: unsupported contrast.",call.=FALSE)
   }
   
-  res$de <- topTags(de,nrow(de))$table
+  res$de <- edgeR::topTags(de,nrow(de))$table
   
   res$de$PValue[is.na(res$de$PValue)]=1
   res$de$FDR[is.na(res$de$FDR)]=1
@@ -347,9 +408,7 @@ pv.getCoeffs <- function(contrast,pv) {
   if(contrast$contrastType=="bycolumn") {
     coeffs <- contrast$contrast
   } else if(contrast$contrastType=="simple") {
-    cname <- paste(contrast$contrast[1],contrast$contrast[2],"vs",
-                   contrast$contrast[3],sep="_")
-    coef1 <- pv.getCoef(cname, pv)
+    coef1 <- pv.getCoef(contrast$contrast, pv)
   } else if(contrast$contrastType=="byname") {
     coef1 <- pv.getCoef(contrast$contrast, pv)
   } else if(is(contrast$contrast,"list")) {
@@ -374,7 +433,14 @@ pv.getCoef <- function(contrast, pv) {
   
   coefs <- pv$DESeq2$names
   
-  vals  <- strsplit(contrast,"_")[[1]]
+  if(is(contrast,"vector")) {
+    vals <- c(contrast[1],contrast[2],"vs",contrast[3])
+    contrast <- paste(contrast[1],contrast[2],"vs",
+                      contrast[3],sep="_")
+  } else {
+    vals  <- strsplit(contrast,"_")[[1]]
+  }
+  
   res   <- rep(0,length(coefs))
   
   coef  <- pv.matchCoefs(contrast,coefs)

@@ -8,7 +8,9 @@ save DBA object
 Writes out DBA object
 }
 \usage{
-dba.save(DBA, file='DBA', dir='.', pre='dba_', ext='RData', bMinimize=FALSE)
+dba.save(DBA, file='DBA', dir='.', pre='dba_', ext='RData', 
+         bRemoveAnalysis=FALSE, bRemoveBackground=FALSE,
+         bCompress=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -32,7 +34,23 @@ string to pre-pend to filename
  \item{ext}{
 extensions to use
 }
-\item{bMinimize}{
+ \item{bRemoveAnalysis}{
+if \code{TRUE}, will remove the global \code{DESeq2} and/or \code{edgeR}
+analysis objects. 
+The analysis results will be retained.
+If the analysis objects are required after re-loading, they will
+be automatically re-generated.
+}
+ \item{bRemoveBackground}{
+if \code{TRUE}, will remove the global binned background
+counts used for normalization.
+Any normalization factors calculated using these counts
+will be retained.
+If the the normalization factors need to be re-re-calculated after re-loading, 
+the binned background counts will
+be automatically re-generated.
+}
+\item{bCompress}{
 logical indicating saved DBA object should be compressed as much as possible.
 }
 }

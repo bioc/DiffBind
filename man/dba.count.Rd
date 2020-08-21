@@ -10,14 +10,14 @@ bed and gzip-compressed bed.  File suffixes must be ".bam", ".bed", or ".bed.gz"
 respectively.
 }
 \usage{
-dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL, bLog=FALSE,
+dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL,
           fragmentSize=DBA$config$fragmentSize, 
-          summits=250, filter=0, bRemoveDuplicates=FALSE, bScaleControl=TRUE,
-          mapQCth=DBA$config$mapQCth, 
-          filterFun=max, 
-          bUseSummarizeOverlaps=FALSE, readFormat=DBA_READS_DEFAULT,
-          bParallel=DBA$config$RunParallel) 
+          summits=200, filter=5, bRemoveDuplicates=FALSE, bScaleControl=TRUE,
+          mapQCth=DBA$config$mapQCth, filterFun=max, minCount=0, 
+          bLog=FALSE, bUseSummarizeOverlaps=FALSE, 
+          readFormat=DBA_READS_DEFAULT, bParallel=DBA$config$RunParallel) 
 }
+
 %- maybe also 'usage' for other objects documented here.
 \arguments{
 
@@ -59,10 +59,7 @@ DBA_SCORE_SUMMIT_ADJ \tab summit height (maximum read pileup value), normalized 
 DBA_SCORE_SUMMIT_POS \tab summit position (location of maximum read pileup)\cr
 }
 }
-\item{bLog}{
-logical indicating whether log2 of score should be used (only applies to 
-DBA_SCORE_RPKM_FOLD and DBA_SCORE_READS_FOLD).
-}
+
 \item{fragmentSize}{
 This value will be used as the length of the reads. 
 Each read will be extended from its endpoint along the appropriate strand by this many bases. 
@@ -127,6 +124,16 @@ at least as high as \code{filter} will be kept).
 Default is \code{max}, indicating that at least one sample should have a score of at least \code{filter}; 
 other useful values include \code{sum} (indicating that all the scores added together should be at least \code{filter}) and \code{mean} (setting a minimum mean normalized count level). 
 Users can supply their own function as well.
+}
+\item{minCount}{
+minimum read count value. 
+Any interval with fewer than this many overlapping reads will
+be set to have this count.
+}
+
+\item{bLog}{
+logical indicating whether log2 of score should be used (only applies to 
+DBA_SCORE_RPKM_FOLD and DBA_SCORE_READS_FOLD).
 }
 
 \item{bUseSummarizeOverlaps}{

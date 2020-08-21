@@ -12,7 +12,7 @@ dba.plotMA(DBA, contrast=1, method=DBA$config$AnalysisMethod,
            th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
            fold=0, bNormalized=TRUE,
            factor="", bFlip=FALSE, bXY=FALSE, dotSize=.45, 
-           bSignificant=TRUE, bSmooth=TRUE, 
+           bSignificant=TRUE, bSmooth=TRUE, bLoess=TRUE,
            xrange, yrange, ...)
 }
 
@@ -78,6 +78,9 @@ should be overlaid in red.
 logical indicating that basic plot should be plotted using \code{\link{smoothScatter}}.
 Note that overlaid significant sites will be not plotted using a smoothing function.
 }
+  \item{bLoess}{
+logical indicating that a MA plot should include a fitted loess curve.
+}
 
   \item{xrange}{
 vector of length 2 containing the desired minimum and maximum concentrations to plot.
@@ -117,10 +120,33 @@ data(tamoxifen_analysis)
 # default MA plot
 dba.plotMA(tamoxifen)
 
+# Show different normalizations
+tamoxifen <- dba.analyze(tamoxifen,method=DBA_ALL_METHODS)
+
+par(mfrow=c(3,2))
+dba.plotMA(tamoxifen,th=0,bNormalized=FALSE,sub="NON-NORMALIZED")
+dba.plotMA(tamoxifen,th=0,bNormalized=FALSE,sub="NON-NORMALIZED")
+
+dba.plotMA(tamoxifen,method=DBA_DESEQ2,bNormalized=TRUE,
+           sub="DESEQ2-FULL")
+dba.plotMA(tamoxifen,method=DBA_EDGER,bNormalized=TRUE,
+           sub="TMM-FULL")
+
+tamoxifen <- dba.normalize(tamoxifen,library=DBA_LIBSIZE_PEAKREADS) 
+tamoxifen <- dba.analyze(tamoxifen,method=DBA_ALL_METHODS)
+
+dba.plotMA(tamoxifen,method=DBA_DESEQ2,bNormalized=TRUE, 
+           sub="DESEQ2-EFFECTIVE")
+dba.plotMA(tamoxifen,method=DBA_EDGER,bNormalized=TRUE,
+           sub="TMM-EFFECTIVE")
+
 #XY plots (with raw and normalized data)
+data(tamoxifen_analysis)
 par(mfrow=c(1,2))
-dba.plotMA(tamoxifen,bXY=TRUE,bSmooth=FALSE,bNormalized=FALSE)
-dba.plotMA(tamoxifen,bXY=TRUE,bSmooth=FALSE,bNormalized=TRUE)
+dba.plotMA(tamoxifen,bXY=TRUE,bSmooth=FALSE,bNormalized=FALSE, 
+           sub="NON_NORMALIZED")
+dba.plotMA(tamoxifen,bXY=TRUE,bSmooth=FALSE,bNormalized=TRUE,
+           sub="DESeq2-FULL")
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

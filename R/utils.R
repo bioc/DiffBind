@@ -81,51 +81,6 @@ pv.DataType2Peaks <- function(RDpeaks){
 }
 
 
-pv.get_reads <- function(pv,peaksets,bSubControl=TRUE,numReads){
-   
-   if(is.null(bSubControl)) {
-      bSubControl <- TRUE
-   }
-   if(missing(peaksets)) {
-      peaksets <- rep(TRUE,length(pv$peaks))
-   }
-   reads <- NULL
-   if(!is.null(pv$peaks_alt)) {
-      peaklist <- pv$peaks_alt
-   } else {
-      peaklist <- pv$peaks
-   }
-   
-   if(is.logical(peaksets)) {
-      peaksets <- which(peaksets)
-   }
-   
-   if(!missing(numReads)) {
-      numReads <- min(length(peaklist[[1]]$Reads),numReads)
-      for(peakset in peaksets) {
-         reads <- cbind(reads,as.integer(peaklist[[peakset]]$Reads[1:numReads]))
-         if(bSubControl) {
-            reads[,ncol(reads)] <- reads[,ncol(reads)] - 
-               as.integer(peaklist[[peakset]]$cReads[1:numReads])
-         }
-      }
-   } else {
-      for(peakset in peaksets) {
-         reads <- cbind(reads,as.integer(peaklist[[peakset]]$Reads))
-         if(bSubControl) {
-            reads[,ncol(reads)] <- reads[,ncol(reads)] - 
-               as.integer(peaklist[[peakset]]$cReads)
-         }
-      }
-   }
-   
-   reads[reads<1] <- minCount
-   
-   rownames(reads) <- 1:nrow(reads)
-   
-   return(reads)
-}
-
 pv.getoneorNA <- function(vec) {
    res <- unique(vec)
    if (length(res) == 1) {

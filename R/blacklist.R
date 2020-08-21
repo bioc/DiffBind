@@ -338,7 +338,7 @@ pv.greylist <- function(pv, greylist, allsame=FALSE,
   return(pv)
 }
 
-pv.makeGreylist <- function(ktype,bamfile,parallel,pval=.995){
+pv.makeGreylist <- function(ktype,bamfile,parallel,pval=.999){
   gl <- new("GreyList",karyotype=ktype)
   gl <- GreyListChIP::countReads(gl, bamfile)
   usecores <- 1
@@ -348,7 +348,7 @@ pv.makeGreylist <- function(ktype,bamfile,parallel,pval=.995){
     }
   }
   if(is.null(pval)) {
-    pval=.995
+    pval=.999
   }
   gl <- GreyListChIP::calcThreshold(gl,p=pval,cores=usecores)
   gl <- GreyListChIP::makeGreyList(gl)

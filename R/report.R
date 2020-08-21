@@ -1,16 +1,18 @@
-pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,bCalled=FALSE,
-                         bCounts=FALSE,bCalledDetail=FALSE,
-                         file,initString='reports/DBA',bNormalized=TRUE,ext="csv",
-                         minFold=0,bSupressWarning=FALSE,
+pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
+                         bCalled=FALSE,bCounts=FALSE,bCalledDetail=FALSE,
+                         file,initString='reports/DBA',bNormalized=TRUE,
+                         ext="csv",minFold=0,bSupressWarning=FALSE,
                          bFlip=FALSE, precision=2:3) {
   
   
   if(length(contrast)>1){
-    stop('Can only specify one contrast unless requesting a report-based DBA.',call.=FALSE)
+    stop('Can only specify one contrast unless requesting a report-based DBA.',
+         call.=FALSE)
   }
   
   if(contrast > length(pv$contrasts)) {
-    stop('Specified contrast number is greater than number of contrasts',call.=FALSE)
+    stop('Specified contrast number is greater than number of contrasts',
+         call.=FALSE)
     return(NULL)
   }
   con <- pv$contrasts[[contrast]]
@@ -35,32 +37,54 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,bCa
     facs   <- c(facs,1:sum(group2))
   }
   
-  if(is.null(pv$filter)) {
-    filter    <- 0
-    filterFun <- NULL
-  } else {
-    filter    <- pv$filter
-    filterFun <- pv$filterFun
-  }
+  # if(is.null(pv$filter)) {
+  #   filter    <- 0
+  #   filterFun <- NULL
+  # } else {
+  #   filter    <- pv$filter
+  #   filterFun <- pv$filterFun
+  # }
   
   if(method=='edgeR' || method=='edgeRGLM'){
     if(is.null(con$edgeR) || is(con$edgeR,"try-error")) {
       stop('edgeR analysis has not been run for this contrast',call.=FALSE)
       return(NULL)
     }
+    
+    filter <- pv$norm$edgeR$filter.val
+    filterFun <- pv$norm$edgeR$filter.fun
+    
+    normalized <- FALSE
     if(!is.null(con$contrast)) {
+      
       if(is.null(pv$edgeR$DEdata)) {
-        stop('edgeR analysis missing.',call.=FALSE)
-      } else {
-        counts <- pv$edgeR$DEdata$counts
-        if(groups) {
-          facs <-  c(which(group1),which(group2))
-          counts <- counts[,facs]
+        
+        message('edgeR analysis missing -- re-running...')
+        
+        if(is.null(pv$config$edgeR$bTagwise)) {
+          bTagwise <- TRUE
         } else {
-          facs <- 1:ncol(counts)
+          bTagwise <- pv$config$edgeR$bTagwise 
         }
         
+        edger <- pv.edgeRdesign(pv,bSubControl=pv$norm$edgeR$bSubControl,
+                                bTagwise=bTagwise,
+                                existing=pv$edgeR,
+                                filter=pv$norm$edgeR$filter.val,
+                                filterFun=pv$norm$edgeR$filter.fun)
+        pv$edgeR$DEdata <- edger$DEdata
       }
+      
+      counts <- pv.edgeRCounts(pv,method,bNormalized)
+      normalized <- TRUE
+      
+      if(groups) {
+        facs <-  c(which(group1),which(group2))
+        counts <- counts[,facs]
+      } else {
+        facs <- 1:ncol(counts)
+      }
+      
     } else {
       if(is.null(con$edgeR$counts)) {
         counts <- pv.DEinit(pv,group1,group2,name1,name2,
@@ -91,21 +115,26 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,bCa
         siteCol <- 1
         pvCol   <- 5
         fdrCol  <- 6
-        data <- topTags(con$edgeR$LRT,nrow(counts))$table   	  	
+        data <- edgeR::topTags(con$edgeR$LRT,nrow(counts))$table   	  	
       } else {
         siteCol <- 1
         pvCol   <- 4
         fdrCol  <- 5
-        data <- topTags(con$edgeR$db,nrow(counts))$table
+        data <- edgeR::topTags(con$edgeR$db,nrow(counts))$table
       }
-      sizes <- con$edgeR$samples$lib.size[facs] * con$edgeR$samples$norm.factors[facs]
+      sizes <- con$edgeR$samples$lib.size[facs] * 
+        con$edgeR$samples$norm.factors[facs]
       pls <- con$edgeR$pseudo.lib.size
     }
-    if(bNormalized){
+    if(bNormalized && !normalized){
       counts <- t(t(counts)/sizes)
       counts <- counts * pls
     } 
   } else if(method=='edgeRlm'){
+    
+    filter <- pv$norm$edgeR$filter.val
+    filterFun <- pv$norm$edgeR$filter.fun
+    
     if(is.null(con$edgeR$counts)) {
       counts <- pv.DEinit(pv,group1,group2,name1,name2,
                           method='edgeR',
@@ -120,7 +149,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,bCa
     siteCol <- 1
     pvCol   <- 5  
     fdrCol  <- 6
-    data <- topTags(con$edgeR$block$LRT,nrow(counts))$table
+    data <- edgeR::topTags(con$edgeR$block$LRT,nrow(counts))$table
     
     if(bNormalized){
       sizes <- con$edgeR$samples$lib.size[facs] * 
@@ -136,22 +165,36 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,bCa
       stop('DESeq2 analysis has not been run for this contrast',call.=FALSE) 
       return(NULL) 
     }
+    
+    filter <- pv$norm$DESeq2$filter.val
+    filterFun <- pv$norm$DESeq2$filter.fun
+    
     siteCol <- 1
     pvCol   <- 2
     fdrCol <-  3
     
     if(!is.null(con$contrast)) {
+      
       if(is.null(pv$DESeq2$DEdata)) {
-        stop('DESeq2 analysis missing.',call.=FALSE)
-      } else {
-        counts <- counts(pv$DESeq2$DEdata,normalized=bNormalized)
+        message('DESeq2 analysis missing -- re-running...')
+        deseq2 <- pv.DESeq2design(pv,
+                                  bSubControl=pv$norm$DESeq2$bSubControl,
+                                  existing=pv$DESeq2,
+                                  filter=pv$norm$DESeq2$filter.val,
+                                  filterFun=pv$norm$DESeq2$filter.fun)
+        pv$DESeq2$DEdata <- deseq2$DEdata
       }
+      
+      counts <- DESeq2::counts(pv$DESeq2$DEdata, normalized = bNormalized)
+      
       data     <- con$DESeq2$de
       normfacs <- pv$DESeq2$facs
+      
       if(groups) {
         counts   <- cbind(counts[,group1],counts[,group2])
         normfacs <- c(normfacs[group1],normfacs[group2])
       }
+      
     } else {
       counts <- pv.DEinit(pv,group1,group2,name1,name2,
                           method='DESeq2',
@@ -235,6 +278,10 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,bCa
         con2 <- log2(counts[,sum(group1)+1])
       }
     }
+    con1[con1<0] <- 0
+    con2[con2<0] <- 0
+    conc[conc<0] <- 0
+    
     if(is.null(data$fold)) {
       fold <- con1 - con2
     } else {
@@ -247,6 +294,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,bCa
     
   } else {
     conc <- log2(apply(counts,1,mean))
+    conc[conc<0] <- 0
     fold <- data$fold[keep]
     data <- cbind(pv.getsites(pv,siteids),conc,fold,data[keep,c(pvCol,fdrCol)])
     colnames(data) <- c('Chr','Start','End','Conc','Fold','p-value','FDR')

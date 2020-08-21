@@ -50,9 +50,9 @@ a \code{\link{GRanges}} object containing the greylisted regions.
 If the \code{greylist} parameter is present and not a \code{GRanges} object, 
 a greylist will be generated using the aligned reads in the bam files associated 
 with the designated controls (eg. \code{bamControls} in the sample sheet.)
-These will be based on a \code{\link{BSgenome}} corresponding
+These will be based on a \code{BSgenome} corresponding
 to the genome reference assembly used for the alignments.
-The genome reference can be specified either as a \code{\link{BSgenome}} object,
+The genome reference can be specified either as a \code{BSgenome} object,
 or using a constant as follows:
 
 \itemize{
@@ -136,7 +136,8 @@ Rory Stark with thanks to Gord Brown
 }
 \note{
 
-The \code{p} threshold can be altered by setting \code{DBA$config$greylist.pval}. The default is \code{0.995}. 
+The \code{p} threshold can be altered by setting \code{DBA$config$greylist.pval}. 
+The default is \code{0.999}. 
 See \code{GreyListChIP::}\code{\link{calcThreshold}} for details.
 
 Ideally, Blacklists and Greylists will be applied to the aligned reads prior

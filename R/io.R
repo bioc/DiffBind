@@ -1,8 +1,18 @@
 pv.save <- function(DBAobject,file='model',dir='Robjects',pre='pv_',ext='RData',
-                    compress=TRUE,compression_level=9,ascii=FALSE) {
+                    compress=TRUE,ascii=FALSE) {
    fn <- sprintf('%s/%s%s.%s',dir,pre,file,ext)
+   
+   if(is(compress,"logical")) {
+      if(compress==TRUE) {
+         compress_level <- 9
+      } 
+   } else {
+      compress_level <- compress
+      compress <- TRUE
+   }
+   
    save(DBAobject,file=fn,compress=compress,
-        compression_level=compression_level,ascii=ascii)
+        compression_level=compress_level,ascii=ascii)
    return(fn)
 }
 

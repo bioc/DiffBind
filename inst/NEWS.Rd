@@ -2,38 +2,58 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-
-\section{Version 2.99.3}{
+\section{Version 2.99.5}{
+\itemize{
+\item{
 This is a major release of DiffBind and the new version will be 3.0.
 
-The main upgrade involves how the modelling is done. 
-DiffBind now supports models and contrasts of arbitrary complexity using either/both DESeq2 or/and edgeR.
+The main upgrade involves how the modelling and normalization are done. 
+DiffBind now supports models and contrasts of arbitrary complexity using either/both DESeq2 or/and edgeR,
+as well as a myriad of normalization options.
 
 NB:
 
 The previous methods for modelling are maintained for backward compatibility, 
- however they are not the default. 
+however they are not the default. 
 To repeat earlier analyses, dba.contrast() must be called explicitly with design=FALSE.
 
 The default mode for dba.count() is now to center around summits (resulting in 501bp intervals). 
 To to avoid recentering around summits as was the previous default, set summits=FALSE (or to a more appropriate value).
 
+Normalization options have been moved from dba.analyze() to the new interface function dba.normalize().
+Any non-default normalization options must be specified using dba.normalize().
+}
+
+ \item{Changes in this point release:}
+   \itemize{
+     \item{Add new interface function: dba.normalize() for greater control of normalization.}
+     \item{add bLoess parameter to dba.plotMA, default is TRUE}
+     \item{Remove normalization options from dba.analyze().}
+     \item{Add minCount parameter to dba.count().}
+     \item{Update vignette.}
+     \item{Add tests for normalization.}
+    }
+}
+}
+
+\section{Version 2.99.3}{
  Changes in this point release:
    \itemize{
      \item{Change minimum count value from 1 to 0}.
      \item{Add new interface function: dba.blacklist() to support  
      blacklists and greylists}
      \item{Change default for bSubControl in dba.analyze() to be FALSE if a greylist has been used to filter peaks.}
-     \item{Add rorderMeta parameter to dba.contrast()}
+     \item{Add reorderMeta parameter to dba.contrast()}
 
     }
 }
 
 \section{Version 2.99.1}{
 
-Add full model designs.
- 
    \itemize{
+
+    \item{Add full model designs.}
+
     \item{dba.contrast() changes:}
       \itemize{
          \item{Add ability to provide arbitrary design formula to dba.contrast() and made default}
