@@ -1,10 +1,6 @@
 Package: DiffBind
 Type: Package
-<<<<<<< HEAD
 Version: 2.99.5
-=======
-Version: 2.99.4
->>>>>>> da017ae521ee6c5ca582cd86d4ec650da7a80fd5
 Title: Differential Binding Analysis of ChIP-Seq Peak Data
 Authors@R: c(person("Rory","Stark", email="rory.stark@cruk.cam.ac.uk",
                   role = c("aut", "cre")),
