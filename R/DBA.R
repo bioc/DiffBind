@@ -80,7 +80,8 @@ dba <- function(DBA,mask, minOverlap=2,
                 config=data.frame(AnalysisMethod=DBA_DESEQ2,th=0.05,
                                   DataType=DBA_DATA_GRANGES, RunParallel=TRUE, 
                                   minQCth=15, fragmentSize=125, 
-                                  bCorPlot=FALSE, reportInit="DBA", bUsePval=FALSE),
+                                  bCorPlot=FALSE, reportInit="DBA", 
+                                  bUsePval=FALSE, design=TRUE),
                 peakCaller="raw", peakFormat, scoreCol, bLowerScoreBetter, 
                 filter, skipLines=0, bAddCallerConsensus=FALSE, 
                 bRemoveM=TRUE, bRemoveRandom=TRUE, bSummarizedExperiment=FALSE,
@@ -500,9 +501,10 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL
   
   if(!missing(peaks)) {
     if(is.null(peaks)) {
-      if(!is.null(DBA$minCount)) {
-        minCount <- DBA$minCount
-      }
+      # if(!is.null(DBA$minCount)) {
+      #   minCount <- DBA$minCount
+      # }
+      DBA$minCount <- minCount 
     }
   }
   
@@ -621,12 +623,22 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
   DBA <- pv.check(DBA,TRUE)
   
   ### SET DEFAULTS ###
+  pre3 <- FALSE
   if(is.null(DBA$design) && !is.null(DBA$contrasts)) {
+    pre3 <- TRUE
+  }
+  if(!is.null(DBA$config$design)) {
+    if(DBA$config$design == FALSE) {
+      pre3 <- TRUE
+    }
+  }
+  
+  if(pre3 == TRUE) {
     # defaults are pre-3.0
     deflib  <- DBA_LIBSIZE_FULL
     defnorm <- DBA_NORM_DEFAULT
-    defback <- FALSE    
-    
+    defback <- FALSE   
+    filtval <- 0
   } else {
     # defaults are 3.0+    
     deflib  <- DBA_LIBSIZE_CHRREADS
@@ -637,6 +649,7 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
     }
     defnorm <- DBA_NORM_NATIVE
     defback <- TRUE    
+    filtval <- 5
   }
   
   if(length(library)==1 && library[1]==DBA_LIBSIZE_DEFAULT) {
@@ -649,6 +662,10 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
   
   if(missing(background)) {
     background <- defback
+  }
+  
+  if(missing(filter)) {
+    filter <- filtval
   }
   
   res <- pv.normalize(DBA, method=method, 
@@ -677,6 +694,12 @@ dba.contrast <- function(DBA, design=missing(group1), contrast,
   }
   
   DBA <- pv.check(DBA,TRUE)
+  
+  if(missing(design) && design) {
+    if(!is.null(DBA$config$design)) {
+      design <- DBA$config$design 
+    }
+  }
   
   res <- pv.contrast(DBA, group1=group1, group2=group2, name1=name1, name2=name2,
                      minMembers=minMembers, categories=categories,block=block, 
@@ -1460,10 +1483,6 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
     }
   }
   
-  # if(is.null(res$config$saveDir)) {
-  #   res$config$saveDir <- "Robjects"
-  # }
-  
   if(is.null(res$config$savePrefix)) {
     res$config$savePrefix <- "dba_"
   }
@@ -1494,7 +1513,7 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
     res$config$bUsePval=FALSE
   }   
   
-
+  
   
   res$config$lsfInit      <- NULL
   res$config$parallelInit <- NULL
@@ -1588,3 +1607,8 @@ plot.DBA <- function(x,...){
   DBA <- pv.check(x)
   res <- dba.plotHeatmap(x,...)
 }
+
+.onAttach <- function(libname, pkgname) {
+  packageStartupMessage(" >>> DiffBind 3.0 includes substantial updates. See ?DiffBind3 for details on what has changed.")
+}
+

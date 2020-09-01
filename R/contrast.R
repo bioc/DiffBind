@@ -1124,7 +1124,7 @@ pv.getContrastString <- function(conrec) {
    if(!is.null(conrec$contrastType)) {
       constr <- conrec$contrast
       if(conrec$contrastType=='bycolumn') {
-         constr <- paste(constr,collapse="-")
+         constr <- paste(constr,collapse=":")
       } else if(conrec$contrastType=='byresults1') {
          constr <- constr[[1]]
       } else if(conrec$contrastType=='byresults2') {

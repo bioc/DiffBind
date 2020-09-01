@@ -463,12 +463,18 @@ pv.getCoef <- function(contrast, pv) {
   num <- match(num,coefs)
   den <- match(den,coefs)
   
-  if(is.na(num) || is.na(den)) {
+  
+  if(is.na(num) && is.na(den)) {
     return(NULL)
   }
   
-  res[num] <-  1
-  res[den] <- -1
+  if(!is.na(num)) {
+    res[num] <- 1
+  }
+  
+  if(!is.na(den)) {
+    res[den] <- -1
+  }
   
   return(res)
 }
@@ -484,6 +490,15 @@ pv.matchCoefs <- function(contrast,coefs) {
   
   return(coef)
   
+}
+
+pv.checkIntercept <- function(pv, facname, valname) {
+  fac <- match(facname, names(pv$meta))
+  if(pv$meta[[fac]][1] ==  valname) {
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
 }
 
 pv.normTMM <- function(pv,bMinus=TRUE,bFullLib=FALSE,bCPM=FALSE,bReturnFactors=FALSE){
@@ -573,4 +588,3 @@ pv.stripEdgeRLRT <- function(lrec) {
   }
   return(lrec)
 }      
-
