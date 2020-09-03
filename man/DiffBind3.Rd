@@ -33,6 +33,15 @@ There are more normalization options, and more explicit control over them.
 The default normalization options have also changed, 
 so reproducing a pre-3.0 analysis requires that normalization 
 parameters to be specified.
+
+It is recommended that existing analyses be re-run with the current software.
+Existing scripts should execute (with the exception of two
+normalization parameters which have been moved from \code{\link{dba.analyze}}
+to the new interface function \code{\link{dba.normalize}}.)
+
+See the \code{\link{DiffBind}} vignette for more information on 
+processing and analyzing ChIP-seq (and ATAC-seq) experiments.
+
 }
 
 \section{Backward compatibility}{

@@ -65,7 +65,12 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
   
   if(endPeaks < originalPeaks) {
     
-    DBA <- dba(DBA)
+    if(allsame) {
+      DBA <- pv.removeBlacklistedPeaks(DBA)
+      DBA <- pv.reNormalize(DBA)
+    } else {
+      DBA <- dba(DBA)
+    } 
     
     endMerged    <- nrow(DBA$merged)
     endConsensus <- nrow(DBA$binding)
@@ -73,7 +78,9 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
     if(!missing(blacklist) && !missing(greylist)) {
       if(allsame) {
         DBA$peaks.blacklisted <- GRangesList(lapply(DBA$peaks.blacklisted,
-                                                    function(x){x[,c("cReads","Reads","Score")]}))
+                                                    function(x){
+                                                      x[,c("cReads","Reads","Score")]
+                                                    }))
         msgstring <- sprintf("Removed %d (of %d) consensus peaks.",
                              originalPeaks-endPeaks,originalPeaks)
         DBA$SN <- pv.Signal2Noise(DBA)
@@ -221,6 +228,10 @@ pv.doBlacklist <- function(peakset, blacklist, bReturnFiltered=FALSE){
 
 pv.greylist <- function(pv, greylist, allsame=FALSE, 
                         cores=pv$config$cores) {
+  
+  if(is(greylist,"list")) {
+    greylist <- greylist$master
+  }
   
   if(!is(greylist,"GRanges")) {
     controls <- pv$class[PV_BAMCONTROL,]
@@ -374,6 +385,17 @@ pv.mergeGreyLists <- function(controllist) {
   
   return(greylist)
 }
+
+pv.removeBlacklistedPeaks <- function(DBA) {
+  bl <- data.frame(DBA$peaks.blacklisted[[1]])[,1:3]
+  bl[,1] <- match(bl[,1],DBA$chrmap)
+  toremove    <- which(GRanges(data.frame(DBA$merged)) %over% GRanges(bl))
+  DBA$merged  <- DBA$merged[-toremove,]
+  DBA$binding <- DBA$binding[-toremove,]  
+  
+  return(DBA)
+}
+
 
 
 

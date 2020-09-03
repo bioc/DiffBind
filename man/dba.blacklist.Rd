@@ -46,9 +46,12 @@ in the \code{DBA} object.
 
 A user specified greylist can be specified by setting this parameter to
 a \code{\link{GRanges}} object containing the greylisted regions.
+It can also be a \code{list} with an element named \code{greylist$master},
+which is a \code{\link{GRanges}} object containing the greylist to be applied.
 
-If the \code{greylist} parameter is present and not a \code{GRanges} object, 
-a greylist will be generated using the aligned reads in the bam files associated 
+If the \code{greylist} parameter is present and does not contain 
+a \code{GRanges} object, a greylist will be generated
+using the aligned reads in the bam files associated 
 with the designated controls (eg. \code{bamControls} in the sample sheet.)
 These will be based on a \code{BSgenome} corresponding
 to the genome reference assembly used for the alignments.
@@ -72,17 +75,17 @@ or using a constant as follows:
 If present, some aspects of a previous run of the function is retrieved instead
 of returning a \code{DBA} object.
 
-If \code{bRetrieve=DBA_BLACKLIST}, the blacklist, if present, is returned as a
+If \code{Retrieve=DBA_BLACKLIST}, the blacklist, if present, is returned as a
 \code{\link{GRanges}} object.
 
-If \code{bRetrieve=DBA_GREYLIST}, the greylist, if present, is returned.
+If \code{Retrieve=DBA_GREYLIST}, the greylist, if present, is returned.
 If it was generated from more than one control, it will be returned as
 a \code{list} object with the first element (named \code{$master}) a 
 \code{\link{GRanges}} object containing the merged greylist, and the second
 element (named \code{$controls}) being a \code{\link{GRangesList}}
 with each element containing the greylist for one control
 
-If \code{bRetrieve=DBA_BLACKLISTED_PEAKS}, 
+If \code{Retrieve=DBA_BLACKLISTED_PEAKS}, 
 the excluded peaks for each sample will be returned in
 a \code{\link{GRangesList}} object (with each element containing the
 filtered peak intervals for each sample).

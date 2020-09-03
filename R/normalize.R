@@ -449,14 +449,19 @@ pv.reNormalize <- function(pv) {
     return(pv)
   }
   
-  if(pv$norm$offsets$offset.method == PV_OFFSETS_USER) {
-    warning("Re-run dba.normalize() to add user-supplied offsets.",
-            call.=FALSE)
-    pv$norm$offsets$offsets <- NULL
+  if(!is.null(pv$norm$offsets)){
+    if(pv$norm$offsets$offset.method == PV_OFFSETS_USER) {
+      warning("Re-run dba.normalize() to add user-supplied offsets.",
+              call.=FALSE)
+      pv$norm$offsets$offsets <- NULL
+    }
   }
   
-  pv <- pv.doRenormalize(pv,DBA_DESEQ2)
-  pv <- pv.doRenormalize(pv,DBA_EDGER)
+  if(!is.null(pv$norm$DESeq2) || !is.null(pv$norm$edgeR)) {
+    message("Re-normalizing...")
+    pv$norm$DESeq2 <- pv.doRenormalize(pv,DBA_DESEQ2)
+    pv$norm$edgeR  <- pv.doRenormalize(pv,DBA_EDGER)
+  }
   
   return(pv)
 }
@@ -571,7 +576,7 @@ pv.normalizeRetrieve <- function(pv, method) {
 
 pv.formatNorm <- function(norm) {
   res <- NULL
-
+  
   if(norm$background) {
     res$background <- norm$background
   }
