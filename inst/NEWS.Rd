@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 2.16.1}{
+   \itemize{
+      \item{Fix issue in dba.count() when computing summits using 
+      user-supplied consensus peakset}
+    }
+}
+
 \section{Version 2.15.1}{
    \itemize{
       \item{Fix issue when extracing SummarizedExperiment from DBA}
