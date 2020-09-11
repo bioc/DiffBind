@@ -79,7 +79,7 @@ tamoxifen <- tam.bl
 tamoxifen$config$RunParallel <- TRUE
 tamoxifen$config$cores <- NUMCORES
 tamoxifen <- dba.count(tamoxifen)
-tam <- dba.normalize(tamoxifen)
+tamoxifen$norm$background <- tam$norm$background
 tamoxifen <- dba.contrast(tamoxifen,design="~Tissue + Condition")
 tamoxifen <- dba.contrast(tamoxifen)
 tamoxifen <- dba.analyze(tamoxifen)
@@ -90,4 +90,4 @@ save(tamoxifen,file="tamoxifen_analysis.rda")
 resaveRdaFiles(".", compress="auto",compression_level = 9)
 
 # cp tamoxifen_*.rda DiffBind/data/
-# cp ktypes.rda DiffBind/install/extra
+# cp ktypes.rda DiffBind/inst/extra
