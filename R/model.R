@@ -13,7 +13,7 @@ pv.peakset <- function(pv = NULL,peaks, sampID, tissue, factor,condition, treatm
                        readBam, controlBam, scoreCol = NULL, bLowerScoreBetter = NULL,
                        bRemoveM = TRUE, bRemoveRandom = TRUE,
                        minOverlap = 2,bFast = FALSE,bMakeMasks = TRUE,
-                       skipLines = 1, filter = NULL, counts = NULL) {
+                       skipLines = 1, filter = NULL, counts = NULL, spikein) {
   zeroVal <- -1
   bLog <- FALSE
   
@@ -50,11 +50,10 @@ pv.peakset <- function(pv = NULL,peaks, sampID, tissue, factor,condition, treatm
     ## Add a set of consensus peaksets
     bConsensus <- TRUE
     pv <-
-      pv.consensusSets(
-        pv,peaks = peaks,minOverlap = minOverlap,attributes = consensus,
-        tissue,factor,condition,treatment,replicate,control,peak.caller,
-        readBam, controlBam
-      )
+      pv.consensusSets(pv,peaks = peaks,minOverlap = minOverlap,
+                       attributes = consensus, tissue,factor,condition,treatment,
+                       replicate,control,peak.caller, readBam, controlBam,
+                       spikein)
     
   } else {
     ## add a specific consensus peakset
@@ -89,6 +88,8 @@ pv.peakset <- function(pv = NULL,peaks, sampID, tissue, factor,condition, treatm
         pv$class[PV_BAMREADS,nset] <- readBam
       if (!missing(controlBam))
         pv$class[PV_BAMCONTROL,nset] <- controlBam
+      if (!missing(spikein))
+        pv$class[PV_SPIKEIN,nset] <- spikein
     }
   }
   if (bConsensus) {
@@ -112,14 +113,22 @@ pv.peakset <- function(pv = NULL,peaks, sampID, tissue, factor,condition, treatm
     control <- ''
   if (missing(peak.caller))
     peak.caller <- ''
-  if (missing(readBam))
+  if (missing(readBam)) {
     readBam <- NA
-  if (length(readBam) == 0)
+    #warning("No bam file specified.",call.=FALSE)
+  }
+  if (length(readBam) == 0) {
     readBam <- NA
+    #warning("No bam file specified.",call.=FALSE)
+  }
   if (missing(controlBam))
     controlBam <- NA
   if (length(controlBam) == 0)
     controlBam <- NA
+  if (missing(spikein))
+    spikein <- NA
+  if (length(spikein) == 0)
+    spikein <- NA
   
   if (!is.null(peaks) && length(peaks) <= 1) {
     if (is.na(peaks)) {
@@ -238,7 +247,7 @@ pv.peakset <- function(pv = NULL,peaks, sampID, tissue, factor,condition, treatm
     cbind(
       NULL,c(
         sampID,tissue,factor,condition,consensus,peak.caller,control,
-        reads,replicate,readBam,controlBam,treatment
+        reads,replicate,readBam,controlBam,treatment,spikein
       )
     )
   colnames(clascol) <- sampID
@@ -247,7 +256,7 @@ pv.peakset <- function(pv = NULL,peaks, sampID, tissue, factor,condition, treatm
     c(
       "ID","Tissue","Factor","Condition", "Consensus",
       "Peak caller","Control","Reads","Replicate","bamRead",
-      "bamControl","Treatment"
+      "bamControl","Treatment", "Spikein"
     )
   pv$merged  <- NULL
   pv$binding <- NULL
@@ -541,6 +550,10 @@ pv.model <- function(model,mask,minOverlap=2,
       samples$bamControl <- sapply(samples$bamControl,
                                    function(x){file.path(dir,x)})
     }
+    if(!is.null(samples$Spikein)) {
+      samples$Spikein <- sapply(samples$Spikein,
+                                function(x){file.path(dir,x)})
+    }
   }
   
   model <- NULL
@@ -676,9 +689,11 @@ pv.model <- function(model,mask,minOverlap=2,
                         replicate   = as.integer(samples$Replicate[i]),
                         readBam     = as.character(samples$bamReads[i]),
                         controlBam  = as.character(samples$bamControl[i]),
+                        spikein     = as.character(samples$Spikein[i]),
                         filter      = peakfilter,
                         counts      = counts,
-                        bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,skipLines=skipLines)
+                        bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,
+                        skipLines=skipLines)
   }
   
   model$samples <- samples

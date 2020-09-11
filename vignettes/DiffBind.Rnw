@@ -67,14 +67,19 @@ graphics routines to provide a set of standardized plots to aid in
 binding analysis.
 
 This guide includes a brief overview of the processing flow, 
-followed by four sections of examples: 
-the first focusing on the core task of obtaining differentially bound sites 
-based on affinity data, 
-the second working through the main plotting routines, 
-the third discussing the use of multi-factor model designs, 
-and the fourth revisiting occupancy data (peak calls) in more detail, 
+followed by several sections containing examples and discussion of
+more advanced analytic options. 
+The first example focuses on the core task of obtaining differentially bound sites 
+based on affinity data, while
+the second demonstrates the main plotting routines.
+
+This is followed by discussions of multi-factor designs,
+blacklists/greylists, and normalization.
+
+The final example revisits occupancy data (peak calls) in more detail, 
 as well as comparing the results of an occupancy-based analysis with an 
 affinity-based one. 
+
 Finally, certain technical aspects of the how these analyses are 
 accomplished are detailed.
 
@@ -200,7 +205,7 @@ only data for chromosome 18 is used for the vignette.
 The metadata and peak data\footnote{Note that 
 due to space limitations the reads 
 are not shipped with the package. 
-See Section 10 xx.xx for options to obtain the full dataset. 
+See Section ~\ref{sec:vignette_data} for options to obtain the full dataset. 
 It is highly recommended that your obtain the 500M dataset to
 work through this vignette.} 
 are available in the \Rcode{extra} 
@@ -330,7 +335,7 @@ called in a specific sample (occupancy scores).
 These reads are obtained using the \Rcode{dba.count} function:
 \footnote{Note that due to space limitations the 
 reads are not shipped with the package. 
-See Section 10 for options to obtain the full dataset.
+See Section ~\ref{sec:vignette_data} for options to obtain the full dataset.
 You can get the end result of the \Rcode{dba.count} call by 
 loading the supplied \R 
 object by invoking \Rcode{data(tamoxifen\_counts)}}
@@ -393,7 +398,7 @@ whether or not a peak was called),
 responsiveness to tamoxifen treatment does not appear to 
 form a basis for clustering when using all of the affinity scores. 
 (Note that the clustering can change based on what normalization 
-scoring metric is used; see Section 4.6 xx.xx for more details).
+scoring metric is used; see Section ~\ref{sec:normalization} for more details).
 
 <<tamox_aff_corhm, fig=TRUE, include=FALSE, width=9, height=9 >>=
 plot(tamoxifen)
@@ -412,17 +417,8 @@ This is done using the \Rcode{dba.normalize} function:
 tamoxifen <- dba.normalize(tamoxifen)
 @
 
-The default normalization is based on dividing the reference genome
-into large non-overlapping bins, and counting the reads in each one.
-The assumption is that there should not be any particular changes in
-enrichment in 
-large bins (default \Sexpr{tamoxifen$norm$background$bin.size})
-as the binding sites are small (default \Sexpr{tamoxifen$summits*2+1}),
-so any variation between samples are attributable to differences in
-sequencing depth and ChIP efficiency.\footnote{If you are
-using the object supplied with the package
-and loaded via \Rcode{data(tamoxifen\_counts)},
-this includes pre-computed counts for the bins on Chromosome 18.}
+By default, the data are normalized only for
+sequencing depth.
 
 The result of the normalization can be examined:
 
@@ -433,12 +429,10 @@ norm
 
 This returns information about the normalization for the
 default analysis method, \DESeq.
-It shows that background reads we used,
-as well as the normalization method used (\Sexpr{norm$norm.method}),
-the default or "native" normalization method in \DESeq.
-The calculated normalization factors are shown for each sample,
-along with the library sizes (which include all of the reads),
-from which we can calculate the normalized library sizes:
+It shows the normalization method used (\Sexpr{norm$norm.method}),
+the calculated normalization factors for each sample,
+along with the library sizes (which include all of the reads).
+From this we can see that library sizes are normalized to be the same:
 
 <<norm_facs,eval=TRUE,echo=TRUE,results=verbatim>>=
 normlibs <- cbind(FullLibSize=norm$lib.sizes, NormFacs=norm$norm.factors,
@@ -450,12 +444,13 @@ normlibs
 Other values show that the
 that control reads were subtracted from the ChIP reads
 (this is done by default because no blacklists/greylists were applied,
-see Section xx.xx for more details),
+see Section ~\ref{sec:blacklists} for more details),
 and that any consensus peak intervals without at least one sample with
 at least five reads for that interval was filtered from further analysis.
 
-Normalization of ChIP (and related assays such as ATAC) data is a complex area. 
-Please see Section xx.xx for a more in-depth discussion
+Normalization of ChIP (and related assays such as ATAC) data is a crucial,
+if somewhat complex, area. 
+Please see Section ~\ref{sec:normalization}for a more in-depth discussion
 of normalization in \DBA.
 
 \subsection{Establishing a model design and contrast}
@@ -489,7 +484,7 @@ contrast (\emph{\Sexpr{dba.show(tamoxifen,bDesign=TRUE)}}).
 While in this example we are using \Rcode{dba.contrast} in the default mode,
 it does allow for fine-grained control over the 
 design and contrasts one wishes to model.
-See Section xx.xx for a more detailed discussion of how
+See Section ~\ref{sec:multifactor} for a more detailed discussion of how
 including the \Rcode{Tissue} factor in the design
 provides for better modeling of the example experiment.
 
@@ -502,7 +497,7 @@ dba.show(tamoxifen, bContrasts=TRUE)
 @
 
 This will run the default \DESeq analysis
-(see Section xx.xx discussing the technical details of the analysis).
+(see Section ~\ref{subsec:technical_deseq2} discussing the technical details of the analysis).
 Displaying the results from the \Rcode{DBA object} shows that
 \Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)}
 of the
@@ -544,8 +539,8 @@ and hence are expected to form clusters representing the conditions.
 Indeed, the fact that these site do not enable a perfect clustering
 show the importance of checking the results at this stage.
 
-See Section xx.xx, where a multi-factor design is applied to this analysis,
-for a better way to model these data.
+See Section ~\ref{sec:multifactor}, where a multi-factor design is 
+applied to this analysis, for a better way to model these data.
 
 \subsection{Retrieving the differentially bound sites}
 The final step is to retrieve the differentially bound sites as follows:
@@ -560,7 +555,6 @@ appropriate for downstream processing:
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
 tamoxifen.DB
 @
-
 
 The metadata columns show the mean read concentration over all the samples
 (the default calculation uses log2 normalized read counts)
@@ -584,7 +578,8 @@ sum(tamoxifen.DB$Fold>0)
 sum(tamoxifen.DB$Fold<0)
 @
 
-The bias towards enriched binding in the Responsive case can
+The bias towards enriched binding in the Responsive case
+(or loss of binding affinity in the Resistant case) can
 be visualized using MA and Volcano plots, as shown in the following Section.
 
 \section{Plotting in \DBA}
@@ -614,7 +609,7 @@ dba.plotVenn(tamoxifen, contrast=1, bDB=TRUE,
 Venn diagrams are also useful for examining overlaps between peaksets,
 particularly when determining how best to derive consensus
 peaksets for read counting and further analysis.
-Section 6 xx.xx, which discusses consensus peaksets, shows a number of
+Section ~\ref{sec:occupancy}, which discusses consensus peaksets, shows a number of
 Venn plots in context,
 and the help page for \Rcode{dba.plotVenn} has a number of additional examples.
 
@@ -687,7 +682,7 @@ with the default being \Rcode{contrast=1}:
 <<tamox_sdb_ma, fig=TRUE, include=FALSE, width=12, height=9 >>=
 dba.plotMA(tamoxifen)
 @
-\incfig{DiffBind-tamox_sdb_ma}{.66\textwidth}
+\incfig{DiffBind-tamox_sdb_ma}{1\textwidth}
 {MA plot of Resistant-Responsive contrast.}
   {Sites identified as significantly differentially bound shown in red.
   Generated by: \Rcode{dba.plotMA(tamoxifen)}}
@@ -728,7 +723,10 @@ dba.plotVolcano(tamoxifen)
  {Sites identified as significantly differentially bound shown in red.
  Generated by: \Rcode{dba.plotVolcano(tamoxifen)}}
 
-The plot is shown in  Figure~\ref{DiffBind-tamox_sdb_volcano}.
+The plot is shown in Figure~\ref{DiffBind-tamox_sdb_volcano},
+with the predominance of lower binding in the the Resistant case
+evidenced by the greater number of significant sites on the negative side of the
+Fold Change (X) axis.
 
 \subsection{Boxplots}
 
@@ -841,7 +839,8 @@ This plot can be tweaked to change the contrast,
 for example by using row-scaling
 \Rcode{dba.plotHeatmap(tamoxifen, contrast=1, correlations=FALSE, scale="row")}.
 
-\section{Example: Differential binding analysis using a multi-factor design}
+\section{Example: Multi-factor designs}
+\label{sec:multifactor}
 
 The previous discussion showed how to perform a differential binding analysis
 using a single factor (\Rcode{Condition}) with two values (\Rcode{Resistant}
@@ -897,7 +896,8 @@ This shows that where the standard, single-factor \DESeq analysis identifies
 \Sexpr{length(tamoxifen.DB)}
 differentially bound sites, the analysis using the two-factor design finds
 \Sexpr{as.numeric(dba.show(tamoxifen,bContrasts=TRUE)$DB.DESeq2)}
-such sites. MA and Volcano plots show how the analysis has changed:
+such sites. 
+MA and Volcano plots show how the analysis has changed:
 
 <<tamox_block_ma, fig=TRUE, include=FALSE, width=12, height=9 >>=
 dba.plotMA(tamoxifen)
@@ -916,7 +916,6 @@ dba.plotVolcano(tamoxifen)
  using a multi-factor design "\Sexpr{tamoxifen$design}".}
  {Sites identified as significantly differentially bound shown in magenta.
   Generated by: \Rcode{dba.plotVolcano(tamoxifen)}}
-
 
 The resulting plots are shown in Figure~\ref{DiffBind-tamox_block_ma}
 and Figure~\ref{DiffBind-tamox_block_vol}
@@ -1001,7 +1000,7 @@ To further illustrate the ability to model the data, consider
 another comparison.
 Suppose we'd like to identify ER binding sites that a differentially bound
 in all of the MCF7 samples compared to the T47D samples.
-We can do this by adding a contrast.
+We can do this by adding a contrast to our existing model.
 For illustrative purposes, we will also re-order the values for the
 the \Rcode{Tissue} factor to make MCF7 the reference group:
 
@@ -1018,7 +1017,7 @@ dba.show(tamoxifen,bContrasts=TRUE)
 Good practice in analyzing ChIP-seq (and ATAC-seq) experimental data
 include the use of \textbf{blacklists} to remove certain regions
 in the reference genome from the analysis\cite{amemiya2019blacklist}.
-This sections describes how to accomplish this
+This section describes how to accomplish this
 for both publicly published blacklists as well
 as experiment-specific \emph{greylists}.
 
@@ -1133,11 +1132,13 @@ length(blacklisted.DB)
 @
 
 This shows that the peak interval excluded by the blacklist was returned
-as a significantly differentially bound site in the original analysis:
+as a significantly differentially bound site in the original analysis,
+but is absent in the analysis performed after blacklisting:
 
 <<blacklistRes,eval=TRUE,echo=TRUE,results=verbatim>>=
-multifactor.DB[match(blacklisted[[1]], multifactor.DB),]
-match(blacklisted[[1]], blacklisted.DB)
+bl_site <- match(blacklisted[[1]], multifactor.DB)
+multifactor.DB[bl_site,]
+!is.na(match(blacklisted[[1]], blacklisted.DB))
 @
 
 \subsection{Example: How to apply a greylist}
@@ -1205,7 +1206,7 @@ invoke the \Rpackage{GreyListChIP} package automatically.
 
 Here is how the sample greylist was computed for this example.
 You can execute this code if you have all the read data for the vignette
-(see Section x.x).
+(see Section ~\ref{sec:vignette_data}).
 
 Instead of specifying a greylist explicitly, the \Rcode{greylist} 
 parameter can be set to specify a specific reference genome, either using
@@ -1268,380 +1269,532 @@ details.
 \section{Normalization}
 \label{sec:normalization}
 
-\subsection{normalization methods}
---explicit refs
+Normalization of experimental data is particularly important in ChIP-seq
+(and ATAC-seq) analysis, and may require more careful consideration than
+needed for RNA-seq analysis. 
+This is because the range of ChIP-seq experiments covers more
+cases than RNA-seq, which usually involve a similar set of possible
+expressed genes and/or transcripts, many of which are not
+expected to significantly change expression.
+ChIP, ATAC, and similar enrichment-based sequencing data may
+not follow the assumptions inherent in popular methods for normalizing
+RNA-seq data, as well as exhibiting different types
+of efficiency and other biases.
 
-\subsection{library size calculations}
+This section discussion the options for normalization in \DBA using
+the \Rcode{dba.normalize} interface function,
+and shows how they affect the example experiment.
+It describes the core normalization methods,
+methods for calculating library sizes,
+options for using background binning for a more "neutral"
+normalization, and the use of spike-ins and parallel factor,
+as well as the potential
+to apply separate normalization factors for each 
+read measurement (offsets), including loess fit normalization.
 
-\subsection{background normalization}
---csaw, ATAC
+\subsection{Core normalization methods}
 
-\subsection{offsets and loess normalization}
+\DBA relies on three underlying core methods for normalization.
+These include the "native" normalization methods supplied
+with \DESeq and \edgeR, as well as a simple library-based method.
+The normalization method is specified with the \Rcode{normalize}
+parameter to \Rcode{dba.normalize}
+
+The native \DESeq median ratio normalization method 
+is based on calculating the
+geometric mean for each gene across samples\cite{Love2014},
+and is referred to \code{"MRN"} or \code{DBA\_NORM\_MRN} in \DBA.
+
+The native \edgeR normalization method is
+based on the trimmed mean of M-values approach\cite{robinson2010scaling},
+and is referred to as \code{"TMM"} or \Rcode{DBA\_NORM\_TMM} in \DBA.
+
+A third method is also provided that avoids making any assumptions
+regarding the distribution of reads between binding sites in different
+samples that may be specific to RNA-seq analysis and inappropriate
+for ChIP-seq analysis. 
+This method (\Rcode{"lib"} or \Rcode{DBA\_NORM\_LIB})
+is based on the different library sizes for each sample,
+computing normalization factors to weight each sample so as to appear
+to have the same library size.
+For \DESeq, this is accomplished by dividing the number of reads in each library
+by the \Rcode{mean} library size\footnote{the \Rcode{mean} function can
+be changed by the user by setting the \Rcode{libFun} parameter}. 
+For \edgeR, the normalization factors are all set to \Rcode{1.0},
+indicating that only library-size normalization should occur.
+
+Note that any normalization method can be used with any analysis method, 
+as \DBA converts normalization factors to work
+appropriately in either \DESeq or \edgeR.
+
+Consider some potential normalization options for the example dataset.
+We can start with non-normalized data:
+
+<<norm0,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
+data(tamoxifen_analysis)
+dba.plotMA(tamoxifen, contrast=list(Resistant=tamoxifen$masks$Resistant),
+           bNormalized=FALSE, sub="Non-Normalized")
+@
+\incfig{DiffBind-norm0}{1\textwidth}
+{MA plot showing non-normalized data}
+{Generated by plotting the result of:
+\Rcode{dba.plotMA(tamoxifen, contrast=list(Resistant=tamoxifen\$masks\$Resistant),
+           bNormalized=FALSE, sub="Non-Normalized")}}
+
+Figure~\ref{DiffBind-norm0} shows the non-Resistant (Responsive) samples
+with a greater raw read density. 
+This can be seen by the most dense part of the cloud being located
+beneath the horizontal blue line centered zero fold change,
+as well as the entirely of the red loess fit curve likewise residing
+below that line.
+
+A key question is if this is an artifact that needs to be corrected via 
+normalization, or a biological signal that needs to be retained.
+
+Compare the non-normalized data to an analysis based on a normalization
+that only takes the library size (total number of aligned reads, or 
+sequencing depth) into account:
+
+<<normDESeq2LibFull,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
+tamoxifen <- dba.normalize(tamoxifen, normalize=DBA_NORM_LIB)
+tamoxifen <- dba.analyze(tamoxifen)
+dba.plotMA(tamoxifen, method=DBA_DESEQ2, sub="DESeq2:lib:full")
+@
+\incfig{DiffBind-normDESeq2LibFull}{1\textwidth}
+{MA plot showing results of analysis using Library-size based normalization.}
+
+Figure~\ref{DiffBind-normDESeq2LibFull} shows that normalizing for 
+sequencing depth alters the bias in signal enrichment towards the 
+Responsive samples only slightly, with the highest density closer to,
+but still below, the center line, and the bulk of the loess fit line
+in the lower half as well.
+ 
+The following code gathers the differentially bound
+sites in a variable \Rcode{dbs}, in which we will accumulate results
+in order to compare the results of different types of normalization:
+<<normRes1,eval=TRUE,echo=TRUE,results=verbatim>>=
+dbs <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
+dbs$config$factor <- "normalize"
+dbs$class[DBA_ID,] <- "LIB_Full"
+dbs$class[DBA_FACTOR,] <- DBA_NORM_LIB
+dbs
+@
+
+The analysis results reflects the bias towards enrichment in 
+the Responsive samples. Of \Sexpr{dba.show(dbs)$Intervals[1]} total sites
+identified as differentially bound, \Sexpr{dba.show(dbs)$Intervals[3]}
+exhibit greater binding affinity in the Responsive condition, while
+only  \Sexpr{dba.show(dbs)$Intervals[2]} are enriched in the Resistant
+condition.
+
+Compare this to the  \Rcode{MRN} normalization procedure native to
+\DESeq:
+<<normDESeq2MRNFull,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
+tamoxifen <- dba.normalize(tamoxifen, normalize=DBA_NORM_NATIVE,
+                           background=FALSE)
+tamoxifen <- dba.analyze(tamoxifen)
+dba.plotMA(tamoxifen, method=DBA_DESEQ2, sub="DESeq2:MRN:full")
+@
+\incfig{DiffBind-normDESeq2MRNFull}{1\textwidth}
+{MA plot showing results of analysis using MRN based normalization.}
+
+Figure~\ref{DiffBind-normDESeq2MRNFull} shows quite a different picture.
+More sites are close to the zero-fold center line, and the loess
+fit sits largely on top, if not slightly above, that line.
+The results of the analysis have changed substantially as well:
+
+<<normRes2,eval=TRUE,echo=TRUE,results=verbatim>>=
+db <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
+db$class[DBA_ID,] <- "MRN_Full"
+db$class[DBA_FACTOR,] <- DBA_NORM_MRN
+dbs <- dba.peakset(dbs, db)
+db
+@
+
+The \Sexpr{dba.show(dbs)$Intervals[4]} sites as identified as
+differentially bound in this analysis are much more evenly
+divided, with a few \emph{more} sites enriched in the Resistant
+condition (\Sexpr{dba.show(dbs)$Intervals[5]}) than in the
+Responsive condition {\Sexpr{dba.show(dbs)$Intervals[6]}}.
+We can compare overlaps between the analysis based
+on library size normalization vs MRN normalization:
+
+<<normDESeq2Comparison,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, height=12>>=
+par(mfrow=c(3,1))
+dba.plotVenn(dbs,c(1,4), main="Toal DB Sites")
+dba.plotVenn(dbs,dbs$masks$Gain,main="Gain in Resistant")
+dba.plotVenn(dbs,dbs$masks$Loss,main="Loss in Resistant")
+@
+\incfig{DiffBind-normDESeq2Comparison}{1\textwidth}
+{Venn diagrams showing overlaps of sites identified as differentially bound
+when using library size vs MRN normalization.}
+
+The \Rcode{MRN} normalization, while appropriate for RNA-seq analysis,
+has results in normalizing the data such that the binding changes
+are more evenly distributed between the two conditions.
+In Figure~\ref{DiffBind-normDESeq2Comparison}, the top plot
+shows there are \Sexpr{length(dba.overlap(dbs,c(1,4))$inAll)}
+sites identified in both analyses, with another
+\Sexpr{length(dba.overlap(dbs,c(1,4))$onlyA) +length(dba.overlap(dbs,c(1,4))$onlyB)}
+unique to on analysis or the other.
+The remaining diagrams show how the \Rcode{MRN}-based analysis
+identifies many additional sites that gain binding affinity in the 
+Resistant condition, while "missing" sites identified in the
+library-sized based analysis as being enriched in the Responsive condition.
+
+These two analyses could lead to quite different biological 
+conclusions regarding the dynamics of ER binding in response to tamoxifen.
+Which one should be favored?
+Given the nature of the experimental design
+for the example data, with both biological
+replication in the form of multiple cell lines as
+well as multiple experimental/technical replicates,
+and without having a prior reason to believe that changes
+in binding affinity should be balanced,
+it would be difficult to justify preferring the \Rcode{MRN}
+analysis as it is altering the data distribution to a greater extent.
+It is largely for this reason that a library-size normalization
+is set as the default method within \DBA.
+
+\subsection{Library size calculations}
+
+An important parameter involved in normalizing concerns the 
+calculation of library sizes.
+In the previous sub-section, the library size for each sample
+was set to the number of aligned reads in the bam file for that
+sample, representing the sequencing depth.
+This is the "full" library size is represented in \DBA as
+\Rcode{DBA\_LIBSIZE\_FULL} or \Rcode{"full"}.
+
+Another popular way of calculating the library size is to
+sum the reads that overlap consensus peaks in each sample (Reads in Peaks).
+within \DBA, this is known as
+\Rcode{DBA\_LIBSIZE\_PEAKREADS} or \Rcode{"RiP"}.
+This takes into account aspects of both the sequencing depth and the
+"efficiency" of the ChIP. 
+An inefficient ChIP, where a high proportion of the reads are not
+in enriched peaks (they are "background" reads), may not have
+a strong signal even if sequenced to a greater depth.
+
+We can compare the results of a library-size based normalization
+using the full library sizes, as in Figure~\ref{DiffBind-normDESeq2LibFull},
+with on using the reads in peaks:
+
+<<normDESeq2LibRiP,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
+tamoxifen <- dba.normalize(tamoxifen, normalize=DBA_NORM_LIB,
+                           library=DBA_LIBSIZE_PEAKREADS, background=FALSE)
+tamoxifen <- dba.analyze(tamoxifen)
+dba.plotMA(tamoxifen, method=DBA_DESEQ2, sub="DESeq2:lib:RiP")
+@
+\incfig{DiffBind-normDESeq2LibRiP}{1\textwidth}
+{MA Plot showing results of analysis using "RiP" for library-size
+normalization}
+
+Figure~\ref{DiffBind-normDESeq2LibRiP} shows how the a library-size 
+normalization based on peak reads differs from one based
+on sequencing depth alone.
+The normalization is more "even", in that most sites have similar read densities
+(and are closer to the blue, center zero-fold line), and the
+loess curve is no longer below the zero-fold line.
+The analysis itself show more balance between differentially bound sites
+that gain affinity in the two conditions:
+
+<<normRes3,eval=TRUE,echo=TRUE,results=verbatim>>=
+dbs$class[DBA_CONDITION,] <- DBA_LIBSIZE_FULL
+dbs$config$condition <- "lib.size"
+db <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
+db$class[DBA_ID,] <- "LIB_RiP"
+db$class[DBA_FACTOR,] <- DBA_NORM_LIB
+db$class[DBA_CONDITION,] <- DBA_LIBSIZE_PEAKREADS
+dbs <- dba.peakset(dbs, db)
+db
+@
+
+The numbers and ratios of the gain and loss sites look a lot more like the 
+previous \Rcode{MRN}-based analysis than the full library-size based analysis,
+as can be confirmed with a Venn 
+diagram:
+
+<<normDESeq2LibsizeVenn,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, height=7>>=
+dba.plotVenn(dbs,c(1,4,7),main="DB Sites")
+@
+\incfig{DiffBind-normDESeq2LibsizeVenn}{1\textwidth}
+{Venn diagram showing overlapping differentially bound sites identified in
+analyses using library-size normalization with full and reads-in-peaks
+library sizes, as well as \Rcode{MRN} normalization using full library sizes.}
+
+Figure~\ref{DiffBind-normDESeq2LibsizeVenn} shows the overlaps
+of the differentially bound sites from the tow library-size based
+analyses and the prior \Rcode{MRN} analysis.
+When using reads in peaks, the library-size analysis identifies
+many of the sites enriched in the Resistant group that the 
+\Rcode{MRN} analysis detected, as well as 
+\Sexpr{length(dba.overlap(dbs,c(1,4,7))$notB)} sites that are
+more enriched in the Responsive condition that the prior library-size based
+analysis identified but that the \Rcode{MRN} on did not.
+
+Since calculating library sizes using Reads in Peaks yields results that
+are similar to the \Rcode{MRN} method, identifying
+more and more balanced differentially bound peaks,
+it may be that taking ChIP
+efficiency into consideration, not just sequencing depth, is advantageous.
+However, there is no unbiased way to determine if the underlying
+cause if differences in reads overlapping consensus peaks is
+due to a technical issue in ChIP,
+or to a true biological signal whereby there "really" are different
+degrees of overall binding.
+
+In the current example, the fraction of reads in peaks (\Rcode{FRiP})
+is fairly consistent between replicates for each cell type, indicating
+that the differences are \emph{not} due to ChIP efficiency:
+
+<<frip,eval=TRUE,echo=TRUE,results=verbatim>>=
+dba.show(tamoxifen,attributes=c(DBA_ID,DBA_FRIP))
+@
+
+It is largely for this reason that full library sizes
+are set as the default library size within \DBA.
+
+The choice of library size does not only apply to the 
+\Rcode{DBA\_NORM\_LIB} normalization method,
+as the native methods also incorporate library size.
+For \DESeq, these are reflected in the computed normalization factors themselves,
+while \edgeR relies on an effective library size, which is the
+chosen raw library sizes multiplied by the calculated normalization factors.
+
+\subsection{Background normalization}
+ 
+Similar to the method proposed in the user guide for the 
+\Rpackage{csaw} package\cite{lun2016csaw}, 
+\DBA allows for \emph{background normalization}.
+Given the difficulty in differentiating between technical biases and 
+biological signal when attempting to normalize ChIP-seq
+data, the idea is to normalize based on a more neutral sample
+of reads.
+
+The core background normalization technique is to divide the
+genome into large bins and count overlapping reads.
+As the enrichment expected in ChIP-seq (and ATAC-seq) is expected
+to occur over relatively narrow intervals (roughly between 100bp and 600bp),
+it is expected that there should not be systematic differences in signals
+over much larger intervals (on the order of 10,000bp and greater).
+Any differences seen should be technical rather than biological, so
+it is safer to normalize based these differences.
+
+Note also that this type of background normalization
+is one of the methods recommended for 
+ATAC-seq analysis \cite{reske2020atac}.
+
+By specifying \Rcode{background=TRUE} in \Rcode{dba.normalize()},
+all chromosomes that contains peaks in the consensus set are divided
+into non-overlapping bins (default size 15,000bp) and reads counted.
+These can then be normalized using any of the normalization methods.
+While generally doing a library size based normalization will yield the same
+result as on the foreground, the native normalization methods
+can be applied to the background bins.
+
+For the example, include and \edgeR analyses
+(and its native \Rcode{TMM} normalization) to more closely
+track the analysis demonstrated in the \Rpackage{csaw} user guide. 
+Note also that computing background reads requires
+access to the full sequencing data (bam files);
+however the loaded  example objects include
+the results of calculating background reads and can be used as-is.
+
+<<normBG,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=16>>=
+data(tamoxifen_analysis)
+tamoxifen <- dba.normalize(tamoxifen, method=DBA_ALL_METHODS,
+                           normalize=DBA_NORM_NATIVE,
+                           background=TRUE)
+tamoxifen <- dba.analyze(tamoxifen, method=DBA_ALL_METHODS)
+dba.show(tamoxifen,bContrasts=TRUE)
+par(mfrow=c(2,1))
+dba.plotMA(tamoxifen, method=DBA_EDGER, sub="edgeR:TMM:background")
+dba.plotMA(tamoxifen, method=DBA_DESEQ2, sub="DESeq2:MRN:background")
+@
+\incfig{DiffBind-normBG}{1\textwidth}
+{MA Plots showing results of analysis using background reads and 
+(top) \Rcode{TMM} normalization with \edgeR and
+(bottom) \Rcode{MRN} normalization with \DESeq}
+
+Figure~\ref{DiffBind-normBG} shows the results of these analyses.
+While the loess fit line i smoother and closer to the zero fold change line,
+the sites identified as being differentially bound remain biased towards
+those with a loss of binding affinity in the Resistant condition.
+
+<<normBgRes,eval=TRUE,echo=TRUE,results=verbatim>>=
+db <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
+db$class[DBA_ID,] <- "MRN_BG"
+db$class[DBA_FACTOR,] <- DBA_NORM_MRN
+db$class[DBA_CONDITION,] <- DBA_LIBSIZE_BACKGROUND
+dbs <- dba.peakset(dbs, db)
+db
+@
+
+Of the \Sexpr{dba.show(db)$Intervals[1]} differentially bound sites,
+only \Sexpr{dba.show(db)$Intervals[2]} gain affinity in the Resistant
+condition, while \Sexpr{dba.show(db)$Intervals[3]} show a loss.
+This analysis is quite similar to the one carried out using
+full library size based normalization:
+
+<<normBGVenns,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, width=14,height=20>>= 
+par(mfcol=c(3,2))
+dba.plotVenn(dbs,c(1,10),   main="All Differentially Bound Sites")
+dba.plotVenn(dbs,c(2,11),   main="Gain in Resistant cells")
+dba.plotVenn(dbs,c(3,12),   main="Loss in Resistant cells")
+dba.plotVenn(dbs,c(1,10,5), main="All Differentially Bound Sies")
+dba.plotVenn(dbs,c(2,11,5), main="Gain in Resistant cells")
+dba.plotVenn(dbs,c(3,12,6), main="Loss in Resistant cells")
+@
+\incfig{DiffBind-normBGVenns}{1\textwidth}
+{Venn diagrams of overlapping differentially bound sites identified using
+full library size based normalization compared to background MRN and 
+Reads in Peaks MRN normalization}
+
+Figure~\ref{DiffBind-normBGVenns} illustrates the differences. 
+The left column compares the impact of full library size normalization to 
+that of background normalization, showing how the background normalization
+is even more conservative, identifying fewer sites that both gain
+and lose binding affinity.
+The right column includes the results of an analysis based 
+on the native \Rcode{MRN} normalization method for \DESeq,
+identifying many additional sites that gain binding affinity in the
+Resistant cells, while "missing" many sites that lose binding affinity in the
+Resistant cells.
+
+
+\subsection{Spike-in normalization}
+
+no code/plots
+
+\subsection{Parallel factor normalization}
+
+no code/plots
+
+\subsection{Offsets and loess normalization}
 --csaw
 
-\section{Example: Occupancy analysis and overlaps}
+% 
+% tamoxifen <- dba.normalize(tamoxifen, library=DBA_LIBSIZE_PEAKREADS,
+%                            offsets=TRUE)
+% tamoxifen <- dba.analyze(tamoxifen)
+% db <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
+% db$class[DBA_ID,] <- "RiP_loess"
+% db$class[DBA_FACTOR,] <- DBA_OFFSETS_LOESS
+% db$class[DBA_CONDITION,] <- DBA_LIBSIZE_PEAKREADS
+% dbs <- dba.peakset(dbs, db)
+% 
+% par(mfcol=c(2,2))
+% dba.plotMA(tamoxifen, th=0, bNormalized=FALSE, sub="RAW")
+% dba.plotMA(tamoxifen, method=DBA_DESEQ2, sub="DESeq2:loess:RiP")
+% 
+% tamoxifen <- dba.normalize(tamoxifen, library=DBA_LIBSIZE_FULL,
+%                            offsets=TRUE)
+% tamoxifen <- dba.analyze(tamoxifen)
+% db <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
+% db$class[DBA_ID,] <- "LIB_loess"
+% db$class[DBA_FACTOR,] <- DBA_OFFSETS_LOESS
+% db$class[DBA_CONDITION,] <- DBA_LIBSIZE_FULL
+% dbs <- dba.peakset(dbs, db)
+% dba.plotMA(tamoxifen, method=DBA_DESEQ2, sub="DESeq2:loess:Full")
+% 
+% tamoxifen <- dba.normalize(tamoxifen, method=DBA_EDGER,
+%                            library=DBA_LIBSIZE_PEAKREADS,
+%                            offsets=TRUE)
+% tamoxifen <- dba.analyze(tamoxifen, method=DBA_EDGER)
+% db <- dba.report(tamoxifen, method=DBA_EDGER, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
+% db$class[DBA_ID,] <- "RiP_loess_edgeR"
+% db$class[DBA_FACTOR,] <- DBA_OFFSETS_LOESS
+% db$class[DBA_CONDITION,] <- DBA_LIBSIZE_PEAKREADS
+% dbs <- dba.peakset(dbs, db)
+% dba.plotMA(tamoxifen, method=DBA_EDGER, sub="edgeR:loess:RiP")
 
-In this section, we look at the tamoxifen resistance ER-binding dataset in 
-some more detail,
-showing what a pure occupancy-based analysis would look like,
-and comparing it to the results obtained using the affinity data.
-For this we will start by re-loading the peaksets:
-
-<<eval=TRUE,echo=TRUE,results=hide>>=
-data(tamoxifen_peaks)
-@
-
-\subsection{Overlap rates}
-
-One reason to do an occupancy-based analysis is to determine
-what candidate sites should be used in a subsequent affinity-based analysis.
-In the example so far, we took all sites that were identified in peaks
-in at least two of the eleven peaksets, reducing the number of sites from
-\Sexpr{nrow(tamoxifen$merged)}
-overall to the
-\Sexpr{nrow(tamoxifen$binding)}
-sites used in the differential analysis.
-We could have used a more stringent criterion,
-such as only taking sites identified in five or six of the peaksets, 
-or a less stringent one, such as including all
-\Sexpr{nrow(tamoxifen$merged)}
-sites. In making the decision of what criteria to use many factors come into play,
-but it helps to get an idea of the rates at which the peaksets overlap
-(for more details on how overlaps are determined, see Section 7.2 on peak merging).
-A global overview can be obtained using the \Rcode{RATE} mode of the 
-\Rcode{dba.overlap} function as follows:
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
-olap.rate <- dba.overlap(tamoxifen,mode=DBA_OLAP_RATE)
-olap.rate
-@
-The returned data in \Rcode{olap.rate} is a vector containing the number of 
-peaks that appear in at least one, two, three, and so on up to all eleven peaksets.
-
-These values can be plotted to show the overlap rate drop-off curve:
-
-<<tamox_rate, fig=TRUE, include=FALSE, width=9, height=6 >>=
-plot(olap.rate,type='b',ylab='# peaks', xlab='Overlap at least this many peaksets')
-@
-\incfig{DiffBind-tamox_rate}{.66\textwidth}{Overlap rate plot.}
-{Shows how the number of overlapping peaks decreases as the overlap criteria
-becomes more stringent.
-X axis shows the number of peaksets in which the site is identified, 
-while the Y axis shows the number of overlapping sites.
-Generated by plotting the result of: 
-\Rcode{dba.overlap(tamoxifen,mode=DBA\_OLAP\_RATE)}}
-
-The rate plot is shown in Figure~\ref{DiffBind-tamox_rate}. 
-These curves typically exhibit a roughly geometric drop-off, 
-with the number of overlapping sites halving as the overlap criterion 
-become stricter by one site.
-When the drop-off is extremely steep, this is an indication that 
-the peaksets do not agree very well. 
-For example, if there are replicates you expect to agree, 
-there may be a problem with the experiment. 
-In the current example, peak agreement is high and the curve 
-exhibits a better than geometric drop-off.
-
-\subsection{Deriving consensus peaksets}
-When performing an overlap analysis, it is often the case that
-the overlap criteria are set stringently in order to lower noise and
-drive down false positives.\footnote{It is less clear that
-limiting the potential binding sites in this way is appropriate
-when focusing on affinity data, as the 
-differential binding analysis method will identify only sites that are
-significantly differentially bound, even if operating on peaksets
-that include incorrectly identified sites.}
-The presence of a peak in multiple peaksets is an indication that 
-it is a "real" binding site, in the sense of being 
-identifiable in a repeatable manner. 
-The use of biological replicates (performing the ChIP multiple times), 
-as in the tamoxifen dataset, can be used to guide derivation 
-of a consensus peakset. 
-Alternatively, an inexpensive but less powerful way to help accomplish 
-this is to use multiple peak callers for each ChIP dataset and 
-look for agreement between peak callers (\cite{li2011measuring}).
-
-Consider for example the standard (tamoxifen responsive) MCF7 cell line, 
-represented by three replicates in this dataset. How well do the replicates 
-agree on their peak calls? 
-The overlap rate for just the positive MCF7 samples can be isolated 
-using a \emph{sample mask}.
-A set of sample masks are automatically associated with a 
-\Rcode{DBA object} in the \Rcode{\$masks} field:
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
-names(tamoxifen$masks)
-@
-
-Arbitrary masks can be generated using the \Rcode{dba.mask} function,
-or simply by specifying a vector of peakset numbers.
-In this case, a mask that isolates the MCF7 samples can be generated 
-by combining to pre-defined masks (MCF7 and Responsive) and 
-passed into the \Rcode{dba.overlap} function:
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
-dba.overlap(tamoxifen,tamoxifen$masks$MCF7 & tamoxifen$masks$Responsive,
-            mode=DBA_OLAP_RATE)
-@
-
-There are
-\Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$MCF7 & tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)[3]}
-peaks (out of
-\Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$MCF7 & tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)[1]})
-identified in all three replicates.
-A finer grained view of the overlaps can be obtained with the
-\Rcode{dba.plotVenn} function:
-
-
-<<tamox_mcf7_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
-dba.plotVenn(tamoxifen, tamoxifen$masks$MCF7 & tamoxifen$masks$Responsive)
-@
-\incfig{DiffBind-tamox_mcf7_venn}{.66\textwidth}{Venn diagram showing
-how the ER peak calls for three replicates of responsive MCF7 cell line overlap.}
-{Generated by plotting the result of: 
-\Rcode{dba.venn(tamoxifen,tamoxifen\$masks\$MCF7 \& tamoxifen\$masks\$Responsive)}}
-
-The resultant plot is shown as Figure~\ref{DiffBind-tamox_mcf7_venn}.
-This plot shows the
-\Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$MCF7 & tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)[3]}
-consensus peaks identified as common to all replicates, but further breaks down 
-how the replicates relate to each other.
-The same can be done for each of the replicated cell line experiments, 
-and rather than applying a global cutoff (3 of 11), each cell line could be
-dealt with individually in deriving a final peakset.
-A separate consensus peakset for each of the replicated sample types can be 
-added to the DBA object using \Rcode{dba.peakset}:
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
-tamoxifen_consensus <- dba.peakset(tamoxifen, consensus=c(DBA_TISSUE,DBA_CONDITION),
-                                   minOverlap=0.66)
-@
-
-This adds a new consensus peakset for each set of samples that share the same 
-Tissue and Condition values. 
-The exact effect could be obtained by calling
-\Rcode{tamoxifen\_consensus <- dba.peakset(tamoxifen, consensus=-DBA\_REPLICATE)} 
-on the original set of peaks; this tells \DiffBind to generate a consensus 
-peakset for every set of samples that have identical metadata values 
-\emph{except} the Replicate number.
-
-From this, a new \Rclass{DBA} object can be generated consisting of 
-only the five consensus peaksets (the \$Consensus mask filters 
-peaksets previously formed using \Rcode{dba.peakset}) :
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
-tamoxifen_consensus <- dba(tamoxifen_consensus, mask=tamoxifen_consensus$masks$Consensus,
-                           minOverlap=1)
-tamoxifen_consensus
-@
-
-and an overall consensus peakset, that includes peaks identified in at 
-least two replicates of at least one sample group, can be identified:
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
-consensus_peaks <- dba.peakset(tamoxifen_consensus, bRetrieve=TRUE)
-@
-
-This consensus peakset could then be used as the basis for the 
-binding matrix used in \Rcode{dba.count}:
-
-\Rcode{tamoxifen <- dba.count(tamoxifen, peaks=consensus\_peaks)}
-
-Finally, consider an analysis where we wished to treat all five MCF7 samples 
-together to look for binding sites specific to that cell line irrespective of 
-tamoxifen resistant/responsive status.
-We can create consensus peaksets for each cell type,
-and look at how the resultant peaks overlap 
-(shown in Figure~\ref{DiffBind-tamox_lines_venn}):
-
-<<tamox_lines_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
-data(tamoxifen_peaks)
-tamoxifen <- dba.peakset(tamoxifen, consensus=DBA_TISSUE, minOverlap=0.66)
-dba.plotVenn(tamoxifen, tamoxifen$masks$Consensus)
-@
-\incfig{DiffBind-tamox_lines_venn}{.66\textwidth}{Venn diagram showing 
-how the consensus peaks for each cell type overlap.}
-{Generated by plotting the result of: 
-\Rcode{dba.venn(tamoxifen,tamoxifen\$masks\$Consensus)}}
-
-\subsection{A complete occupancy analysis: identifying sites unique to a sample group}
-
-Occupancy-based analysis, in addition to offering many ways of deriving
-consensus peaksets, can also be used to identify sites unique to a 
-group of samples. 
-This is analogous to, but not the same as, finding differentially bound sites.
-In these subsections, the two approaches are directly compared.
-
-Returning to the original tamoxifen dataset:
-
-<<eval=TRUE,echo=TRUE,results=hide>>=
-data(tamoxifen_peaks)
-@
-
-We can derive consensus peaksets for the Resistant and Responsive groups. 
-First we examine the overlap rates:
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
-dba.overlap(tamoxifen,tamoxifen$masks$Resistant,mode=DBA_OLAP_RATE)
-dba.overlap(tamoxifen,tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)
-@
-
-Requiring that consensus peaks overlap in at least one third of the samples 
-in each group results in
-\Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$Resistant,mode=DBA_OLAP_RATE)[2]}
-sites for the Resistant group and
-\Sexpr{dba.overlap(tamoxifen,tamoxifen$masks$Responsive,mode=DBA_OLAP_RATE)[3]}
-sites for the Responsive group:
-
-<<tamox_cons_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
-tamoxifen <- dba.peakset(tamoxifen, consensus=DBA_CONDITION, minOverlap=0.33)
-dba.plotVenn(tamoxifen,tamoxifen$masks$Consensus)
-@
-\incfig{DiffBind-tamox_cons_venn}{.66\textwidth}{Venn diagram showing how the
-ER peak calls for two response groups overlap.}
-{Generated by plotting the result of: 
-\Rcode{dba.plotVenn(tamoxifen, tamoxifen\$masks\$Consensus)}}
-
-Figure~\ref{DiffBind-tamox_cons_venn} shows that
-\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyA)}
-sites are unique to the Resistant group, and
-\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyB)}
-sites are unique to the Responsive group, with
-\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$inAll)}
-sites being identified in both groups (meaning in at least half the
-Resistant samples and at least three of the seven Responsive samples).
-If our primary interest is in finding binding sites that are different
-between the two groups, it may seem reasonable to consider the
-\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$inAll)}
-common sites to be uninteresting, and focus on the
-\Sexpr{nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyA) + nrow(dba.overlap(tamoxifen,tamoxifen$masks$Consensus,DataType=DBA_DATA_FRAME)$onlyB)}
-sites that are unique to a specific group. These unique sites can be obtained
-using \Rcode{dba.overlap}:
-
-<<eval=TRUE,echo=TRUE,results=hide>>=
-tamoxifen.OL <- dba.overlap(tamoxifen, tamoxifen$masks$Consensus)
-@
-
-The sites unique to the Resistant group are accessible in 
-\Rcode{tamoxifen.OL\$onlyA}, with the Responsive-unique sites in 
-\Rcode{tamoxifen.OL\$onlyB}:
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
-tamoxifen.OL$onlyA
-tamoxifen.OL$onlyB
-@
-
-
-The scores associated with each site are derived from the peak caller 
-confidence score, and are a measure of confidence in the peak call (occupancy), 
-not a measure of how strong or distinct the peak is.
-
-\subsection{Comparison of occupancy and affinity based analyses}
-
-So how does this occupancy-based analysis compare to the 
-previous affinity-based analysis?
-
-First, different criteria were used to select the overall consensus peakset.
-We can compare them to see how well they agree:
-
-<<tamox_compare_venn, fig=TRUE, include=FALSE, width=9, height=9 >>=
-tamoxifen <- dba.peakset(tamoxifen,tamoxifen$masks$Consensus,
-            minOverlap=1,sampID="OL Consensus")
-tamoxifen <- dba.peakset(tamoxifen,!tamoxifen$masks$Consensus,
-            minOverlap=3,sampID="Consensus_3")
-dba.plotVenn(tamoxifen,14:15)
-@
-\incfig{DiffBind-tamox_compare_venn}{.66\textwidth}{Venn diagram showing how 
-the ER peak calls for two different ways of deriving consensus peaksets.}
-{Generated by plotting the result of: \Rcode{dba.plotVenn(tamoxifen,14:15)}}
-
-Figure~\ref{DiffBind-tamox_compare_venn} shows that the two sets agree on 
-about 85\% of their sites, so the results should be directly comparable between 
-the differing parameters used to establish
-the consensus peaksets.\footnote{Alternatively,
-we could re-run the analysis using the newly derived consensus peakset by passing
-it into the counting function: 
-\Rcode{tamoxifen <- dba.count(tamoxifen, peaks=tamoxifen\$masks\$Consensus)}}
-
-Next re-load the affinity analysis:
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
+\subsection{Comparing the impact of normaliozaiton methods on analysis results}
+As can be seen, there are many possible ways of analyzing the same data
+when taking into account analysis methods (\DESeq and \edgeR),
+library size calculations (counting all sequencing reads or only those 
+that overlap consensus peaks), normalization methods 
+(\Rcode{MRN}, \Rcode{TMM}, or solely by library size), 
+and finally whether to normalize based on enriched versus background regions.
+The following code chunk cycles through all the possibilities and shows
+how these options are related:
+<<normCluster,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, width=12,height=12>>=
 data(tamoxifen_analysis)
+dbs.all <- NULL
+for(norm in c("lib","MRN","TMM", "loess")) {
+  for(libsize in c("full","RiP","background")) {
+    tam <- NULL
+    background <- offsets <- FALSE
+    if(libsize == DBA_LIBSIZE_BACKGROUND) {
+      background <- TRUE
+      if(norm == DBA_NORM_LIB) {
+        background <- NULL
+      }
+    } 
+    if(norm == "loess") {
+      offsets <- TRUE
+      if(libsize != "background") {
+        background <- FALSE
+      } else {
+        background <- NULL
+      }
+    }
+    if(!is.null(background)) {
+      tam <- dba.normalize(tamoxifen, method=DBA_ALL_METHODS,
+                           normalize=norm, library=libsize, 
+                           background=background, offsets=offsets)
+    }
+    if(!is.null(tam)) {
+      tam <- dba.analyze(tam, method=DBA_ALL_METHODS)
+      for(meth in DBA_ALL_METHODS) {
+        db <- dba.report(tam, method=meth, bDB=TRUE)
+        if(meth == DBA_EDGER) {
+          methstr <- "edgeR"
+        } else {
+          methstr <- "DESeq2"
+        }
+        if(is.null(dbs.all)) {
+          dbs.all <- db
+          dbs.all$config$factor    <- "normalize"
+          dbs.all$config$condition <- "lib.size"
+          dbs.all$config$treatment <- "method"
+          dbs.all$class[DBA_ID,]        <- paste(norm,libsize,methstr,sep="_")
+          dbs.all$class[DBA_FACTOR,]    <- norm
+          dbs.all$class[DBA_CONDITION,] <- libsize
+          dbs.all$class[DBA_TREATMENT,] <- "edgeR"
+        } else {
+          db$class[DBA_ID,]        <- paste(norm,libsize,methstr,sep="_")
+          db$class[DBA_FACTOR,]    <- norm
+          db$class[DBA_CONDITION,] <- libsize
+          db$class[DBA_TREATMENT,] <- methstr
+          dbs.all <- dba.peakset(dbs.all,db)
+        }
+      }
+    }
+  }
+}
+dbs.all <- dba(dbs.all,minOverlap=1)
+dba.plotHeatmap(dbs.all, bLog=FALSE)
+dba.plotPCA(dbs.all,c(DBA_TREATMENT,DBA_CONDITION), label=DBA_FACTOR)
 @
+\incfig{DiffBind-normCluster}{1\textwidth}
+{Clustering heatmap of correlations analyses using various 
+analysis, normalization, and library size methods}
 
-To compare the sites unique to each sample group identified from the occupancy analysis with those sites identified as differentially bound based on affinity (read count) data, we use a feature of \Rcode{dba.report} that facilitates evaluating the occupancy status of sites. Here we obtain a report of all the sites (\Rcode{th=1}) with occupancy statistics (\Rcode{bCalled=TRUE}):
+The primary division is between normalization strategies that
+are designed for RNA-seq and those that focus
+on a more neutral read distributions, particularly 
+background reads and full library size.
 
-<<eval=TRUE,echo=TRUE,results=hide>>=
-tamoxifen.rep <- dba.report(tamoxifen,bCalled=TRUE,th=1)
-@
-
-The \Rcode{bCalled} option adds two columns to the report (\Rcode{Called1} and \Rcode{Called2}), one for each group, giving the number of samples within the group in which the site was identified as a peak in the original peaksets generated by the peak caller. We can use these to recreate the overlap criteria used in the occupancy analysis:
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
-onlyResistant <- tamoxifen.rep$Called1>=2 & tamoxifen.rep$Called2<3
-sum(onlyResistant )
-onlyResponsive <- tamoxifen.rep$Called2>=3 &  tamoxifen.rep$Called1<2
-sum(onlyResponsive)
-bothGroups <- tamoxifen.rep$Called1>= 2 & tamoxifen.rep$Called2>=3
-sum(bothGroups)
-@
-
-Comparing these numbers verifies the similarity with those seen in Figure~\ref{DiffBind-tamox_cons_venn}, showing again how the basic analysis is not oversensitive to differences in how the consensus peaksets are formed.
-This overlap analysis suggests that
-\Sexpr{sum(onlyResistant)+sum(onlyResponsive)}
-of the sites are uniquely bound in either the Responsive or Resistant groups, while
-\Sexpr{sum(bothGroups)}
-sites are common to both.
-
-Completing a full differential analysis and focusing on only those sites identified as significantly differentially bound (FDR <= 0.1), however, shows a different story than that obtainable using only occupancy data:
-
-<<eval=TRUE,echo=TRUE,results=verbatim>>=
-tamoxifen.DB <- dba.report(tamoxifen,bCalled=TRUE)
-onlyResistant.DB <- tamoxifen.DB$Called1>=2 & tamoxifen.DB$Called2<3
-sum(onlyResistant.DB)
-onlyResponsive.DB <- tamoxifen.DB$Called2>=3 & tamoxifen.DB$Called1<2
-sum(onlyResponsive.DB)
-bothGroups.DB <- tamoxifen.DB$Called1>=2 & tamoxifen.DB$Called2>=3
-sum(bothGroups.DB)
-@
-
-There are a number of notable differences in the results.
-First, overall there are many fewer sites identified as differentially bound
-(\Sexpr{sum(onlyResistant.DB)}+\Sexpr{sum(onlyResponsive.DB)}+\Sexpr{sum(bothGroups.DB)} <-
-\Sexpr{length(tamoxifen.DB$Called1)})
-than are unique to one condition
-(\Sexpr{sum(onlyResistant)}+\Sexpr{sum(onlyResponsive)} =
-\Sexpr{sum(onlyResistant)+sum(onlyResponsive)}).
-Indeed, most of the sites identified in the occupancy analysis as unique to a
-sample group are not found to be significantly differentially bound using the affinity data.
-While partly this is a result of the stringency of the statistical tests,
-it shows how the affinity analysis can discriminate between sites where
-peak callers are making occupancy decisions that do not reflect significant differences
-in read densities at these sites.
-Note that only about
-\Sexpr{round(sum(sum(onlyResistant.DB), sum(onlyResponsive.DB))/sum(sum(onlyResistant),sum(onlyResponsive))*100)}\%
-of sites unique to one condition are identifiable as significantly differentially bound
-(\Sexpr{sum(onlyResistant.DB)}+\Sexpr{sum(onlyResponsive.DB)} =
-\Sexpr{sum(onlyResistant.DB) + sum(onlyResponsive.DB)}
-out of
-\Sexpr{sum(onlyResistant)+sum(onlyResponsive)}).
-Secondly, differentially bound sites are as likely to be called in the consensus
-of both response groups as they are to be unique to one group,
-as about 20\% of the total sites identified as significantly differentially bound
-(\Sexpr{sum(sum(onlyResistant.DB),sum(onlyResponsive.DB),sum(bothGroups.DB))})
-are called as peaks in \emph{both} response groups (\Sexpr{sum(bothGroups.DB)}).
-
-A final advantage of a quantitative analysis is that
-the differentially bound peaks identified using the affinity analysis
-are associated with significance statistics (p-value and FDR)
-that can be used to rank them for further examination,
-while the occupancy analysis yields a relatively unordered list of peaks,
-as the peak caller statistics refer only to the significance of occupancy,
-and not of differential binding.
-
-
+Within the cluster that use native normalization (or, in one case,
+highly enriched reads in consensus peaks), the results are similar
+and highly correlated. 
+These sub-cluster by analysis method (\DESeq vs \edgeR), 
+then further by normalization method (\Rcode{MRN} vs \Rcode{TMM}),
+and finally by library size method (full vs reads in peaks).
 
 \section{Backward compatibility with pre-version 3.0 analyses}
+\label{sec:backward}
 
 It is recommended that existing analyses be re-run with the current software.
 Existing scripts should execute (with the exception of two
@@ -1741,11 +1894,14 @@ is equivalent to \Rcode{bFullLibrarySize=FALSE}.
 \end{enumerate}
 
 \section{Technical notes}
+\label{sec:technical}
 
 This section includes some technical notes explaining some of the  
 technical details of \DBA processing.
 
 \subsection{Loading peaksets}
+\label{subsec:technical_peaksets}
+
 There are a number of ways to get peaksets loaded into a DBA object.
 Peaksets can be read in from files or loaded from interval sets already stored in an R object.
 Samples can be specified either in a sample sheet
@@ -1781,6 +1937,8 @@ an equivalent sample sheet with all the metadata fields is included, called "tam
 See the help page for \Rfunction{dba} for an example using this sample sheet.
 
 \subsection{Merging peaks}
+\label{subsec:technical_merging}
+
 When forming the global binding matrix consensus peaksets,
 \DBA first identifies all unique peaks amongst the relevant peaksets.
 As part of this process, it merges overlapping peaks,
@@ -1801,6 +1959,7 @@ Use of the "summits" parameter is recommended to control for this widening effec
 
 
 \subsection{Details of \Biocpkg{DESeq2} analysis}
+\label{subsec:technical_deseq2}
 
 When \Rfunction{dba.analyze} is invoked using the default method \Rcode{method=DBA\_DESEQ2}, 
 a standardized differential analysis is performed using the \Biocpkg{DESeq2}package (\cite{Love2014}).
@@ -1864,6 +2023,7 @@ Note that coefficient names can be retrieved by calling
 The fold changes used in subsequent reports and plots are those estimated from the \Rcode{results}.
 
 \subsection{Details of \Biocpkg{edgeR} analysis}
+\label{subsec:technical_edger}
 
 When \Rfunction{dba.analyze} is invoked using the 
 \Rcode{method=DBA\_EDGER}\footnote{Note that 
@@ -1917,50 +2077,78 @@ If the contrast was specified to \Rfunction{dba.contrast()}
 using values for each of the coefficients in the design matrix, those values are used.
 Otherwise, if the contrast was specified using a single character string
 containing a) the name of a specific column coefficient;
-b) a vector of three character strings representing a design \Rcode{Factor}, and two values for that Factor;
+b) a vector of three character strings representing a design \Rcode{Factor}, 
+and two values for that Factor;
 or c) list of one or two character strings representing coefficient names,
 a numeric vector of the same length as the number of coefficients is derived.
-Note that allowable coefficient names (which differ from those used internally by \Rpackage{edgeR}) 
+Note that allowable coefficient names (which differ from those used internally
+by \Rpackage{edgeR}) 
 can be retrieved by calling
 \Rfunction{dba.contrast()} with \Rcode{bRetrieveCoefficients=TRUE}.
 
 Finally, \Rfunction{edgeR::topTags} is called to retrieve the results of the test.
-The fold changes used in subsequent reports and plots are those estimated from the \Rcode{TopTags}.
+The fold changes used in subsequent reports and plots are those estimated 
+from the \Rcode{TopTags}.
 
 \section{Technical notes for versions prior to \DBA 3.0 (without an explicit model design)}
 
-Prior to version \Rcode{3.0}, \DBA did not offer a way to explicitly specify a model design. 
+Prior to version \Rcode{3.0}, \DBA did not offer a way to explicitly 
+specify a model design. 
 The technical details of how it performed analyses are described here.
 
 Note that these methods are still supported. 
 In order to conduct analyses in the former style, the user must call
 \Rcode{dba.contrast()} with \Rcode{design=FALSE}.
-Contrasts can be added either automatically or explicitly (specifying at least \Rcode{groups1}),
+Contrasts can be added either automatically or explicitly 
+(specifying at least \Rcode{groups1}),
 and a \Rcode{block}ing fact may also be specified.
 
 \subsection{\Biocpkg{DESeq2} analysis}
-When \Rfunction{dba.analyze} is invoked using the default method \Rcode{method=DBA\_DESEQ2}, a standardized differential analysis is performed using the \Biocpkg{DESeq2}package (\cite{Love2014}). This section details the precise steps in that analysis.
+When \Rfunction{dba.analyze} is invoked using the default method 
+\Rcode{method=DBA\_DESEQ2}, a standardized differential analysis is performed 
+using the \Biocpkg{DESeq2}package (\cite{Love2014}). 
+This section details the precise steps in that analysis.
 
 For each contrast, a separate analysis is performed. 
-First, a matrix of counts is constructed for the contrast, with columns for all the samples in the first group, followed by columns for all the samples in the second group. 
-The raw read count is used for this matrix; if the \Rcode{bSubControl} parameter is set to \Rcode{TRUE} (as it is by default), the raw number of reads in the control sample (if available) will be subtracted.
+First, a matrix of counts is constructed for the contrast, with columns 
+for all the samples in the first group, followed by columns for all the 
+samples in the second group. 
+The raw read count is used for this matrix; if the \Rcode{bSubControl} 
+parameter is set to \Rcode{TRUE} (as it is by default), 
+the raw number of reads in the control sample (if available) will be subtracted.
 Next the library size is computed for each sample for use in subsequent normalization. 
 By default, this is the total number of reads in the library 
 (calculated from the source BAM/BED file). 
 Alternatively, if the \Rcode{bFullLibrarySize} parameter is set to FALSE, 
 the total number of reads in peaks (the sum of each column) is used. 
-The first step concludes with a call to \Biocpkg{DESeq2}'s \Rfunction{DESeqDataSetFromMatrix} function, which returns a \Rclass{DESeqDataSet} object. 
+The first step concludes with a call to \Biocpkg{DESeq2}'s 
+\Rfunction{DESeqDataSetFromMatrix} function, 
+which returns a \Rclass{DESeqDataSet} object. 
 
-If \Rcode{bFullLibrarySize} is set to TRUE (default), then \Rfunction{sizeFactors} is called with the number of reads in the BAM/BED files for each ChIP sample, divided by the minimum of these; otherwise, \Rfunction{estimateSizeFactors} is invoked. 
+If \Rcode{bFullLibrarySize} is set to TRUE (default), 
+then \Rfunction{sizeFactors} is called with the number of reads in
+the BAM/BED files for each ChIP sample, divided by the minimum of these; 
+otherwise, \Rfunction{estimateSizeFactors} is invoked. 
 
-\Rfunction{estimateDispersions} is then called with the \Rclass{DESeqDataSet} object and \Rcode{fitType} set to \Rcode{local}. Next the model is fitted and tested using \Rfunction{nbinomWaldTest}.
-The final results (as a \Rclass{DESeqDataSet}) are accessible within the \Rclass{DBA} object as 
+\Rfunction{estimateDispersions} is then called with the 
+\Rclass{DESeqDataSet} object and \Rcode{fitType} set to \Rcode{local}. 
+Next the model is fitted and tested using \Rfunction{nbinomWaldTest}.
+The final results (as a \Rclass{DESeqDataSet}) are accessible within
+the \Rclass{DBA} object as 
 
 \Rcode{DBA\$contrasts[[n]]\$DESeq2\$DEdata} 
 
-and may be examined and manipulated directly for further customization. Note however that if you wish to use this object directly with \Biocpkg{DESeq2} functions, then the \Rcode{bReduceObjects} parameter should be set to FALSE, otherwise the default value of TRUE will result in essential object fields being stripped.
+and may be examined and manipulated directly for further customization.
+Note however that if you wish to use this object directly with
+\Biocpkg{DESeq2} functions, then the \Rcode{bReduceObjects} 
+parameter should be set to FALSE, otherwise the default value of TRUE
+will result in essential object fields being stripped.
 
-If a blocking factor has been added to the contrast, an additional \Biocpkg{DESeq2} analysis is carried out by setting the \Rcode{design} to include all the unique values for the blocking factor. This occurs before the dispersion values are calculated. The resultant \Rclass{DESeqDataSet} object is accessible as
+If a blocking factor has been added to the contrast, an additional 
+\Biocpkg{DESeq2} analysis is carried out by setting the \Rcode{design}
+to include all the unique values for the blocking factor. 
+This occurs before the dispersion values are calculated. 
+The resultant \Rclass{DESeqDataSet} object is accessible as
 
 \Rcode{DBA\$contrasts[[n]]\$DESeq2\$block\$DEdata}. 
 
@@ -1969,42 +2157,85 @@ When \Rfunction{dba.analyze} is invoked using the
 \Rcode{method=DBA\_EDGER}\footnote{Note that 
 \Biocpkg{edgeR} can be made the default analysis method for a DBA object by 
 setting \Rcode{DBA\$config\$AnalysisMethod=DBA\_EDGER}.}, 
-a standardized differential analysis is performed using the \edgeR package (\cite{Robinson:2010p249}). This section details the precise steps in that analysis.
+a standardized differential analysis is performed using the 
+\edgeR package (\cite{Robinson:2010p249}).
+This section details the precise steps in that analysis.
 
 For each contrast, a separate analysis is performed. 
-First, a matrix of counts is constructed for the contrast, with columns for all the samples in the first group, followed by columns for all the samples in the second group. 
-The raw read count is used for this matrix; if the \Rcode{bSubControl} parameter is set to \Rcode{TRUE} (as it is by default), the raw number of reads in the control sample (if available) will be subtracted (with a minimum final read count of 1). 
-Next the library size is computed for each sample for use in subsequent normalization. 
-By default, this is the total number of reads in the library (calculated from the source BAM//BED file).
-Alternatively, if the \Rcode{bFullLibrarySize} parameter is set to FALSE,the total number of reads in peaks (the sum of each column) is used. 
-Note that "effective" library size (\Rcode{bFullLibrarySize=FALSE}) may be more appropriate for situations when the overall signal (binding rate) is expected to be directly comparable between the samples.
-Next comes a call to \edgeR's \Rfunction{DGEList} function. The \Rclass{DGEList} object that results is next passed to \Rcode{calcNormFactors} with \Rcode{method="TMM"} and \Rcode{doWeighting=FALSE}, returning an updated \Rcode{DGEList} object. 
+First, a matrix of counts is constructed for the contrast, with columns for 
+all the samples in the first group, followed by columns for all the
+samples in the second group. 
+The raw read count is used for this matrix; if the \Rcode{bSubControl} 
+parameter is set to \Rcode{TRUE} (as it is by default), 
+the raw number of reads in the control sample (if available) 
+will be subtracted (with a minimum final read count of 1). 
+Next the library size is computed for each sample for use in 
+subsequent normalization. 
+By default, this is the total number of reads in the library 
+(calculated from the source BAM//BED file).
+Alternatively, if the \Rcode{bFullLibrarySize} parameter is set to FALSE,
+the total number of reads in peaks (the sum of each column) is used. 
+Note that "effective" library size (\Rcode{bFullLibrarySize=FALSE})
+may be more appropriate for situations when the overall signal (binding rate) 
+is expected to be directly comparable between the samples.
+Next comes a call to \edgeR's \Rfunction{DGEList} function.
+The \Rclass{DGEList} object that results is next passed to 
+\Rcode{calcNormFactors} with \Rcode{method="TMM"} and 
+\Rcode{doWeighting=FALSE}, returning an updated \Rcode{DGEList} object. 
 This is passed to \Rcode{estimateCommonDisp} with default parameters. 
 
-If the method is \Rcode{DBA\_EDGER\_CLASSIC}, then if \Rcode{ bTagwise} is TRUE (most useful when there are at least three members in each group of a contrast), the resulting \Rclass{DGEList} object is then passed to \Rcode{estimateTagwiseDisp}, with the prior set to 50 divided by two less than the total number of samples in the contrast, and \Rcode{trend="none"}. 
-The final steps are to perform testing to determine the significance measure of the differences between the sample groups by calling \Rfunction{exactTest} (\cite{RobinsonandSmyth}) using the \Rclass{DGEList} with the \Rcode{dispersion} set based on the \Rcode{bTagwise} parameter.
+If the method is \Rcode{DBA\_EDGER\_CLASSIC}, then if \Rcode{ bTagwise} 
+is TRUE (most useful when there are at least three members in 
+each group of a contrast), the resulting 
+\Rclass{DGEList} object is then passed to \Rcode{estimateTagwiseDisp},
+with the prior set to 50 divided by two less than the total number of
+samples in the contrast, and \Rcode{trend="none"}. 
+The final steps are to perform testing to determine the significance measure 
+of the differences between the sample groups by calling 
+\Rfunction{exactTest} (\cite{RobinsonandSmyth}) using the \Rclass{DGEList}
+with the \Rcode{dispersion} set based on the \Rcode{bTagwise} parameter.
 
-If the method is \Rcode{DBA\_EDGER\_GLM} (the default), then a a design matrix is generated with two coefficients (the Intercept and one of the groups).
-Next  \Rfunction{estimateGLMCommonDisp} is called; if \Rcode{bTagwise=TRUE},  \Rfunction{estimateGLMTagwiseDisp} is called as well. 
-The model is fitted by calling \Rfunction{glmFit}, and the specific contrast fitted by calling \Rfunction{glmLRT}, specifying that the second coefficient be dropped.
-Finally, an \Rfunction{exactTest} (\cite{McCarthyetal}) is performed, using either common or tagwise dispersion depending on the value specified for \Rcode{bTagwise}.
+If the method is \Rcode{DBA\_EDGER\_GLM} (the default), 
+then a a design matrix is generated with two coefficients
+(the Intercept and one of the groups).
+Next  \Rfunction{estimateGLMCommonDisp} is called; 
+if \Rcode{bTagwise=TRUE},  
+\Rfunction{estimateGLMTagwiseDisp} is called as well. 
+The model is fitted by calling \Rfunction{glmFit}, 
+and the specific contrast fitted by calling \Rfunction{glmLRT}, 
+specifying that the second coefficient be dropped.
+Finally, an \Rfunction{exactTest} (\cite{McCarthyetal}) is performed, 
+using either common or tagwise dispersion depending on the value 
+specified for \Rcode{bTagwise}.
 
-This final  \Rclass{DGEList} for contrast n is stored in the \Rclass{DBA} object as 
+This final  \Rclass{DGEList} for contrast n is stored in the
+\Rclass{DBA} object as 
 
 \Rcode{DBA\$contrasts[[n]]\$edgeR} 
 
-and may be examined and manipulated directly for further customization. Note however that if you wish to use this object directly with \edgeR functions, then the \Rcode{bReduceObjects} parameter should be set to FALSE, otherwise the default value of TRUE will result in essential object fields being stripped.
+and may be examined and manipulated directly for further customization.
+Note however that if you wish to use this object directly with \edgeR functions,
+then the \Rcode{bReduceObjects} parameter should be set to FALSE, 
+otherwise the default value of TRUE will result in essential object fields being stripped.
 
-If a blocking factor has been added to the contrast, an additional \edgeR analysis is carried out. 
-This follows the \Rcode{DBA\_EDGER\_GLM} case detailed above, except a more complex design matrix is generated that includes all the unique values for the blocking factor. These coefficients are all included in the \Rfunction{glmLRT} call.  The resultant object is accessible as
+If a blocking factor has been added to the contrast, an additional 
+\edgeR analysis is carried out. 
+This follows the \Rcode{DBA\_EDGER\_GLM} case detailed above, 
+except a more complex design matrix is generated that includes all the
+unique values for the blocking factor. 
+These coefficients are all included in the \Rfunction{glmLRT} call. 
+The resultant object is accessible as
 
 \Rcode{DBA\$contrasts[[n]]\$edgeR\$block}. 
 
-
 \section{Vignette Data}
-Due to space limitations, the aligned reads associated with the cell line data used in this vignette are not included as part of the \DiffBind package. 
+\label{sec:vignette_data}
 
-Data for the vignette are available for download at \url{http://DiffBind.starkhome.com}.
+Due to space limitations, the aligned reads associated with the cell line data 
+used in this vignette are not included as part of the \DiffBind package. 
+
+Data for the vignette are available for download at 
+\url{http://https://www.cruk.cam.ac.uk/core-facilities/bioinformatics-core/software/diffbind}.
 
 The full data for all chromosomes are also available in the Short Read Archive
 (GEO accession number GSE32222).

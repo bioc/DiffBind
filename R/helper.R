@@ -118,6 +118,10 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
       pv <- dba(pv)
    }
    
+   if(nrow(pv$class) < PV_SPIKEIN) {
+      pv$class <- rbind(pv$class, Spikein=NA)
+   }
+   
    return(pv)
 }
 
@@ -807,7 +811,8 @@ pv.peakset_all <- function(pv, addpv, minOverlap) {
                        reads       = addpv$class[PV_READS,i],
                        consensus   = addpv$class[PV_CONSENSUS,i],
                        readBam     = addpv$class[PV_BAMREADS,i],
-                       controlBam  = addpv$class[PV_BAMCONTROL,i]
+                       controlBam  = addpv$class[PV_BAMCONTROL,i],
+                       spikein     = addpv$class[PV_SPIKEIN,i]
       )
    }
    

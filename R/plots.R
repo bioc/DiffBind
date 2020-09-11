@@ -3,14 +3,38 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
                          cex=.15,bSignificant=TRUE, bSmooth=TRUE, bFlip=FALSE,
                          xrange, yrange, bLoess=TRUE, ...) {
   
+  noreport <- FALSE
   if(missing(contrast)){
     contrast <- 1:length(pv$contrasts)
-  } else {
-    if(max(contrast) > length(pv$contrasts)) {
-      stop('Specified contrast number is greater than number of contrasts',call.=FALSE)
-      return(NULL)
+  } else if(is(contrast,"list")){
+    noreport <- TRUE
+    group1 <- contrast[[1]]
+    name1 <- names(contrast)[1]
+    if(!is(group1,"logical")) {
+      g1 <- rep(FALSE,length(pv$peaks))
+      g1[group1] <- TRUE
+      group1 <- g1
     }
+    if(length(contrast) == 2) {
+      group2 <- contrast[[2]]
+      name2 <- names(contrast)[2]
+      if(!is(group2,"logical")) {
+        g1 <- rep(FALSE,length(pv$peaks))
+        g1[group2] <- TRUE
+        group2 <- g1
+      }
+    } else if (length(contrast) == 1) {
+      group2 <- !group1
+      name2  <- paste("!",name1,sep="")
+    } else {
+      stop("If contrast is a list, if muct be of length 1 or 2",call.=FALSE)
+    }
+    contrast <- contrast[1]
+  } else if(max(contrast) > length(pv$contrasts)) {
+    stop('Specified contrast number is greater than number of contrasts',call.=FALSE)
+    return(NULL)
   }
+  
   
   plotfun <- plot
   if (bSmooth) {
@@ -20,25 +44,42 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
   numSites <- nrow(pv$binding)
   
   for(con in 1:length(contrast)) {
-    conrec <- pv$contrasts[[contrast[con]]]
-    name1 <- conrec$name1
-    name2 <- conrec$name2
+    if(noreport) {
+      conrec <- NULL
+      conrec$group1 <- group1
+      conrec$group2 <- group2
+      conrec$name1  <- name1
+      conrec$name2  <- name2
+    } else {
+      conrec <- pv$contrasts[[contrast[con]]]
+      name1 <- conrec$name1
+      name2 <- conrec$name2
+    }
     if(bFlip) {
       name1 <- conrec$name2
       name2 <- conrec$name1   
     }
     for(meth in method) {
-      res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=TRUE,
-                          th=100,bNormalized=bNormalized,bFlip=bFlip,precision=0)
+      if(noreport) {
+        res <- pv.countsMA(pv, meth, conrec, bNormalized)
+      } else {
+        res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=TRUE,
+                            th=100,bNormalized=bNormalized,bFlip=bFlip,precision=0)
+      }
       if(!is.null(res)) {
-        if(bUsePval) {
-          idx <- res$"p-value" <= th
-          tstr <- "p"
+        if(noreport) {
+          bSignificant <- FALSE
+          idx <- rep(FALSE, length(res$Fold))
         } else {
-          idx <- res$FDR <= th
-          tstr <- "FDR"
+          if(bUsePval) {
+            idx <- res$"p-value" <= th
+            tstr <- "p"
+          } else {
+            idx <- res$FDR <= th
+            tstr <- "FDR"
+          }
+          idx <- idx & (abs(res$Fold) >= fold)
         }
-        idx <- idx & (abs(res$Fold) >= fold)
         if(bMA){
           if(missing(xrange)) {
             xmin  <- floor(min(res$Conc))
@@ -62,13 +103,19 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
           }
           
           constr <- pv.getContrastString(conrec)
-          if(facname=="") {
-            mainstr <- sprintf('%s (%s %s < %1.3f)', 
-                               constr,sum(idx),tstr,th) 
+          
+          if(is(res,"list")) {
+            mainstr <- constr
           } else {
-            mainstr <- sprintf('%s: %s (%s %s < %1.3f)', 
-                               facname, constr,sum(idx),tstr,th)               
+            if(facname=="") {
+              mainstr <- sprintf('%s (%s %s < %1.3f)', 
+                                 constr,sum(idx),tstr,th) 
+            } else {
+              mainstr <- sprintf('%s: %s (%s %s < %1.3f)', 
+                                 facname, constr,sum(idx),tstr,th)               
+            }
           }
+          
           if(is.null(conrec$group1)) {
             ylabstr <- sprintf('log Fold Change')
           } else {
@@ -108,8 +155,13 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
           stop('Can not plot XY for complex contrast.',call.=FALSE)
         }
         if(missing(xrange)) {
-          xmin  <- floor(min(res[,5]))
-          xmax  <- ceiling(max(res[,5]))
+          if(is(res,"list")) {
+            xmin <- floor(min(res$Con1))
+            xmax <- ceiling(max(res$Con1))
+          } else {
+            xmin  <- floor(min(res[,5]))
+            xmax  <- ceiling(max(res[,5]))
+          }
         } else {
           if (length(xrange) != 2) {
             stop("xrange must be vector of two numbers",call.=FALSE)
@@ -118,8 +170,13 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
           xmax <- xrange[2]
         }
         if(missing(yrange)) {
-          ymin  <- floor(min(res[,6]))
-          ymax  <- ceiling(max(res[,6]))
+          if(is(res,"list")) {
+            ymin <- floor(min(res$Con2))
+            ymax <- ceiling(max(res$Con2))
+          } else {
+            ymin  <- floor(min(res[,6]))
+            ymax  <- ceiling(max(res[,6]))
+          }
         } else {
           if (length(yrange) != 2) {
             stop("yrange must be vector of two numbers",call.=FALSE)
@@ -130,26 +187,119 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
         xymin <- min(xmin,ymin)
         xymin <- max(xymin,0)
         xymax <- max(xmax,ymax)
+        
         constr <- pv.getContrastString(conrec)
-        if(facname=="") {
-          mainstr <- sprintf('%s (%s %s < %1.3f)', 
-                             constr,sum(idx),tstr,th) 
+        
+        if(is(res,"list")) {
+          mainstr <- constr
+          xvals <- res$Con1
+          yvals <- res$Con2
         } else {
-          mainstr <- sprintf('%s: %s (%s %s < %1.3f)', 
-                             facname, constr,sum(idx),tstr,th)               
+          xvals <- res[,5]
+          yvals <- res[,6]
+          if(facname=="") {
+            mainstr <- sprintf('%s (%s %s < %1.3f)', 
+                               constr,sum(idx),tstr,th) 
+          } else {
+            mainstr <- sprintf('%s: %s (%s %s < %1.3f)', 
+                               facname, constr,sum(idx),tstr,th)               
+          }
         }
-        plotfun(res[!idx,6],res[!idx,5],pch=20,cex=cex,col=crukBlue,
+        
+        plotfun(yvals[!idx], xvals[!idx], pch=20,cex=cex,col=crukBlue,
                 xaxp=c(xymin,xymax,xymax-xymin),xlim=c(xymin,xymax),
                 xlab=sprintf('log concentration :%s',name2),
                 yaxp=c(xymin,xymax,(xymax-xymin)),ylim=c(xymin,xymax),
                 ylab=sprintf('log concentration :%s',name1),
                 main=mainstr,...)
-        points(res[idx,6],res[idx,5],pch=20,cex=cex,col=crukMagenta)
+        points(yvals[idx],xvals[idx],pch=20,cex=cex,col=crukMagenta)
         abline(0,1,col='red')
+        
       }
     }
   }      	
 }	
+
+pv.countsMA <- function(pv, method, contrast, bNormalized=FALSE) {
+  
+  if(bNormalized) {
+    
+    design <- pv$design
+    if(is.null(design)) {
+      pv$design <- "~1"
+    }
+    
+    if(method == DBA_DESEQ2) {
+      
+      if(is.null(pv$norm$DESeq2)) {
+        pv <- dba.normalize(pv, method=DBA_DESEQ2, background=FALSE)
+      }
+      
+      if(is.null(pv$DESeq2$DEdata)) {
+        dedata <- pv.DEinitDESeq2(pv,
+                                  bSubControl=pv$norm$DESeq2$bSubControl,
+                                  bFullLibrarySize=pv$norm$DESeq2$lib.sizes,
+                                  filter=pv$norm$DESeq2$filter.val,
+                                  filterFun=pv$norm$DESeq2$filter.fun) 
+      } else {
+        dedata <- pv$DESeq2$DEdata
+      }
+      counts <- DESeq2::counts(dedata, normalized = bNormalized)
+      
+    } else if(method == DBA_EDGER) {
+      
+      if(is.null(pv$norm$edgeR)) {
+        pv <- dba.normalize(pv, method=DBA_EDGER, background=FALSE)
+      }
+      
+      if(is.null(pv$edgeR$DEdata)) {
+        dedata <- pv.DEinitedgeR(pv,
+                                 bSubControl=pv$norm$edgeR$bSubControl,
+                                 filter=pv$norm$edgeR$filter.val,
+                                 filterFun=pv$norm$edgeR$filter.fun)
+      } else {
+        dedata <-pv$norm$edgeR 
+      }
+      counts <- pv.edgeRCounts(pv,method,bNormalized)
+    }
+    counts <- cbind(counts[,contrast$group1], counts[,contrast$group2])
+    pv$design <- design
+  } else {
+    counts <- pv.DEinit(pv,contrast$group1, contrast$group2, bRawCounts=TRUE)
+  }
+  
+  num1 <- sum(contrast$group1)
+  num2 <- sum(contrast$group2)
+  samps <- num1 + num2
+  
+  conc <- log2(apply(counts,1,mean))
+  
+  if(num1>1) {
+    con1 <- log2(apply(counts[,1:num1],1,mean))
+  } else {
+    con1 <- log2(counts[,1])
+  }
+  
+  if(num2>1) {
+    con2 <- log2(apply(counts[,(num1+1):ncol(counts)],1,mean))
+  } else {
+    con2 <- log2(counts[,num1+1])
+  }
+  
+  con1[con1<0] <- 0
+  con2[con2<0] <- 0
+  conc[conc<0] <- 0
+  
+  fold <- con1 - con2
+  
+  res <- NULL
+  res$Conc <- conc
+  res$Fold <- con1 - con2
+  res$Con1 <- con1
+  res$Con2 <- con2
+  
+  return(res)
+}
 
 pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
                               bUsePval=FALSE,fold=0,facname="",
@@ -390,7 +540,7 @@ pv.plotHeatmap <-
         domap,labCol = collab,col = cols,trace = "none",labRow = rowlab,KeyValueName =
           "Score",
         distfun = function(x)
-          Dist(x,method = distMeth),
+          amap::Dist(x,method = distMeth),
         ColSideColors = colatts,NumColSideColors = colcols,
         ...
       )
@@ -400,7 +550,7 @@ pv.plotHeatmap <-
           domap,labCol = collab,col = cols,trace = "none",labRow = rowlab, 
           KeyValueName ="Correlation",
           distfun = function(x)
-            Dist(x,method = distMeth),symm = TRUE,revC = TRUE,Colv = TRUE,
+            amap::Dist(x,method = distMeth),symm = TRUE,revC = TRUE,Colv = TRUE,
           RowSideColors = rowatts,ColSideColors = colatts,NumRowSideColors =
             rowcols,NumColSideColors = colcols,
           ...

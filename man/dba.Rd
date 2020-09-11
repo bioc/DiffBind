@@ -55,6 +55,7 @@ Must be unique for each sample.}
 \item {\code{Replicate:}}	{Replicate number of sample}
 \item {\code{bamReads:}}	{file path for bam file containing aligned reads for ChIP sample}
 \item {\code{bamControl:}}	{file path for bam file containing aligned reads for control sample}
+\item {\code{Spikein:}}	{file path for bam file containing aligned spike-in reads}
 \item {\code{ControlID:}}	{Identifier string for control sample}
 \item {\code{Peaks:}}	{path for file containing peaks for sample. format determined by PeakCaller field or caller parameter}
 \item {\code{PeakCaller:}}	{Identifier string for peak caller used. 

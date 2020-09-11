@@ -188,21 +188,6 @@ pv.DEinit <- function(pv,mask1,mask2,group1=1,group2=2,method='edgeR',
       
       normfacs <- NULL
       
-      # if(!is.null(pv$norm$edgeR)) {
-      #   message("edgeR: Ignoring lib.size from dba.normalize()")
-      #   libsize <- pv$norm$edgeR$lib.sizes
-      # } else {
-      #   message("edgeR: NO lib.size from dba.normalize()")
-      # }
-      # 
-      # if(!is.null(pv$norm$edgeR)) {
-      #   message("edgeR: Ignoring norm.factors from dba.normalize()")
-      #   normfacs <- pv$norm$edgeR$norm.facs
-      # } else {
-      #   message("edgeR: NO norm.factors from dba.normalize()")
-      #   normfacs <- NULL
-      # }
-      
       res <- edgeR::DGEList(counts,lib.size=libsize,norm.factors=normfacs,
                             group=groups,genes=as.character(1:nrow(counts)))
       rownames(res$counts) <- 1:nrow(res$counts)

@@ -37,14 +37,6 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
     facs   <- c(facs,1:sum(group2))
   }
   
-  # if(is.null(pv$filter)) {
-  #   filter    <- 0
-  #   filterFun <- NULL
-  # } else {
-  #   filter    <- pv$filter
-  #   filterFun <- pv$filterFun
-  # }
-  
   if(method=='edgeR' || method=='edgeRGLM'){
     if(is.null(con$edgeR) || is(con$edgeR,"try-error")) {
       stop('edgeR analysis has not been run for this contrast',call.=FALSE)
@@ -282,7 +274,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
     con2[con2<0] <- 0
     conc[conc<0] <- 0
     
-    if(is.null(data$fold)) {
+    if(!bNormalized || is.null(data$fold)) {
       fold <- con1 - con2
     } else {
       fold <- data$fold[keep]
@@ -667,11 +659,16 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
     warning('No valid contrasts/methods specified.',call.=FALSE)	
   }
   
+  res$config <- DBA$config
   res$config$id        <- "Contrast"
   res$config$factor    <- "DB"
   res$config$tissue    <- "Direction"
   res$config$condition <- "Method"
   res$config$treatment <- "Block"
+  
+  res <- pv.model(res, minOverlap=1)
+  res <- pv.ResetScores(res, ones=FALSE)
+  class(res) <- "DBA"
   
   return(res)	
   
@@ -781,4 +778,26 @@ pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
   }    
   
   return(res)	
+}
+
+pv.ResetScores <- function(pv, ones=FALSE){
+  
+  binding <- pv$binding[,1:3]
+  binding[,1] <- pv$chrmap[binding[,1]]
+  binding <- GRanges(data.frame(binding))
+  GenomicRanges::mcols(binding) <- pv$binding[,4:ncol(pv$binding)]
+  
+  for(i in 1:length(pv$peaks)) {
+    peaks <- GRanges(data.frame(pv$peaks[[i]]))
+    matches <- which(binding %over% peaks)
+    scores <- pv$peaks[[i]]$Score
+    if(ones==TRUE) {
+      scores[scores<1] <- -1
+      scores[scores>1] <-  1
+    }
+    GenomicRanges::mcols(binding)[matches,i] <- scores
+  }
+  
+  pv$binding[,4:ncol(pv$binding)] <- as.matrix(GenomicRanges::mcols(binding))
+  return(pv)
 }

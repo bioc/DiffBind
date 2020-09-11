@@ -43,6 +43,7 @@ PV_BAMCONTROL <- 11
 PV_TREATMENT  <- 12
 PV_INTERVALS  <- 13
 PV_SN_RATIO   <- 14
+PV_SPIKEIN    <- 13
 
 PV_DEBUG <- FALSE
 
@@ -109,7 +110,8 @@ pv.list <- function(pv,mask,bContrasts = FALSE, bDesign=FALSE,
     bSN <- FALSE
   
   
-  res <- t(pv$class[attributes,mask])
+  res <- matrix(pv$class[attributes,mask], sum(mask), length(attributes),
+                byrow=TRUE)
   colnames(res) <- sapply(attributes,pv.attname,pv)
   rownames(res) <- which(mask)
   
@@ -126,8 +128,15 @@ pv.list <- function(pv,mask,bContrasts = FALSE, bDesign=FALSE,
   
   if(PV_READS %in% attributes) {
     movecol <- which(attributes %in% PV_READS)
+    cols <- colnames(res)
     res <- cbind(res,res[,movecol])
     res <- res[,-movecol]
+    if(is.null(dim(res))) {
+      cols <- cols[-movecol]
+      cols <- c(cols, "Reads")
+      res <- matrix(res,1,length(res))
+      colnames(res) <- cols
+    }
     colnames(res)[ncol(res)] <- "Reads"
   }
   
@@ -254,6 +263,7 @@ pv.consensus <- function(pv,sampvec,minOverlap = 2,
     consensus    =  TRUE,
     readBam      =  pv.getoneorNA(pv$class[PV_BAMREADS, sampvec]),
     controlBam   =  pv.getoneorNA(pv$class[PV_BAMCONTROL, sampvec]),
+    spikein      =  pv.getoneorNA(pv$class[PV_SPIKEIN, sampvec]),
     scoreCol     =  0
   )
   
@@ -266,7 +276,7 @@ pv.consensus <- function(pv,sampvec,minOverlap = 2,
 
 pv.consensusSets <- function(pv,peaks = NULL,minOverlap,attributes,
                              tissue,factor,condition,treatment,replicate,control,peak.caller,
-                             readBam, controlBam)	{
+                             readBam, controlBam, spikein)	{
   if (is.character(peaks)) {
     stop(
       "\"peaks\" parameter can not be a filename when \"consensus\" specifies attributes",
@@ -370,6 +380,8 @@ pv.consensusSets <- function(pv,peaks = NULL,minOverlap,attributes,
         pv$class[PV_BAMREADS,sampnum]   <- readBam
       if (!missing(controlBam))
         pv$class[PV_BAMCONTROL,sampnum] <- controlBam
+      if (!missing(spikein))
+        pv$class[PV_SPIKEIN,sampnum]    <- spikein
     }
   }
   

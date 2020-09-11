@@ -31,6 +31,11 @@ pv.load <- function(file='model',dir='Robjects',pre='pv_',ext='RData') {
          }
       }
    }
+   
+   if(nrow(DBAobject$class) < PV_SPIKEIN) {
+      DBAobject$class <- rbind(DBAobject$class, Spikein=NA)
+   }
+   
    return(DBAobject)
 }
 
@@ -94,7 +99,7 @@ pv.loadPre3 <- function(pv) {
                           filter = filtval,filterFun = filtFun)
    } else {
       pv <- dba.normalize(pv, method = DBA_DESEQ2, 
-                          normalize = DBA_NORM_RLE,
+                          normalize = DBA_NORM_MRN,
                           library = DBA_LIBSIZE_PEAKREADS, 
                           bSubControl = bSubControlD,
                           filter = filtval,filterFun = filtFun)      
@@ -108,7 +113,7 @@ pv.loadPre3 <- function(pv) {
                           filter = filtval,filterFun = filtFun)
    } else {
       pv <- dba.normalize(pv, method = DBA_EDGER,
-                          normalize = DBA_NORM_RLE,
+                          normalize = DBA_NORM_TMM,
                           library = DBA_LIBSIZE_PEAKREADS, 
                           bSubControl = bSubControlE,
                           filter = filtval,filterFun = filtFun)      

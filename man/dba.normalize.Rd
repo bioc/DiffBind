@@ -6,14 +6,15 @@ Specify parameters for normalizing a dataset;
 calculate library sizes and normalization factors.
 }
 \description{
-Enables normalization of datasets using a variety of normalization methods.
+Enables normalization of datasets using a variety of  methods,
+including background, spike-in, and parallel factor normalization.
 Alternatively, allows a user to specify library sizes 
 and normalization factors directly, or retrieve computed ones.
 }
 \usage{
 dba.normalize(DBA, method = DBA$config$AnalysisMethod,
               normalize = DBA_NORM_DEFAULT, library = DBA_LIBSIZE_DEFAULT, 
-              background, offsets = FALSE, 
+              background = FALSE, spikein = FALSE, offsets = FALSE,
               bSubControl = is.null(DBA$greylist),
               filter=5, filterFun=max, libFun=mean,
               bRetrieve=FALSE, ...)
@@ -35,7 +36,6 @@ Supported methods:
 }
 }
 
-
   \item{normalize}{
 Either user-supplied normalization factors in a numeric vector,
 or a specification of a method to use to calculate normalization factors.
@@ -43,15 +43,15 @@ or a specification of a method to use to calculate normalization factors.
 
 Methods can be specified using one of the following:
  \itemize{
-   \item{\code{DBA_NORM_RLE} ("RLE")} 
-   {RLE normalization (native to \code{DBA_DESEQ2},
+   \item{\code{DBA_NORM_MRN} ("MRN")} 
+   {MRN normalization (native to \code{DBA_DESEQ2},
    and available for \code{DBA_EDGER}).}
    \item{\code{DBA_NORM_TMM} ("TMM")} 
    {TMM normalization (native to \code{DBA_EDGER},
    and available for \code{DBA_DESEQ2}).}
    \item{\code{DBA_NORM_NATIVE} ("native")} 
    {Use native method based on \code{method}: 
-   \code{DBA_NORM_RLE} for \code{DBA_DESEQ2} or
+   \code{DBA_NORM_MRN} for \code{DBA_DESEQ2} or
    \code{DBA_NORM_TMM} for \code{DBA_EDGER}.}
    \item{\code{DBA_NORM_LIB} ("lib")}     
    {Normalize by library size only.
@@ -59,7 +59,7 @@ Methods can be specified using one of the following:
    Normalization factors will be calculated to give each equal weight
    in a manner appropriate for the analysis \code{method}.
    See also the \code{libFun} parameter, which can be used to
-   scale the normalization factors.}
+   scale the normalization factors for \code{DESeq2.}}
    \item{\code{DBA_NORM_DEFAULT} ("default")} 
    {Default method: The "preferred" normalization approach
    depending on \code{method} and whether an explicit
@@ -85,7 +85,7 @@ Library sizes can be based on one of the following:
   {Use the full library size (total number of reads in BAM/SAM/BED file)}
   \item{\code{DBA_LIBSIZE_PEAKREADS} ("RiP")} 
   {Use the number of reads that overlap consensus peaks.}
-  \item{\code{DBA_LIBSIZE_CHRREADS} ("chrs")} 
+  \item{\code{DBA_LIBSIZE_BACKGROUND} ("background")} 
   {Use the total number of reads aligned to the chromosomes for which there is
   at least one peak. This required a background bin calculation (see parameter
   \code{background}). These values are usually the same or similar to
@@ -121,12 +121,41 @@ will be used to determine how the
 final normalization factors are calculated.
 
 If \code{background} is missing, it will be set to \code{TRUE} if 
-\code{library=DBA_LIBSIZE_CHRREADS}, or if 
+\code{library=DBA_LIBSIZE_BACKGROUND}, or if 
 \code{library=DBA_LIBSIZE_DEFAULT} and certain conditions are met
 (see \code{Details} below).
 
+If \code{background} is not \code{FALSE}, then
+the library size will be set to \code{library=DBA_LIBSIZE_BACKGROUND}
 }
 
+\item{spikein}{
+Either a logical value, a character vector of chromosome names, or 
+a \code{\link{GRanges}} object containing peaks for a parallel factor.
+
+If \code{FALSE}, no spike-in normalization is performed.
+
+If \code{TRUE}, background normalization is performed using spike-in tracks.
+There must be a spike-in track for each sample.
+see \code{\link{dba}} and/or \code{\link{dba.peakset}} for
+details on how to include a spike-in track with a sample
+(eg. by including a \code{Spikein} column in the sample sheet.)
+All chromosomes in the spike-in bam files will be used.
+
+If \code{spikein} is a character vector of one or more chromosome names,
+only reads on the names chromosome(s) will be used for background normalization.
+If spike-in tracks are available, reads on chromosomes with these names in the
+spike-in track will be counted.
+If no spike-in tracks are available, reads on chromosomes with these names
+in the main \code{bamReads} bam files will be counted.
+
+If \code{spikein} is a \code{\link{GRanges}} object containing peaks
+for a parallel factor, then background normalization is performed counting reads
+in the spike-in tracks overlapping peaks in this object.
+
+Note that if \code{spikein} is not \code{FALSE}, then
+the library size will be set to \code{library=DBA_LIBSIZE_BACKGROUND}
+}
 \item{offsets}{
 This parameter controls the use of offsets (matrix of normalization factors)
 instead of a single normalization factor for each sample. It can either 
@@ -136,7 +165,7 @@ If it is a logical value and set to \code{FALSE},
 no offsets will be computed or used. A value of \code{TRUE}
 indicates that an offset matrix should be computed using a \code{loess} fit.
 
-Alternatively, user-calculated normalization offsets ca be supplied
+Alternatively, user-calculated normalization offsets can be supplied
 as a \code{matrix} or as a  \code{\link{SummarizedExperiment}} 
 (containing an \code{assay} named "offsets").
 In this case, the user may also set the 
@@ -144,7 +173,7 @@ In this case, the user may also set the
 offsets should be applied as-is to a  \code{DESeq2} analysis 
 (\code{DBA_NORM_OFFSETS}, default),
 or if they should be adjusted for library size and mean centering
-(\code{DBA_NORM_OFFSETS_ADJUJST}).
+(\code{DBA_NORM_OFFSETS_ADJUST}).
 
 }
 
@@ -238,6 +267,9 @@ consists of the following elements:
    {a \code{SummarizedExperiment} object containing the binned counts.}
    \item{$background$bin.size}
    {a numeric value with the bin size used.}
+      \item{$background$back.calc}
+   {character string indicating how the background was calculated 
+   (bins, spike-ins, or parallel factor).}
  }
  
  If \code{offsets} are available,
@@ -262,13 +294,13 @@ when computing offsets.
 \details{
 The default normalization parameters are as follows:
 \itemize{
-  \item{\code{normalize=DBA_NORM_NATIVE}}
-  \item{\code{library=DBA_LIBSIZE_CHRREADS}}
-  \item{\code{background=TRUE}}
+  \item{\code{normalize=DBA_NORM_LIB}}
+  \item{\code{library=DBA_LIBSIZE_FULL}}
+  \item{\code{background=FALSE}}
 }
 
-If \code{background=FALSE}, then the default becomes
-\code{library=DBA_LIBSIZE_FULL}.
+If \code{background=TRUE}, then the default becomes
+\code{library=DBA_LIBSIZE_BACKGROUND}.
 
 If \code{\link{dba.contrast}} has been
 used to set up contrasts with \code{design=FALSE} (pre-3.0 mode),
@@ -277,6 +309,7 @@ then the defaults are:
   \item{\code{normalize=DBA_NORM_DEFAULT}}
   \item{\code{library=DBA_LIBSIZE_FULL}}
   \item{\code{background=FALSE}}
+  \item{\code{filter=0}}
 }
 In this case, \code{normalize=DBA_NORM_LIB} will be set for 
 \code{method=DBA_DESEQ2} for backwards compatibility.
@@ -295,7 +328,7 @@ Rory Stark
 \note{
 The \code{csaw} package is used to compute  
 \code{background} bins and \code{offsets} based on 
-\code{limma:loessFit}.
+\code{limma::loessFit}.
 
 See the \code{DiffBind} vignette for technical details of how this
 is done, and the \code{csaw} vignette for details on 
@@ -315,12 +348,12 @@ different biases in ChIP-seq data.
 data(tamoxifen_counts)
 tamoxifen <- dba.contrast(tamoxifen,design="~Tissue + Condition")
 
-# default normalization: RLE over background bins
+# default normalization: MRN over background bins
 tamoxifen <- dba.normalize(tamoxifen)
 dba.normalize(tamoxifen, bRetrieve=TRUE)
 dba.analyze(tamoxifen)
 
-# RLE/TMM using Reads in Peaks
+# MRN/TMM using Reads in Peaks
 tamoxifen <- dba.normalize(tamoxifen, method=DBA_ALL_METHODS,
                            normalize=DBA_NORM_NATIVE, 
                            library=DBA_LIBSIZE_PEAKREADS)

@@ -94,8 +94,6 @@ dba <- function(DBA,mask, minOverlap=2,
     DBA <- pv.check(DBA,bCheckSort=FALSE)	
   } 
   
-  
-  
   res <- pv.model(DBA, mask=mask, minOverlap=minOverlap, samplesheet=sampleSheet, 
                   config=config, caller=peakCaller, format=peakFormat, 
                   scorecol=scoreCol,bLowerBetter=bLowerScoreBetter,
@@ -104,6 +102,10 @@ dba <- function(DBA,mask, minOverlap=2,
                   filter=filter, attributes=attributes, dir)
   
   res$contrasts=NULL
+  
+  if(sum(res$peaks[[1]]$Score<0)>0) {
+    res <- pv.ResetScores(res,ones=FALSE)
+  }
   
   if(is.null(res$config$DataType)) {
     res$config$DataType=DBA_DATA_DEFAULT
@@ -166,7 +168,7 @@ dba <- function(DBA,mask, minOverlap=2,
 dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor, 
                         condition, treatment, replicate,control, peak.caller, 
                         peak.format, reads=0, consensus=FALSE, 
-                        bamReads, bamControl,
+                        bamReads, bamControl, spikein,
                         scoreCol, bLowerScoreBetter, filter, counts, 
                         bRemoveM=TRUE, bRemoveRandom=TRUE,
                         minOverlap=2, bMerge=TRUE,
@@ -254,7 +256,8 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor,
                         readBam=bamReads, controlBam=bamControl,
                         scoreCol=scoreCol, bLowerScoreBetter=bLowerScoreBetter, 
                         bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,
-                        minOverlap=minOverlap, filter=filter, counts=counts)
+                        minOverlap=minOverlap, filter=filter, counts=counts, 
+                        spikein=spikein)
     }
     
     if(!is(res,"DBA")) {
@@ -593,16 +596,16 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL
 ## dba.normalize -- normalize dataset ##
 ######################################## 
 
-DBA_LIBSIZE_DEFAULT   <- PV_LIBSIZE_DEFAULT
-DBA_LIBSIZE_FULL      <- PV_LIBSIZE_FULL
-DBA_LIBSIZE_PEAKREADS <- PV_LIBSIZE_PEAKREADS
-DBA_LIBSIZE_CHRREADS  <- PV_LIBSIZE_CHRREADS
-DBA_LIBSIZE_USER      <- PV_LIBSIZE_USER
+DBA_LIBSIZE_DEFAULT    <- PV_LIBSIZE_DEFAULT
+DBA_LIBSIZE_FULL       <- PV_LIBSIZE_FULL
+DBA_LIBSIZE_PEAKREADS  <- PV_LIBSIZE_PEAKREADS
+DBA_LIBSIZE_BACKGROUND <- PV_LIBSIZE_CHRREADS
+DBA_LIBSIZE_USER       <- PV_LIBSIZE_USER
 
 DBA_NORM_DEFAULT        <- PV_NORM_DEFAULT
 DBA_NORM_LIB            <- PV_NORM_LIB
 DBA_NORM_TMM            <- PV_NORM_TMM 
-DBA_NORM_RLE            <- PV_NORM_RLE
+DBA_NORM_MRN            <- PV_NORM_MRN
 DBA_NORM_NATIVE         <- PV_NORM_NATIVE
 DBA_NORM_SPIKEIN        <- PV_NORM_SPIKEIN
 DBA_NORM_USER           <- PV_NORM_USER
@@ -615,7 +618,7 @@ DBA_OFFSETS_USER      <- PV_OFFSETS_USER
 dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
                           normalize   = DBA_NORM_DEFAULT,
                           library     = DBA_LIBSIZE_DEFAULT, 
-                          background, offsets=FALSE, 
+                          background=FALSE, spikein=FALSE, offsets=FALSE, 
                           bSubControl = is.null(DBA$greylist),
                           filter=5, filterFun=max, libFun=mean,
                           bRetrieve=FALSE, ...) {
@@ -641,14 +644,14 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
     filtval <- 0
   } else {
     # defaults are 3.0+    
-    deflib  <- DBA_LIBSIZE_CHRREADS
+    deflib  <- DBA_LIBSIZE_FULL
     if(!missing(background)) {
-      if(background==FALSE) {
-        deflib  <- DBA_LIBSIZE_FULL
+      if(background==TRUE) {
+        deflib  <- DBA_LIBSIZE_BACKGROUND
       } 
     }
-    defnorm <- DBA_NORM_NATIVE
-    defback <- TRUE    
+    defnorm <- DBA_NORM_LIB
+    defback <- FALSE    
     filtval <- 5
   }
   
@@ -673,7 +676,7 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
                       bSubControl=bSubControl,
                       filter=filter, filterFun=filterFun,
                       libFun=libFun,
-                      background=background, offsets=offsets,
+                      background=background, spikein=spikein, offsets=offsets, 
                       bRetrieve=bRetrieve, ...)
   
   return(res)
@@ -841,8 +844,6 @@ dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod,
                          th=th,bUsePval=bUsePval,fold=fold,
                          bDB=bDB,bNotDB=bNotDB,bUp=bGain,bDown=bLoss,bAll=bAll,
                          bFlip=bFlip)
-    
-    res <- dba(res,minOverlap=1)
     res$resultObject <- TRUE
     return(res)                    
   }
@@ -1557,29 +1558,35 @@ print.DBA <- function(x,...){
   x <- pv.check(x)
   cat(sprintf("%s:\n",summary(x)))
   toshow <- dba.show(x)
-  if(length(unique(toshow$Reads))==1) {
-    delcol <- which(colnames(toshow) %in% 'Reads')
-    toshow <- toshow[,-delcol]
-  }
-  if(length(unique(toshow$Intervals))==1) {
-    delcol <- which(colnames(toshow) %in% 'Intervals')
-    toshow <- toshow[,-delcol]
-  }
-  if(length(unique(toshow$Caller))==1) {
-    delcol <- which(colnames(toshow) %in% 'Caller')
-    toshow <- toshow[,-delcol]
+  
+  if(nrow(toshow) > 1) {
+    if(length(unique(toshow$Reads))==1) {
+      delcol <- which(colnames(toshow) %in% 'Reads')
+      toshow <- toshow[,-delcol]
+    }
+    if(length(unique(toshow$Intervals))==1) {
+      delcol <- which(colnames(toshow) %in% 'Intervals')
+      toshow <- toshow[,-delcol]
+    }
+    if(length(unique(toshow$Caller))==1) {
+      delcol <- which(colnames(toshow) %in% 'Caller')
+      toshow <- toshow[,-delcol]
+    }
+  } else {
+    toshow <-  toshow[,which(toshow[1,] != "")]
+    toshow <-  toshow[,which(toshow[1,] != 0)]
   }
   print(toshow)
   
   if(!is.null(x$contrasts)){
     cat("\n")
     if(!is.null(x$design)) {
-      cat(sprintf("Design: [%s]",dba.show(x,bDesign=TRUE)))
+      cat(sprintf("Design: [%s] | ",dba.show(x,bDesign=TRUE)))
     }
     if(length(x$contrasts) == 1) {
-      cat(sprintf(" | 1 Contrast:") )
+      cat(sprintf("1 Contrast:") )
     } else {
-      cat(sprintf(" | %d Contrasts:",length(x$contrasts)))
+      cat(sprintf("%d Contrasts:",length(x$contrasts)))
     }
     cat("\n")
     print(dba.show(x,bContrasts=TRUE,th=x$config$th))

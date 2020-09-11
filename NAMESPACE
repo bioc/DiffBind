@@ -90,13 +90,13 @@ export(dba,
        DBA_LIBSIZE_DEFAULT,
        DBA_LIBSIZE_FULL,
        DBA_LIBSIZE_PEAKREADS,
-       DBA_LIBSIZE_CHRREADS,
+       DBA_LIBSIZE_BACKGROUND,
        DBA_LIBSIZE_USER,
        DBA_NORM_DEFAULT,
        DBA_NORM_NATIVE,
        DBA_NORM_LIB,
        DBA_NORM_TMM,
-       DBA_NORM_RLE,
+       DBA_NORM_MRN,
        DBA_NORM_SPIKEIN,
        DBA_NORM_USER,
        DBA_NORM_OFFSETS,
@@ -123,7 +123,7 @@ importFrom(gplots, heatmap.2)
 
 importFrom(IRanges, IRanges, overlapsAny, "%over%")
 
-importFrom(GenomicRanges, GRanges, GRangesList, seqnames, width, union)
+importFrom(GenomicRanges, GRanges, GRangesList, seqnames, width, union, mcols)
 
 importFrom(SummarizedExperiment, SummarizedExperiment, assay, assays)
 

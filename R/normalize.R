@@ -1,6 +1,6 @@
 PV_NORM_LIB            <- "lib"
 PV_NORM_TMM            <- "TMM" 
-PV_NORM_RLE            <- "RLE"
+PV_NORM_MRN            <- "MRN"
 PV_NORM_DEFAULT        <- "default"
 PV_NORM_NATIVE         <- "native"
 PV_NORM_SPIKEIN        <- "spike-in"
@@ -11,7 +11,7 @@ PV_NORM_OFFSETS_ADJUST <- "adjust offsets"
 PV_LIBSIZE_DEFAULT     <- "default"
 PV_LIBSIZE_FULL        <- "full"
 PV_LIBSIZE_PEAKREADS   <- "RiP"
-PV_LIBSIZE_CHRREADS    <- "chrs"
+PV_LIBSIZE_CHRREADS    <- "background"
 PV_LIBSIZE_USER        <- "user"
 
 PV_OFFSETS_LOESS       <- "loess"
@@ -26,8 +26,7 @@ pv.normalize <- function(pv,
                          normalize = PV_NORM_DEFAULT,
                          bSubControl = is.null(pv$greylist),
                          filter=0, filterFun=max, 
-                         background=FALSE, 
-                         offsets=FALSE,
+                         background=FALSE, offsets=FALSE, spikein=FALSE,
                          libFun=PV_NORM_LIBFUN,
                          bRetrieve=FALSE, ...) {
   
@@ -36,10 +35,32 @@ pv.normalize <- function(pv,
     return(res)
   }
   
+  dospikein <- TRUE
+  if(is(spikein,"logical")) {
+    if(spikein[1] == FALSE) {
+      dospikein <- FALSE
+    }
+  } else if (is(spikein,"GRanges")) {
+    libSizes <- DBA_LIBSIZE_BACKGROUND
+  }
+  
+  dobackground <- TRUE
+  if(is(background,"logical")) {
+    if(background[1] == FALSE) {
+      if(dospikein) {
+        background <- TRUE
+      } else {
+        dobackground <- FALSE
+      }
+    } else {
+      libSizes <- DBA_LIBSIZE_BACKGROUND
+    }
+  }
+  
   if(all(method == DBA_ALL_METHODS)) {
     
-    if(background[1] != FALSE || libSizes==DBA_LIBSIZE_CHRREADS) {
-      pv$norm$background <- pv.getBackground(pv,background)
+    if(dobackground || libSizes==DBA_LIBSIZE_BACKGROUND) {
+      pv$norm$background <- pv.getBackground(pv, background, spikein)
     }
     
     for(method in c(DBA_DESEQ2, DBA_EDGER)) {
@@ -48,7 +69,7 @@ pv.normalize <- function(pv,
                          bSubControl=bSubControl,
                          filter=filter, filterFun=filterFun, 
                          background=background, 
-                         offsets=offsets,
+                         offsets=offsets, spikein=spikein,
                          libFun=libFun, bRetrieve=FALSE)
     }
     return(pv)
@@ -69,13 +90,15 @@ pv.normalize <- function(pv,
   norm$lib.method <- libSizes
   norm$background <- FALSE
   
-  if(background[1] != FALSE || libSizes==DBA_LIBSIZE_CHRREADS) {
-    norm.background <- pv.getBackground(pv,background) 
-    binned   <- norm.background$binned
-    bin.size <- norm.background$bin.size
+  if(dobackground || libSizes==DBA_LIBSIZE_BACKGROUND) {
+    norm.background <- pv.getBackground(pv, background, spikein) 
+    binned    <- norm.background$binned
+    bin.size  <- norm.background$bin.size
+    back.calc <- norm.background$back.calc
   } else {
-    binned <- pv$norm$background$binned
-    bin.size <- pv$norm$background$bin.size
+    binned  <- pv$norm$background$binned
+    bin.size  <- pv$norm$background$bin.size
+    back.calc <- pv$norm.background$back.calc
   }
   
   if(length(libSizes) == ncol(pv$samples)) {
@@ -118,7 +141,7 @@ pv.normalize <- function(pv,
     stop("offsets must be a logical, matrix, or SummarizedExperiment",call.=FALSE)
   }
   if(doOffsets) {
-    if(normalize!=DBA_NORM_OFFSETS_ADJUST) {
+    if(normalize != DBA_NORM_OFFSETS_ADJUST) {
       norm$norm.method <- DBA_NORM_OFFSETS
     } else {
       norm$norm.method <- DBA_NORM_OFFSETS_ADJUST
@@ -142,14 +165,14 @@ pv.normalize <- function(pv,
         if(norm$lib.calc != "Reads in peaks") {
           normalize <- PV_NORM_LIB        
         } else {
-          normalize <- PV_NORM_RLE                  
+          normalize <- PV_NORM_MRN                  
         }
       }
     } else if (normalize == PV_NORM_NATIVE) {
       if(method == DBA_EDGER) {
         normalize <- PV_NORM_TMM
       } else if (method == DBA_DESEQ2) {
-        normalize <- PV_NORM_RLE                  
+        normalize <- PV_NORM_MRN                  
       }
     }
     
@@ -157,7 +180,7 @@ pv.normalize <- function(pv,
     if(normalize == PV_NORM_LIB) {
       norm$norm.calc  <- "Library size"
       norm <- pv.normfacsLIB(pv, norm=norm, method=method,
-                             libFun=libFun)
+                             libFun=libFun, background=background)
     } else if(normalize == PV_NORM_TMM) {
       norm$norm.calc  <- "edgeR/TMM"
       norm <- pv.normfacsTMM(pv,norm=norm,method=method,
@@ -166,9 +189,9 @@ pv.normalize <- function(pv,
                              libFun=libFun, binned=binned,
                              background=background)
       
-    } else if(normalize == PV_NORM_RLE) {
-      norm$norm.calc  <- "DESeq2/RLE"
-      norm <- pv.normfacsRLE(pv,norm=norm,method=method,
+    } else if(normalize == PV_NORM_MRN) {
+      norm$norm.calc  <- "DESeq2/MRN"
+      norm <- pv.normfacsMRN(pv,norm=norm,method=method,
                              bSubControl=bSubControl,
                              filter=filter, filterFun=filterFun,
                              libFun=libFun, binned=binned,
@@ -182,16 +205,17 @@ pv.normalize <- function(pv,
   
   if(method==DBA_DESEQ2) {
     pv$norm$DESeq2 <- norm
-    pv$DESeq2$DEdata <- NULL
+    pv <- pv.removeResults(pv, DBA_DESEQ2)
     
   } else if(method==DBA_EDGER) {
     pv$norm$edgeR <- norm
-    pv$edgeR$DEdata <- NULL
+    pv <- pv.removeResults(pv, DBA_EDGER)
   } 
   
   if(!is.null(binned)){
-    pv$norm$background$binned   <- binned
-    pv$norm$background$bin.size <- bin.size
+    pv$norm$background$binned    <- binned
+    pv$norm$background$bin.size  <- bin.size
+    pv$norm$background$back.calc <- back.calc
   }
   
   return(pv)
@@ -236,12 +260,12 @@ pv.normfacsTMM <- function(pv,norm,method,bSubControl=FALSE,
   return(norm)
 }
 
-pv.normfacsRLE <- function(pv,norm,method,bSubControl=FALSE,
+pv.normfacsMRN <- function(pv,norm,method,bSubControl=FALSE,
                            filter=0, filterFun=max,libFun=PV_NORM_LIBFUN,
                            binned=NULL, background=FALSE){
   
   if(background[1] != FALSE) {
-    if(!is.null(binned)) {# RLE on Background bins
+    if(!is.null(binned)) {# MRN on Background bins
       binned$totals <- norm$lib.sizes
       norm$norm.facs <- csaw::normFactors(binned,method="RLE", se.out=FALSE)
       if(method==DBA_DESEQ2) {
@@ -274,15 +298,20 @@ pv.normfacsRLE <- function(pv,norm,method,bSubControl=FALSE,
 }
 
 pv.normfacsLIB <- function(pv, norm=norm, method=method,
-                           libFun=libFun){
+                           libFun=libFun, background=background){
   
   norm$lib.fun <- libFun
+  
+  if(background[1] != FALSE) {
+    norm$background <- TRUE
+  } 
   
   if(method==DBA_DESEQ2) {
     norm$norm.facs  <- norm$lib.sizes/libFun(norm$lib.sizes)
   } else if(method==DBA_EDGER) {
-    norm$norm.facs  <- 1/(norm$lib.sizes/libFun(norm$lib.sizes))
-    norm$norm.facs <- pv.makeProd1(norm$norm.facs)
+    norm$norm.facs <- rep(1,length(norm$lib.sizes))
+    # norm$norm.facs  <- 1/(norm$lib.sizes/libFun(norm$lib.sizes))
+    # norm$norm.facs <- pv.makeProd1(norm$norm.facs)
   }
   
   return(norm)
@@ -298,12 +327,9 @@ pv.edgeRtoDESeq2norm <- function(norm, libFun) {
   return(norm.facs)
 }
 
-pv.getBackground <- function(pv,background=PV_BACKGROUND_BINSIZE) {
-  
-  if (!requireNamespace("csaw",quietly=TRUE)) {
-    stop("Package csaw not installed",call.=FALSE)
-  }
-  
+pv.getBackground <- function(pv,background=PV_BACKGROUND_BINSIZE, 
+                             spikein=FALSE) {
+
   if(is(background,"logical")) {
     if(!is.null(pv$norm$background)) {
       background <- pv$norm$background$bin.size
@@ -316,13 +342,48 @@ pv.getBackground <- function(pv,background=PV_BACKGROUND_BINSIZE) {
   
   if(!is.null(pv$norm$background)) {
     if(pv$norm$background$bin.size==background) {
-      binned <- pv$norm$background$binned
+      binned    <- pv$norm$background$binned
+      back.calc <- pv$norm$background$back.calc
+      
     }
   }
   
   if(is.null(binned)) {
-    message("Generating background bins with csaw...")
-    rParams <- pv.readParams(pv)
+    bamfiles <- pv$class[PV_BAMREADS,] 
+    restrict <- pv$chrmap
+    if(is(spikein,"logical")) {
+      if(spikein == TRUE) {
+        if(nrow(pv$class) >= PV_SPIKEIN) {
+          if(sum(is.na(pv$class[PV_SPIKEIN,]) == 0)) {
+            message("Generating counts for spike-ins...")
+            bamfiles <- pv$class[PV_SPIKEIN,]
+            restrict <- NULL
+            back.calc <- "Spike-in"
+          } else {
+            stop("Spike-in reads not available for all samples.", call.=FALSE)
+          }
+        } else {
+          stop("Spike-in reads not available for all samples.", call.=FALSE)
+        }
+      } else {
+        message("Generating background bins with csaw...")
+        back.calc <- "Background bins"
+      }
+    } else if(is(spikein,"GRanges")) {
+      message("Generating counts for parallel factor...")
+      res <- pv.parallelFactor(pv, spikein)
+      return(list(binned=res,
+                  bin.size=0,
+                  back.calc="Parallel factor"))
+    } else {
+      restrict <- spikein
+    }
+    
+    if (!requireNamespace("csaw",quietly=TRUE)) {
+      stop("Package csaw not installed",call.=FALSE)
+    }
+    
+    rParams <- pv.readParams(pv, restrict)
     if(pv$config$RunParallel) {
       if(pv$config$parallelPackage == DBA_PARALLEL_MULTICORE) {
         if(is.null(pv$config$cores)) {
@@ -335,29 +396,59 @@ pv.getBackground <- function(pv,background=PV_BACKGROUND_BINSIZE) {
     } else {
       mcparam <- BiocParallel::SerialParam()
     }
+    
     binned <- suppressWarnings(suppressMessages(
-      csaw::windowCounts(pv$class[PV_BAMREADS,], bin=TRUE,
+      csaw::windowCounts(bamfiles, bin=TRUE,
                          width=background, param=rParams,
                          BPPARAM=mcparam)))
   }
   
-  return(list(binned=binned,bin.size=background))
+  return(list(binned=binned,bin.size=background,back.calc=back.calc))
 }
 
-pv.readParams <- function(pv) {
+pv.readParams <- function(pv, restrict) {
+  
   pe <- "none"
   if(!is.null(pv$config$singleEnd)) {
     if(!pv$config$singleEnd) {
       pe <- "both"
     }
   }
+  
   minq <- 15
   if(!is.null(pv$config$minQCth)) {
     minq <- pv$config$minQCth
   }
-  rp <- csaw::readParam(pe=pe,minq=minq,restrict=pv$chrmap)
+  if(is.null(restrict)) {
+    rp <- csaw::readParam(pe=pe,minq=minq)    
+  } else {
+    rp <- csaw::readParam(pe=pe,minq=minq,restrict=restrict)
+  }
   
   return(rp)
+}
+
+pv.parallelFactor <- function(pv, spikein) {
+  if(nrow(pv$class) >= PV_SPIKEIN) {
+    if(sum(is.na(pv$class[PV_SPIKEIN,]) == 0)) {
+      pv$class[PV_BAMREADS,]   <- pv$class[PV_SPIKEIN,]
+      pv$class[PV_BAMCONTROL,] <- NA
+      pv$class[PV_CONTROL,]    <- NA
+      pv$chrmap <- sort(unique(as.character(seqnames(spikein))))
+      pv <- dba.count(pv, peaks=spikein,summits=FALSE,filter=0)
+      data <- pv$binding[,4:ncol(pv$binding)]
+      peaks <-  pv$binding[,1:3]
+      peaks[,1] <- pv$chrmap[peaks[,1]]
+      peaks <- GRanges(data.frame(peaks))
+      res <- SummarizedExperiment(list(counts=data),rowRanges=peaks)
+      res$totals <- round(colSums(data))
+    } else {
+      stop("Spike-in reads not available for all samples.", call.=FALSE)
+    }
+  } else {
+    stop("Spike-in reads not available for all samples.", call.=FALSE)
+  }
+  return(res)
 }
 
 pv.normalizeOffsets <- function(pv, offsets=offsets, norm,
@@ -537,10 +628,8 @@ pv.edgeRCounts <- function(pv,method,bNormalized=TRUE) {
   
   if(bNormalized) {
     if(is.null(pv$edgeR$DEdata$offset)) {
-      samples <- pv$edgeR$DEdata$samples
-      eff.lib <- samples$lib.size * samples$norm.factors
       counts <- edgeR::cpm(counts, normalized.lib.sizes=TRUE, 
-                           lib.size=pv$edgeR$DEdata$samples)
+                           lib.size=pv$edgeR$DEdata$samples$lib.size)
     } else {
       counts <- edgeR::cpm(counts, normalized.lib.sizes=TRUE, 
                            lib.size=pv$edgeR$DEdata$samples$lib.size,
@@ -596,4 +685,28 @@ pv.formatNorm <- function(norm) {
   return(res)
 }
 
+pv.removeResults <- function(pv, method) {
+  
+  if(DBA_DESEQ2 %in% method) {
+    pv$DESeq2$DEdata <- NULL
+  }
+  
+  if(DBA_EDGER %in% method) {
+    pv$edgeR$DEdata <- NULL
+  }
+  
+  if(!is.null(pv$contrasts)) {
+    for(con in 1:length(pv$contrasts)) {
+      if(DBA_DESEQ2 %in% method) {
+        pv$contrasts[[con]]$DESeq2 <- NULL
+      }
+      if(DBA_EDGER %in% method) {
+        pv$contrasts[[con]]$edgeR <- NULL
+      }
+    }
+  }
+  
+  return(pv)
+  
+}
 

@@ -5,7 +5,7 @@ test_that("normalizing data",{
     tamoxifen <- dba.contrast(tamoxifen)
     tamoxifen <- dba.contrast(tamoxifen,design="~Tissue + Condition")
     
-    for (nf in c(DBA_NORM_DEFAULT, DBA_NORM_LIB, DBA_NORM_TMM, DBA_NORM_RLE)) {
+    for (nf in c(DBA_NORM_DEFAULT, DBA_NORM_LIB, DBA_NORM_TMM, DBA_NORM_MRN)) {
       for (ls in c(DBA_LIBSIZE_DEFAULT, DBA_LIBSIZE_FULL, DBA_LIBSIZE_PEAKREADS)) {
         tam <- dba.normalize(tamoxifen,method = DBA_ALL_METHODS,
                              libraries = ls, normalize = nf)
@@ -36,6 +36,7 @@ test_that("normalizing data",{
         expect_equal(sum(rep1.d != rep2.d),0)
         
         if(nf==DBA_NORM_LIB) {
+          
           tam <- dba.normalize(tamoxifen,method = DBA_ALL_METHODS,
                                libraries = ls, normalize = nf, offsets=TRUE)
           set.seed(3793)

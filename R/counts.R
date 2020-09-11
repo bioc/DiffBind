@@ -102,6 +102,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
       if(nrow(peaks)==nrow(pv$called)) {
         called <- pv$called
       }
+      peaks <- pv.peaksort(peaks)
     }
     if(is.null(bed)) {
       colnames(peaks)[1:3] <- c("CHR","START","END")
@@ -330,6 +331,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
                        replicate   = pv$class[PV_REPLICATE,chipnum],
                        readBam     = pv$class[PV_BAMREADS,chipnum],
                        controlBam  = pv$class[PV_BAMCONTROL,chipnum],
+                       spikein     = pv$class[PV_SPIKEIN,chipnum],
                        scoreCol    = 0,
                        bRemoveM = FALSE, bRemoveRandom=FALSE,bMakeMasks=FALSE)
       numAdded <- numAdded + 1
@@ -359,8 +361,10 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
       if(is.null(res$called)) {
         if(nrow(savecalled)==nrow(res$peaks[[length(res$peaks)]])) {
           res$called <- savecalled
-        } else if(nrow(called)==nrow(res$peaks[[length(res$peaks)]])) {
-          res$called <- called
+        } else if(!is.null(called)) {
+          if (nrow(called)==nrow(res$peaks[[length(res$peaks)]])) {
+            res$called <- called
+          }
         }
       }
       if(bRecentered) {
@@ -563,7 +567,7 @@ pv.Recenter <- function(pv,summits,peakrange,called=NULL) {
     pv$called <- res$merged[,4:ncol(res$merged)]
     pv$chrmap <- res$chrmap
   } else {
-    res <- pv$merge(bed)
+    res <- pv.merge(bed)
     pv$merged <- res$merged
     pv$chrmap <- res$chrmap
   }

@@ -2,7 +2,7 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.99.5}{
+\section{Version 2.99.8}{
 \itemize{
 \item{
 This is a major release of DiffBind and the new version will be 3.0.
@@ -16,6 +16,7 @@ NB:
 The previous methods for modelling are maintained for backward compatibility, 
 however they are not the default. 
 To repeat earlier analyses, dba.contrast() must be called explicitly with design=FALSE.
+See ?DiffBind3 for more information.
 
 The default mode for dba.count() is now to center around summits (resulting in 501bp intervals). 
 To to avoid recentering around summits as was the previous default, set summits=FALSE (or to a more appropriate value).
@@ -26,6 +27,18 @@ Any non-default normalization options must be specified using dba.normalize().
 
  \item{Changes in this point release:}
    \itemize{
+     \item{Update vignette to include sections on blacklists and normalization.}
+     \item{Add DiffBind3 help page with information on backward compatibility.}
+     \item{Add ability in dba.plotMA() to plot aribitrary samples.}
+     \item{Add GenerateDataFiles.R to package}
+     \item{Fix bug in dba.count() with user-supplied peakset and summits=n}
+    }
+}
+}
+
+\section{Version 2.99.5}{
+ Changes in this point release:
+    \itemize{
      \item{Add new interface function: dba.normalize() for greater control of normalization.}
      \item{add bLoess parameter to dba.plotMA, default is TRUE}
      \item{Remove normalization options from dba.analyze().}
@@ -33,7 +46,6 @@ Any non-default normalization options must be specified using dba.normalize().
      \item{Update vignette.}
      \item{Add tests for normalization.}
     }
-}
 }
 
 \section{Version 2.99.3}{

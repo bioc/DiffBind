@@ -10,7 +10,7 @@ Adds a peakset to, or retrieves a peakset from, a DBA object
 \usage{
 dba.peakset(DBA=NULL, peaks, sampID, tissue, factor, condition, treatment, replicate,
             control, peak.caller, peak.format, reads=0, consensus=FALSE, 
-            bamReads, bamControl,
+            bamReads, bamControl, spikein,
             scoreCol, bLowerScoreBetter, filter, counts,
             bRemoveM=TRUE, bRemoveRandom=TRUE,
             minOverlap=2, bMerge=TRUE,
@@ -135,16 +135,24 @@ See examples.  Allowable attributes:
 }
 }
 \item{bamReads}{
-file path of the BAM/BED file containing the aligned reads for the peakset being added.
+file path of the BAM/BED file containing the aligned reads for the 
+peakset being added.
 }
 \item{bamControl}{
-file path of the BAM/BED file containing the aligned reads for the control used for the peakset being added.
+file path of the BAM/BED file containing the aligned reads for the control 
+used for the peakset being added.
+}
+\item{spikein}{
+file path of the BAM/BED file containing the aligned reads for the spike-ins
+used for the peakset being added.
 }
   \item{scoreCol}{
-peak column to normalize to 0...1 scale when adding a peakset; 0 indicates no normalization
+peak column to normalize to 0...1 scale when adding a peakset; 
+0 indicates no normalization
 }
   \item{bLowerScoreBetter}{
-Logical indicating that lower scores indicate higher confidence peaks; default is that higher scores indicate better peaks.
+Logical indicating that lower scores indicate higher confidence peaks; 
+default is that higher scores indicate better peaks.
 }
   \item{filter}{
 Numeric indicating a filter value for peaks. 

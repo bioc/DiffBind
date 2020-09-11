@@ -72,13 +72,13 @@
 \alias{DBA_LIBSIZE_DEFAULT}
 \alias{DBA_LIBSIZE_FULL}
 \alias{DBA_LIBSIZE_PEAKREADS}
-\alias{DBA_LIBSIZE_CHRREADS}
+\alias{DBA_LIBSIZE_BACKGROUND}
 \alias{DBA_LIBSIZE_USER}
 \alias{DBA_NORM_DEFAULT}
 \alias{DBA_NORM_NATIVE}
 \alias{DBA_NORM_LIB}
 \alias{DBA_NORM_TMM}
-\alias{DBA_NORM_RLE}
+\alias{DBA_NORM_MRN}
 \alias{DBA_NORM_SPIKEIN}
 \alias{DBA_NORM_USER}
 \alias{DBA_NORM_OFFSETS}
@@ -177,13 +177,13 @@ DBA_BLACKLISTED_PEAKS
 DBA_LIBSIZE_DEFAULT
 DBA_LIBSIZE_FULL
 DBA_LIBSIZE_PEAKREADS
-DBA_LIBSIZE_CHRREADS
+DBA_LIBSIZE_BACKGROUND
 DBA_LIBSIZE_USER
 DBA_NORM_DEFAULT
 DBA_NORM_NATIVE
 DBA_NORM_LIB
 DBA_NORM_TMM
-DBA_NORM_RLE
+DBA_NORM_MRN
 DBA_NORM_SPIKEIN
 DBA_NORM_USER
 DBA_NORM_OFFSETS
@@ -396,14 +396,14 @@ Return a result-based DBA object from \code{\link{dba.plotVenn}}.
 background present)}
 \item{DBA_LIBSIZE_FULL}{Full library size (all reads in library)}
 \item{DBA_LIBSIZE_PEAKREADS}{Library size is Reads in Peaks}
-\item{DBA_LIBSIZE_CHRREADS}{Library size is Reads in chromosomes (using background bins)}
+\item{DBA_LIBSIZE_BACKGROUND}{Library size is Reads in  Background}
 \item{DBA_LIBSIZE_USER}{User supplied library sizes}
 \item{DBA_NORM_DEFAULT}{Default normalization method}
 \item{DBA_NORM_NATIVE}{"Native"" normalization method 
-(TMM for \code{DBA_EDGER} and RLE for \code{DBA_DESEQ2})}
+(TMM for \code{DBA_EDGER} and MRN for \code{DBA_DESEQ2})}
 \item{DBA_NORM_LIB}{Normalize by library size only}
 \item{DBA_NORM_TMM}{Normalize using TMM method (\code{edgeR})}
-\item{DBA_NORM_RLE}{Normalize using RLE method (\code{DESeq2})}
+\item{DBA_NORM_MRN}{Normalize using MRN method (\code{DESeq2})}
 \item{DBA_NORM_SPIKEIN}{Normalize based on spike-ins}
 \item{DBA_NORM_USER}{User supplied normalization factors}
 \item{DBA_NORM_OFFSETS}{Use offsets instead of normalization factors}

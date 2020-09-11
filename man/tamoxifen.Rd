@@ -28,12 +28,15 @@ data(tamoxifen_greylist)
 load tamoxifen resistance dataset DBA object with peak (occupancy) data
 }
 \item{tamoxifen_counts}{
-load tamoxifen resistance dataset DBA object with count (affinity) data
+load tamoxifen resistance dataset DBA object with count (affinity) data.
+Also includes background bins counts for background normalization.
 }
 
 \item{tamoxifen_analysis}{
 load tamoxifen resistance dataset DBA object with count (affinity) data 
-and \code{DESeq2}-based differential binding analysis results
+and \code{DESeq2}-based differential binding analysis results.
+This analysis uses a blacklists, computed greylists,
+ background normalization, and a two-factor design.
 }
 
 \item{tamoxifen_greylist}{
@@ -57,9 +60,10 @@ loads a DBA object named \code{tamoxifen} (or \code{tamoxifen.greylist}).
 \author{
 Rory Stark
 }
-%\note{
-%%  ~~further notes~~
-%}
+\note{
+The script for generating these files (\code{GenerateDataFiles.R})
+is included with the package in the \code{inst/extras} directory.
+}
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
