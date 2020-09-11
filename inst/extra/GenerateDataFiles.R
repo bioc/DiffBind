@@ -69,7 +69,7 @@ load("tamoxifen_peaks.rda")
 tamoxifen$config$RunParallel <- TRUE
 tamoxifen$config$cores <- NUMCORES
 tamoxifen <- dba.count(tamoxifen)
-tam <- dba.normalize(tamoxifen)
+tam <- dba.normalize(tamoxifen, background=TRUE)
 tamoxifen$norm$background <- tam$norm$background
 tamoxifen$config <- config
 save(tamoxifen,file="tamoxifen_counts.rda")
