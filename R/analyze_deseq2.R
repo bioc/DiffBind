@@ -195,6 +195,7 @@ pv.DEinitDESeq2 <- function(pv,
            pv$norm$DESeq2$norm.method == PV_NORM_OFFSETS_ADJUST) {
           offsets <- pv.offsetsAdjust(pv, offsets, res)
         }
+        offsets <- offsets[1:nrow(res),]
         DESeq2::normalizationFactors(res) <- offsets
       } else {
         stop('Internal error: no offsets available.',call.=FALSE)

@@ -790,12 +790,13 @@ pv.ResetScores <- function(pv, ones=FALSE){
   for(i in 1:length(pv$peaks)) {
     peaks <- GRanges(data.frame(pv$peaks[[i]]))
     matches <- which(binding %over% peaks)
+    keep <- which(peaks %over% binding)
     scores <- pv$peaks[[i]]$Score
     if(ones==TRUE) {
       scores[scores<1] <- -1
       scores[scores>1] <-  1
     }
-    GenomicRanges::mcols(binding)[matches,i] <- scores
+    GenomicRanges::mcols(binding)[matches,i] <- scores[keep]
   }
   
   pv$binding[,4:ncol(pv$binding)] <- as.matrix(GenomicRanges::mcols(binding))

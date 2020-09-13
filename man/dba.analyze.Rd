@@ -21,13 +21,16 @@ dba.analyze(DBA, method=DBA$config$AnalysisMethod,
 %\subsection{Required arguments}{}
 
   \item{DBA}{
-DBA object. 
+Either a \code{DBA} object, or a sample sheet 
+(either a \code{character} vector with the name of the
+sample sheet, or a \code{data.frame} containing the experimental
+metadata.
 
 If no counts are included, a default consensus will be formed
 and read counts computed via a call to
 \code{\link{dba.count}} using defaults.
 
-Id read counts are included, but no normalization has been specified,
+If no normalization has been specified,
 the reads will be normalized via a call to
 \code{\link{dba.normalize}} using defaults.
 
@@ -96,13 +99,11 @@ previous call to \code{\link{dba.contrast}} with \code{design=FALSE},
 a multi-factor analysis will automatically be carried out in addition to a single factor analysis.
 }
 
-
 \seealso{
 
 \code{\link{dba.contrast}}, \code{\link{dba.normalize}}, \code{\link{dba.report}}
 
 }
-
 
 \examples{
 data(tamoxifen_counts)

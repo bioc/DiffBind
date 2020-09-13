@@ -1,6 +1,6 @@
 PV_NORM_LIB            <- "lib"
 PV_NORM_TMM            <- "TMM" 
-PV_NORM_MRN            <- "MRN"
+PV_NORM_RLE            <- "RLE"
 PV_NORM_DEFAULT        <- "default"
 PV_NORM_NATIVE         <- "native"
 PV_NORM_SPIKEIN        <- "spike-in"
@@ -90,16 +90,72 @@ pv.normalize <- function(pv,
   norm$lib.method <- libSizes
   norm$background <- FALSE
   
+  doOffsets <- FALSE
+  if(is(offsets,"logical")) {
+    if(offsets) {
+      doOffsets <- TRUE
+    }
+  } else if(is(offsets,"matrix")) {
+    doOffsets <- TRUE
+  } else if(is(offsets,"SummarizedExperiment")) {
+    if("offsets" %in% names(assays(offsets))) {
+      offsets <- assay(offsets,"offsets")
+      doOffsets <- TRUE      
+    } else {
+      stop("No assay named offsets in passes SummarizedExperiment",call.=FALSE)
+    }
+  }  else {
+    stop("offsets must be a logical, matrix, or SummarizedExperiment",call.=FALSE)
+  }
+  
   if(dobackground || libSizes==DBA_LIBSIZE_BACKGROUND) {
+    
     norm.background <- pv.getBackground(pv, background, spikein) 
     binned    <- norm.background$binned
     bin.size  <- norm.background$bin.size
     back.calc <- norm.background$back.calc
+    
   } else {
+    
     binned  <- pv$norm$background$binned
     bin.size  <- pv$norm$background$bin.size
     back.calc <- pv$norm.background$back.calc
+    
   }
+  if (length(normalize) == 1) {
+    if(normalize == PV_NORM_DEFAULT) {
+      if(method == DBA_EDGER) {
+        normalize <- PV_NORM_TMM
+      } else if (method == DBA_DESEQ2) {
+        if(norm$lib.method != "Reads in peaks") {
+          normalize <- PV_NORM_LIB        
+        } else {
+          normalize <- PV_NORM_RLE                  
+        }
+      }
+    } else if (normalize == PV_NORM_NATIVE) {
+      if(method == DBA_EDGER) {
+        normalize <- PV_NORM_TMM
+      } else if (method == DBA_DESEQ2) {
+        normalize <- PV_NORM_RLE                  
+      }
+    }
+    
+    if(normalize == DBA_NORM_TMM ||
+       normalize == DBA_NORM_RLE ||
+       doOffsets == TRUE) {
+      if(is(libSizes,"character")) {
+        if(libSizes == DBA_LIBSIZE_FULL) {
+          #message("library sizes will use RiP.")
+          libSizes <- DBA_LIBSIZE_PEAKREADS
+        }
+      }
+    }
+    
+    norm$lib.method <- libSizes
+    norm$background <- FALSE
+  }
+  
   
   if(length(libSizes) == ncol(pv$samples)) {
     norm$lib.calc  <- "User supplied"
@@ -123,23 +179,7 @@ pv.normalize <- function(pv,
     stop('libSizes invalid length',call.=FALSE)
   }
   
-  doOffsets <- FALSE
-  if(is(offsets,"logical")) {
-    if(offsets) {
-      doOffsets <- TRUE
-    }
-  } else if(is(offsets,"matrix")) {
-    doOffsets <- TRUE
-  } else if(is(offsets,"SummarizedExperiment")) {
-    if("offsets" %in% names(assays(offsets))) {
-      offsets <- assay(offsets,"offsets")
-      doOffsets <- TRUE      
-    } else {
-      stop("No assay named offsets in passes SummarizedExperiment",call.=FALSE)
-    }
-  }  else {
-    stop("offsets must be a logical, matrix, or SummarizedExperiment",call.=FALSE)
-  }
+  
   if(doOffsets) {
     if(normalize != DBA_NORM_OFFSETS_ADJUST) {
       norm$norm.method <- DBA_NORM_OFFSETS
@@ -158,24 +198,6 @@ pv.normalize <- function(pv,
     norm$norm.facs <- normalize
     norm$norm.method <- PV_NORM_USER
   } else if (length(normalize) == 1) {
-    if(normalize == PV_NORM_DEFAULT) {
-      if(method == DBA_EDGER) {
-        normalize <- PV_NORM_TMM
-      } else if (method == DBA_DESEQ2) {
-        if(norm$lib.calc != "Reads in peaks") {
-          normalize <- PV_NORM_LIB        
-        } else {
-          normalize <- PV_NORM_MRN                  
-        }
-      }
-    } else if (normalize == PV_NORM_NATIVE) {
-      if(method == DBA_EDGER) {
-        normalize <- PV_NORM_TMM
-      } else if (method == DBA_DESEQ2) {
-        normalize <- PV_NORM_MRN                  
-      }
-    }
-    
     norm$norm.method <- normalize
     if(normalize == PV_NORM_LIB) {
       norm$norm.calc  <- "Library size"
@@ -189,9 +211,9 @@ pv.normalize <- function(pv,
                              libFun=libFun, binned=binned,
                              background=background)
       
-    } else if(normalize == PV_NORM_MRN) {
-      norm$norm.calc  <- "DESeq2/MRN"
-      norm <- pv.normfacsMRN(pv,norm=norm,method=method,
+    } else if(normalize == PV_NORM_RLE) {
+      norm$norm.calc  <- "DESeq2/RLE"
+      norm <- pv.normfacsRLE(pv,norm=norm,method=method,
                              bSubControl=bSubControl,
                              filter=filter, filterFun=filterFun,
                              libFun=libFun, binned=binned,
@@ -260,12 +282,12 @@ pv.normfacsTMM <- function(pv,norm,method,bSubControl=FALSE,
   return(norm)
 }
 
-pv.normfacsMRN <- function(pv,norm,method,bSubControl=FALSE,
+pv.normfacsRLE <- function(pv,norm,method,bSubControl=FALSE,
                            filter=0, filterFun=max,libFun=PV_NORM_LIBFUN,
                            binned=NULL, background=FALSE){
   
   if(background[1] != FALSE) {
-    if(!is.null(binned)) {# MRN on Background bins
+    if(!is.null(binned)) {# RLE on Background bins
       binned$totals <- norm$lib.sizes
       norm$norm.facs <- csaw::normFactors(binned,method="RLE", se.out=FALSE)
       if(method==DBA_DESEQ2) {
@@ -329,7 +351,7 @@ pv.edgeRtoDESeq2norm <- function(norm, libFun) {
 
 pv.getBackground <- function(pv,background=PV_BACKGROUND_BINSIZE, 
                              spikein=FALSE) {
-
+  
   if(is(background,"logical")) {
     if(!is.null(pv$norm$background)) {
       background <- pv$norm$background$bin.size
@@ -502,11 +524,14 @@ pv.normalizeOffsets <- function(pv, offsets=offsets, norm,
 }
 
 pv.offsetsAdjust <- function(pv, offsets, deobj) {
-  offsets <- edgeR::scaleOffset(assay(deobj),offsets)
-  offsets <- offsets / exp(rowMeans(log(offsets)))
   libs <- pv$norm$DESeq2$lib.sizes 
-  nf <- libs/pv$norm$DESeq2$lib.fun(libs)
-  nfs <- matrix(nf, nrow(offsets), ncol(offsets), byrow=TRUE)
+  eobj <- edgeR::DGEList(assay(deobj), 
+                         lib.size=rep(pv$norm$DESeq2$lib.fun(libs),
+                                      ncol(offsets)))
+  offsets <- edgeR::scaleOffset(eobj,offsets)$offset
+  offsets <- offsets / exp(rowMeans(log(offsets)))
+  nf   <- libs/pv$norm$DESeq2$lib.fun(libs)
+  nfs  <- matrix(nf, nrow(offsets), ncol(offsets), byrow=TRUE)
   offsets <- offsets * nfs 
   return(offsets)
 }

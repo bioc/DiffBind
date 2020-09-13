@@ -151,7 +151,7 @@ dba.plotMA(tamoxifen,th=0,bNormalized=FALSE,sub="NON-NORMALIZED")
 dba.plotMA(tamoxifen,th=0,bNormalized=FALSE,sub="NON-NORMALIZED")
 
 dba.plotMA(tamoxifen,method=DBA_DESEQ2,bNormalized=TRUE,
-           sub="DESeq2_MRN-RiP")
+           sub="DESeq2_RLE-RiP")
 dba.plotMA(tamoxifen,method=DBA_EDGER,bNormalized=TRUE,
            sub="edgeR_TMM-RiP")
 
@@ -181,7 +181,7 @@ par(mfrow=c(1,2))
 dba.plotMA(tamoxifen,bXY=TRUE,bSmooth=FALSE,bNormalized=FALSE, 
            sub="NON_NORMALIZED")
 dba.plotMA(tamoxifen,bXY=TRUE,bSmooth=FALSE,bNormalized=TRUE,
-           sub="DESeq2-MRN-Background")
+           sub="DESeq2-RLE-Background")
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

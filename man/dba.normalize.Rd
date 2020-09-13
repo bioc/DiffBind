@@ -43,15 +43,15 @@ or a specification of a method to use to calculate normalization factors.
 
 Methods can be specified using one of the following:
  \itemize{
-   \item{\code{DBA_NORM_MRN} ("MRN")} 
-   {MRN normalization (native to \code{DBA_DESEQ2},
+   \item{\code{DBA_NORM_RLE} ("RLE")} 
+   {RLE normalization (native to \code{DBA_DESEQ2},
    and available for \code{DBA_EDGER}).}
    \item{\code{DBA_NORM_TMM} ("TMM")} 
    {TMM normalization (native to \code{DBA_EDGER},
    and available for \code{DBA_DESEQ2}).}
    \item{\code{DBA_NORM_NATIVE} ("native")} 
    {Use native method based on \code{method}: 
-   \code{DBA_NORM_MRN} for \code{DBA_DESEQ2} or
+   \code{DBA_NORM_RLE} for \code{DBA_DESEQ2} or
    \code{DBA_NORM_TMM} for \code{DBA_EDGER}.}
    \item{\code{DBA_NORM_LIB} ("lib")}     
    {Normalize by library size only.
@@ -348,12 +348,12 @@ different biases in ChIP-seq data.
 data(tamoxifen_counts)
 tamoxifen <- dba.contrast(tamoxifen,design="~Tissue + Condition")
 
-# default normalization: MRN over background bins
+# default normalization: Full library sizes
 tamoxifen <- dba.normalize(tamoxifen)
 dba.normalize(tamoxifen, bRetrieve=TRUE)
 dba.analyze(tamoxifen)
 
-# MRN/TMM using Reads in Peaks
+# RLE/TMM using Reads in Peaks
 tamoxifen <- dba.normalize(tamoxifen, method=DBA_ALL_METHODS,
                            normalize=DBA_NORM_NATIVE, 
                            library=DBA_LIBSIZE_PEAKREADS)

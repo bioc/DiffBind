@@ -8,24 +8,38 @@
 This is a major release of DiffBind and the new version will be 3.0.
 
 The main upgrade involves how the modelling and normalization are done. 
-DiffBind now supports models and contrasts of arbitrary complexity using either/both DESeq2 or/and edgeR,
+DiffBind now supports models and contrasts of arbitrary complexity 
+using either/both DESeq2 or/and edgeR,
 as well as a myriad of normalization options.
 
 NB:
 
 The previous methods for modelling are maintained for backward compatibility, 
 however they are not the default. 
-To repeat earlier analyses, dba.contrast() must be called explicitly with design=FALSE.
+To repeat earlier analyses, dba.contrast() must be 
+called explicitly with design=FALSE.
 See ?DiffBind3 for more information.
 
-The default mode for dba.count() is now to center around summits (resulting in 501bp intervals). 
-To to avoid recentering around summits as was the previous default, set summits=FALSE (or to a more appropriate value).
+The default mode for dba.count() is now to center around summits 
+(resulting in 401bp intervals). 
+To to avoid recentering around summits as was the previous default, 
+set summits=FALSE (or to a more appropriate value).
 
-Normalization options have been moved from dba.analyze() to the new interface function dba.normalize().
+Normalization options have been moved from dba.analyze() 
+to the new interface function dba.normalize().
 Any non-default normalization options must be specified using dba.normalize().
 }
-
  \item{Changes in this point release:}
+   \itemize{
+     \item{dba.analyze() now performs a complete default analysis from a sample sheet}
+     \item{updated vignette}
+     \item{removed option for full library size for TMM, RLE, and loess normalization}
+    }
+}
+}
+
+\section{Version 2.99.8}{
+ Changes in this point release:
    \itemize{
      \item{Update vignette to include sections on blacklists and normalization.}
      \item{Add DiffBind3 help page with information on backward compatibility.}
@@ -34,7 +48,7 @@ Any non-default normalization options must be specified using dba.normalize().
      \item{Fix bug in dba.count() with user-supplied peakset and summits=n}
     }
 }
-}
+
 
 \section{Version 2.99.5}{
  Changes in this point release:
@@ -76,7 +90,7 @@ Any non-default normalization options must be specified using dba.normalize().
       \itemize{
         \item{Removed support for original DESeq (keeping edgeR and DESeq2)}
         \item{Add ability to retrieve DESeq2 or edgeR object}
-        \item{Moved bTagwise paameter to $config option}
+        \item{Moved bTagwise parameter to $config option}
       }
      \item{dba.count() changes:}
       \itemize{

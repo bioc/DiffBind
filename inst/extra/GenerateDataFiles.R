@@ -74,7 +74,7 @@ tamoxifen$norm$background <- tam$norm$background
 tamoxifen$config <- config
 save(tamoxifen,file="tamoxifen_counts.rda")
 
-## Genereate analysis data with blacklists/greylists/background normalization
+## Generate analysis data with blacklists/greylists/background normalization
 tamoxifen <- tam.bl
 tamoxifen$config$RunParallel <- TRUE
 tamoxifen$config$cores <- NUMCORES

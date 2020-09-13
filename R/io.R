@@ -99,7 +99,7 @@ pv.loadPre3 <- function(pv) {
                           filter = filtval,filterFun = filtFun)
    } else {
       pv <- dba.normalize(pv, method = DBA_DESEQ2, 
-                          normalize = DBA_NORM_MRN,
+                          normalize = DBA_NORM_RLE,
                           library = DBA_LIBSIZE_PEAKREADS, 
                           bSubControl = bSubControlD,
                           filter = filtval,filterFun = filtFun)      

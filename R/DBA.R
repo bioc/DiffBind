@@ -605,7 +605,7 @@ DBA_LIBSIZE_USER       <- PV_LIBSIZE_USER
 DBA_NORM_DEFAULT        <- PV_NORM_DEFAULT
 DBA_NORM_LIB            <- PV_NORM_LIB
 DBA_NORM_TMM            <- PV_NORM_TMM 
-DBA_NORM_MRN            <- PV_NORM_MRN
+DBA_NORM_RLE            <- PV_NORM_RLE
 DBA_NORM_NATIVE         <- PV_NORM_NATIVE
 DBA_NORM_SPIKEIN        <- PV_NORM_SPIKEIN
 DBA_NORM_USER           <- PV_NORM_USER
@@ -731,6 +731,13 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
                         bRetrieveAnalysis=FALSE, bReduceObjects=TRUE, 
                         bParallel=DBA$config$RunParallel)
 {
+  
+  if(!is(DBA,"DBA") && !is(DBA,"list")) {
+    if(is(DBA,"character") || is(DBA,"data.frame")) {
+      message("Loading sample sheet...")
+      DBA <- dba(sampleSheet = DBA) 
+    }
+  }
   
   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
   
@@ -972,6 +979,7 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000,
                             rowSideCols=rowSideCols,colSideCols=colSideCols,
                             ColScheme=colScheme, distMeth=distMethod, 
                             margins=c(margin,margin), ...)
+      maxSites <- min(maxSites, nrow(DBA$binding))
       res <- data.frame(DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)])
       if(!is.character(res[1,1])) {
         res[,1] <- DBA$chrmap[res[,1]]
@@ -991,6 +999,7 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000,
                             minval=minval, maxval=maxval, ColScheme=colScheme, 
                             distMeth=distMethod, 
                             margins=c(margin,margin),...)
+      maxSites <- min(maxSites, nrow(DBA$binding))
       res <- data.frame(DBA$binding[1:maxSites,][res$rowInd,c(1:3,3+res$colInd)])
       if(!is.character(res[1,1])) {
         res[,1] <- DBA$chrmap[res[,1]]

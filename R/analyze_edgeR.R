@@ -338,7 +338,8 @@ pv.DEinitedgeR <- function(pv,
   if(!is.null(pv$norm$edgeR)) {
     # message("edgeR: Using norm.factors from dba.normalize()")
     normfacs <- pv$norm$edgeR$norm.facs
-    if(pv$norm$edgeR$norm.method == PV_NORM_OFFSETS) {
+    if(pv$norm$edgeR$norm.method == PV_NORM_OFFSETS ||
+       pv$norm$edgeR$norm.method == PV_NORM_OFFSETS_ADJUST) {
       if(!is.null(pv$norm$offsets$offsets)) {
         # message("edgeR: use offsets")
         offsets <- assay(pv$norm$offsets$offsets, "offsets")
@@ -358,8 +359,11 @@ pv.DEinitedgeR <- function(pv,
   #)
   
   if(!is.null(offsets)) {
-    # res <- edgeR::scaleOffset(res,offsets)
-    res$offset <- offsets
+    if(pv$norm$edgeR$norm.method == PV_NORM_OFFSETS_ADJUST) {
+      res <- edgeR::scaleOffset(res,offsets)
+    } else {
+      res$offset <- offsets
+    }
   }
   
   return(res)

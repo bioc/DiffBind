@@ -537,10 +537,9 @@ pv.plotHeatmap <-
                 call.=FALSE)
       }
       heatmap.3(
-        domap,labCol = collab,col = cols,trace = "none",labRow = rowlab,KeyValueName =
-          "Score",
-        distfun = function(x)
-          amap::Dist(x,method = distMeth),
+        domap,labCol = collab,col = cols,trace = "none",labRow = rowlab,
+        KeyValueName = "Score",
+        distfun = function(x) amap::Dist(x,method = distMeth),
         ColSideColors = colatts,NumColSideColors = colcols,
         ...
       )
@@ -549,10 +548,10 @@ pv.plotHeatmap <-
         heatmap.3(
           domap,labCol = collab,col = cols,trace = "none",labRow = rowlab, 
           KeyValueName ="Correlation",
-          distfun = function(x)
-            amap::Dist(x,method = distMeth),symm = TRUE,revC = TRUE,Colv = TRUE,
-          RowSideColors = rowatts,ColSideColors = colatts,NumRowSideColors =
-            rowcols,NumColSideColors = colcols,
+          distfun = function(x) amap::Dist(x,method = distMeth),
+          symm = TRUE,revC = TRUE,Colv = TRUE,
+          RowSideColors = rowatts,ColSideColors = colatts,
+          NumRowSideColors = rowcols,NumColSideColors = colcols,
           ...
         )
       if (bReorder) {
