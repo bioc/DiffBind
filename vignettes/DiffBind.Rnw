@@ -32,7 +32,7 @@ BiocStyle::latex()
    University of Cambridge
 }
 
-\date{Edited: 11 September 2020; Compiled: \today}
+\date{Edited: 14 September 2020; Compiled: \today}
 
 \maketitle
 
@@ -1071,7 +1071,7 @@ the current default in \DBA is to \emph{not} subtract control
 reads.
 
 \subsection{When should blacklists and greylists be applied?}
-Within \DBA, blacklists and greylists are applied to candidate peak
+Within \Rpackage{DiffBind}, blacklists and greylists are applied to candidate peak
 regions prior to performing a quantitative analysis.
 This should be done before calculating a consensus peakset by
 excluding blacklisted peaks from each individual peakset.
@@ -1378,7 +1378,7 @@ in order to compare the results of different types of normalization:
 <<normRes1,eval=TRUE,echo=TRUE,results=verbatim>>=
 dbs <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
 dbs$config$factor <- "normalize"
-dbs$class[DBA_ID,] <- "LIB_Full"
+dbs$class[DBA_ID,] <- colnames(dbs$class)[1] <-  "LIB_Full"
 dbs$class[DBA_FACTOR,] <- DBA_NORM_LIB
 dbs
 @
@@ -1392,23 +1392,22 @@ condition.
 
 Compare this to the  \Rcode{RLE} normalization procedure native to
 \DESeq:
-<<normDESeq2RLEFull,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
-tamoxifen <- dba.normalize(tamoxifen, normalize=DBA_NORM_NATIVE,
-                           background=FALSE)
+<<normDESeq2RLE,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
+tamoxifen <- dba.normalize(tamoxifen, normalize=DBA_NORM_NATIVE)
 tamoxifen <- dba.analyze(tamoxifen)
-dba.plotMA(tamoxifen, method=DBA_DESEQ2, sub="DESeq2:RLE:full")
+dba.plotMA(tamoxifen, method=DBA_DESEQ2, sub="DESeq2:RLE:RiP")
 @
-\incfig{DiffBind-normDESeq2RLEFull}{1\textwidth}
+\incfig{DiffBind-normDESeq2RLE}{1\textwidth}
 {MA plot showing results of analysis using RLE based normalization.}
 
-Figure~\ref{DiffBind-normDESeq2RLEFull} shows quite a different picture.
+Figure~\ref{DiffBind-normDESeq2RLE} shows quite a different picture.
 More sites are close to the zero-fold center line, and the loess
 fit sits largely on top, if not slightly above, that line.
 The results of the analysis have changed substantially as well:
 
 <<normRes2,eval=TRUE,echo=TRUE,results=verbatim>>=
 db <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
-db$class[DBA_ID,] <- "RLE_Full"
+db$class[DBA_ID,] <- "RLE_RiP"
 db$class[DBA_FACTOR,] <- DBA_NORM_RLE
 dbs <- dba.peakset(dbs, db)
 db
@@ -1464,7 +1463,8 @@ is set as the default method within \DBA.
 
 An important parameter involved in normalizing concerns the 
 calculation of library sizes.
-In the previous sub-section, the library size for each sample
+In the previous sub-section, for the library-size based normalization,
+the library size for each sample
 was set to the number of aligned reads in the bam file for that
 sample, representing the sequencing depth.
 This is the "full" library size is represented in \DBA as
@@ -1479,10 +1479,12 @@ This takes into account aspects of both the sequencing depth and the
 An inefficient ChIP, where a high proportion of the reads are not
 in enriched peaks (they are "background" reads), may not have
 a strong signal even if sequenced to a greater depth.
+When using the native normalization methods, developed originally for RNA-seq,
+the \Rcode{"RiP"} library sizes are used.
 
 We can compare the results of a library-size based normalization
 using the full library sizes, as in Figure~\ref{DiffBind-normDESeq2LibFull},
-with on using the reads in peaks:
+with one using the reads in peaks:
 
 <<normDESeq2LibRiP,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
 tamoxifen <- dba.normalize(tamoxifen, normalize=DBA_NORM_LIB,
@@ -1504,7 +1506,8 @@ The analysis itself show more balance between differentially bound sites
 that gain affinity in the two conditions:
 
 <<normRes3,eval=TRUE,echo=TRUE,results=verbatim>>=
-dbs$class[DBA_CONDITION,] <- DBA_LIBSIZE_FULL
+dbs$class[DBA_CONDITION,1:3] <- DBA_LIBSIZE_FULL
+dbs$class[DBA_CONDITION,4:6] <- DBA_LIBSIZE_PEAKREADS
 dbs$config$condition <- "lib.size"
 db <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
 db$class[DBA_ID,] <- "LIB_RiP"
@@ -1528,7 +1531,7 @@ analyses using library-size normalization with full and reads-in-peaks
 library sizes, as well as \Rcode{RLE} normalization using full library sizes.}
 
 Figure~\ref{DiffBind-normDESeq2LibsizeVenn} shows the overlaps
-of the differentially bound sites from the tow library-size based
+of the differentially bound sites from the two library-size based
 analyses and the prior \Rcode{RLE} analysis.
 When using reads in peaks, the library-size analysis identifies
 many of the sites enriched in the Resistant group that the 
@@ -1556,28 +1559,30 @@ that the differences are \emph{not} due to ChIP efficiency:
 dba.show(tamoxifen,attributes=c(DBA_ID,DBA_FRIP))
 @
 
-It is largely for this reason that full library sizes
-are set as the default library size within \DBA.
-
-The choice of library size does not only apply to the 
-\Rcode{DBA\_NORM\_LIB} normalization method,
-as the native methods also incorporate library size.
-For \DESeq, these are reflected in the computed normalization factors themselves,
-while \edgeR relies on an effective library size, which is the
-chosen raw library sizes multiplied by the calculated normalization factors.
+It is largely for this reason that the default normalization in \DBA 
+uses library size normalization based on full library sizes.
 
 \subsection{Background normalization}
  
-Similar to the method proposed in the user guide for the 
-\Rpackage{csaw} package\cite{lun2016csaw}, 
-\DBA allows for \emph{background normalization}.
+In the previous section, we saw how a library-size normalization based
+on the full library size, rather than on the reads
+in the enriched areas designated by the consensus peaks set,
+enabled an analysis that avoided making assumption
+about the changes in binding patterns (specifically, assumptions
+that binding changes are roughly balanced). 
+Another way to do this, while gaining some of the
+benefits of the native normalization methods,
+is to use \emph{background normalization}.
 Given the difficulty in differentiating between technical biases and 
 biological signal when attempting to normalize ChIP-seq
 data, the idea is to normalize based on a more neutral sample
 of reads.
 
 The core background normalization technique is to divide the
-genome into large bins and count overlapping reads.
+genome into large bins and count overlapping reads\footnote{
+This method is proposed in the \Rpackage{csaw} package\cite{lun2016csaw};
+internally, \DBA uses the \Rpackage{csaw} methods to compute
+background reads}.
 As the enrichment expected in ChIP-seq (and ATAC-seq) is expected
 to occur over relatively narrow intervals (roughly between 100bp and 600bp),
 it is expected that there should not be systematic differences in signals
@@ -1589,20 +1594,24 @@ Note also that this type of background normalization
 is one of the methods recommended for 
 ATAC-seq analysis \cite{reske2020atac}.
 
-By specifying \Rcode{background=TRUE} in \Rcode{dba.normalize()},
+By specifying \Rcode{background=TRUE} in \Rcode{dba.normalize},
 all chromosomes that contains peaks in the consensus set are divided
-into non-overlapping bins (default size 15,000bp) and reads counted.
+into non-overlapping bins (default size 15,000bp) and overlapping reads counted.
 These can then be normalized using any of the normalization methods.
 While generally doing a library size based normalization will yield the same
-result as on the foreground, the native normalization methods
-can be applied to the background bins.
+result as on the full library size\footnote{The only difference is that
+the "full" library size include the total number of reads in the supplied
+bam files, while the background normalization, by default, only
+counts reads on chromosomes  which contain peaks in the peakset.},
+the native normalization methods can be applied to the background bins.
 
-For the example, include and \edgeR analyses
-(and its native \Rcode{TMM} normalization) to more closely
-track the analysis demonstrated in the \Rpackage{csaw} user guide. 
-Note also that computing background reads requires
+For the example, we can compare to a \DESeq analysis
+with \Rcode{RLE} normalization, as well as a \edgeR analyses
+(and its native \Rcode{TMM} normalization). 
+Note  that computing background reads requires
 access to the full sequencing data (bam files);
-however the loaded  example objects include
+however the loaded  example objects 
+\Rcode{tamoxifen\_counts} and \Rcode{tamoxifen\_analysis} include
 the results of calculating background reads and can be used as-is.
 
 <<normBG,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=16>>=
@@ -1647,7 +1656,7 @@ par(mfcol=c(3,2))
 dba.plotVenn(dbs,c(1,10),   main="All Differentially Bound Sites")
 dba.plotVenn(dbs,c(2,11),   main="Gain in Resistant cells")
 dba.plotVenn(dbs,c(3,12),   main="Loss in Resistant cells")
-dba.plotVenn(dbs,c(1,10,5), main="All Differentially Bound Sies")
+dba.plotVenn(dbs,c(1,10,4), main="All Differentially Bound Sies")
 dba.plotVenn(dbs,c(2,11,5), main="Gain in Resistant cells")
 dba.plotVenn(dbs,c(3,12,6), main="Loss in Resistant cells")
 @
@@ -1669,11 +1678,198 @@ Resistant cells.
 
 \subsection{Spike-in normalization}
 
-no code/plots
+An alternative to using large background bins as a basis for normalizing
+ChIP-seq data is to use \emph{spike-in} data, where
+exogenous chromatin (usually from \emph{Drosophila melanogaster})
+is "spiked in" to the ChIP.
+If the amount of spiked-in chromatin can be precisely controlled,
+then we can use the relative amounts of reads that map
+to the alternative reference genome for each sample.
+\DBA allows for spike-in reads to be included in the experiment,
+either as an additional set of sequencing reads (bam) files, or
+included in the primary reads (assuming a hybrid
+reference genome, where the exogenous reads align to different
+chromosome names than do the consensus peaks).
+Counting these reads then forms a background we can use
+in the same manner as background normalization discussed previously
+(either a library size adjustment using the total number of exogenous reads
+for each sample, or a native RNA-seq method (\Rcode{TMM} or \Rcode{RLE})
+taking into account how those reads are distributed).
+
+To illustrate this, a example dataset has been included in the \DBA package.
+This dataset is derived from that used in \cite{guertin2018parallel}\footnote{
+the data, including the sequencing reads, are available to install
+from github at \Rcode{andrewholding/Brundle"} and 
+\Rcode{andrewholding/BrundleData"}.}.
+In this dataset, which also looks at ER binding,
+the signal is highly unbalanced between conditions.
+In this case we know that this is the result of a genuine biological
+phenomenon, as the condition treated with Fulvestrant is known
+to block ER binding.
+We are looking to normalize the data while preserving the 
+bias toward binding in the non-Fulvestrant condition.
+
+We can load the data as follows, observing the two conditions,
+each with four replicates:
+<<loadSpikes,eval=TRUE,echo=TRUE,results=verbatim>>=
+load(system.file('extra/spikes.rda',package='DiffBind'))
+spikes
+@
+
+For this experiment, \emph{Drosophila} reads are included in the samplesheet
+using the \Rcode{Spikein} column in the samplesheet:
+<<spikeins,eval=TRUE,echo=TRUE,results=verbatim>>=
+spikes$samples$Spikein
+@
+
+The loss of binding affinity in the Fulvestrant condition can
+be seen in a MA plot:
+
+<<spikeMAnone,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
+dba.plotMA(spikes,contrast=list(Fulvestrant=spikes$masks$Fulvestrant),
+           bNormalized=FALSE,sub="RAW" )
+@
+\incfig{DiffBind-spikeMAnone}{1\textwidth}
+{MA plot of ER dataset with and without Fulvestrant treatment,
+non-normalized}
+
+Figure~\ref{DiffBind-spikeMAnone} shows the non-normalized data.
+
+Next we use the normalization methods already discussed:
+full library sizes, as well as \Rcode{RLE} normalization
+using Reads-in-Peaks, as well as background.\footnote{Note that
+the calculated background reads are included for the example so
+we do not need to re-count them for the vignette.}
+
+<<spikeMAstraight,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=10,height=18>>=
+par(mfrow=c(3,1))
+spikes <- dba.normalize(spikes, normalize=DBA_NORM_LIB, library="full")
+spikes <- dba.analyze(spikes)
+dba.plotMA(spikes, sub="LIB full")
+
+spikes <- dba.normalize(spikes, normalize="RLE")
+spikes <- dba.analyze(spikes)
+dba.plotMA(spikes, sub="RLE RiP")
+
+spikes$norm$background <- spikes.background
+spikes <- dba.normalize(spikes, normalize="RLE", background=TRUE)
+spikes <- dba.analyze(spikes)
+dba.plotMA(spikes, sub="RLE BG")
+par(mfrow=c(1,1))
+@
+\incfig{DiffBind-spikeMAstraight}{1\textwidth}
+{MA plots of ER dataset with and without Fulvestrant treatment,
+normalized by library size and \Rcode{RLE} using
+Reads-in-Peaks and background reads.}
+
+In Figure~\ref{DiffBind-spikeMAstraight}, the middle plot shows how
+a direct application of \Rcode{RLE} using the consensus peaks
+over-normalizes, causing many sites, after normalization,
+to have positive fold changes and be identified as significantly
+gaining in binding affinity after Fulvestrant treatment.
+The analysis based on a full-depth library size adjustment does better,
+but it still somewhat shifts the read density upwards towards the
+Fulvestrant condition, and identifies 
+at least one site as gaining binding affinity.
+Using a background normalization performs best.
+
+Now we can compare to an alternative background derived form counting
+the \emph{Drosophila} reads\footnote{Note that
+the calculated spike-in reads are included for the example so
+we do not need to re-count them for the vignette.}:
+
+<<spikeMAspikein,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=10,height=14>>=
+par(mfrow=c(2,1))
+spikes$norm$background <- spikes.spikeins
+spikes <- dba.normalize(spikes, spikein = TRUE)
+spikes <- dba.analyze(spikes)
+dba.plotMA(spikes, sub="LIB spikein")
+
+spikes <- dba.normalize(spikes, normalize=DBA_NORM_RLE, spikein = TRUE)
+spikes <- dba.analyze(spikes)
+dba.plotMA(spikes, sub="RLE spikein")
+par(mfrow=c(1,1))
+@
+\incfig{DiffBind-spikeMAspikein}{1\textwidth}
+{MA plots of ER dataset with and without Fulvestrant treatment,
+using \emph{Drosophila}
+spike-in reads as a background, normalized using the
+number of \emph{Drosophila} reads and \Rcode{RLE}.}
+
+Figure~\ref{DiffBind-spikeMAspikein} shows how using the
+spike-in reads enables normalization where all the apparent
+gains in binding affinity are
+eliminated, and the bulk of the sites are  identified as significantly
+losing binding affinity in the Fulvestrant condition.
 
 \subsection{Parallel factor normalization}
 
-no code/plots
+Another method related to spike-ins is supported in \DBA,
+whereby an antibody for a "parallel factor" is also
+pulled down in the ChIP samples, and consensus peaks from this
+second factor are  used instead of the consensus peaks of the primary factor.
+This idea behind this \emph{parallel factor normalization}
+is that while we may not know the
+true biological properties of the "foreground" factor being studied,
+we can perform a ChIP on the same sample for an alternative
+factor that is known not to change its binding patterns under
+the conditions of our experiment.
+In \cite{guertin2018parallel}, the transcription factor
+\textbf{CTCF} is identified as an appropriate
+such parallel factor\footnote{Note that the version
+of parallel factor normalization supported directly in \DBA
+is not the same as that discussed in \cite{guertin2018parallel},
+where a more sophisticated modeling approach is used.}.
+
+This can be demonstrated using a sample dataset, again
+looking at ER binding before and after treatment with Fulvestrant:
+
+<<loadParfac,eval=TRUE,echo=TRUE,results=verbatim>>=
+load(system.file('extra/parallelFactor.rda',package='DiffBind'))
+parallelFactor
+@
+
+Again,the loss of binding affinity in the Fulvestrant condition can
+be seen in the MA plot:
+
+<<parfacMAnone,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
+dba.plotMA(parallelFactor,
+           contrast=list(Fulvestrant=parallelFactor$masks$Fulvestrant),
+           bNormalized=FALSE, sub="RAW" )
+@
+\incfig{DiffBind-parfacMAnone}{1\textwidth}
+{MA plot of second ER dataset with and without Fulvestrant treatment,
+non-normalized}
+
+Figure~\ref{DiffBind-parfacMAnone} shows the non-normalized data.
+
+By supplying a set of CTCF consensus peaks (loaded
+with the example data and called \Rcode{parallelFactor.peaks}),
+we can direct \DBA to count reads overlapping these peaks to form
+the background distributions and proceed to normalization:
+
+<<parfacMA,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=10,height=14>>=
+par(mfrow=c(2,1))
+parallelFactor$norm$background <- parallelFactor.ctcf
+parallelFactor <- dba.normalize(parallelFactor,spikein = parallelFactor.peaks)
+parallelFactor <- dba.analyze(parallelFactor)
+dba.plotMA(parallelFactor, sub="LIB CTCF")
+
+parallelFactor <- dba.normalize(parallelFactor,spikein = parallelFactor.peaks, 
+                                norm=DBA_NORM_RLE)
+parallelFactor <- dba.analyze(parallelFactor)
+dba.plotMA(parallelFactor, sub="RLE CTCF")
+par(mfrow=c(1,1))
+@
+\incfig{DiffBind-parfacMA}{1\textwidth}
+{MA plots of ER dataset with and without Fulvestrant treatment,
+using reads overlapping CTCF sites as a background, normalized using the
+number of reads overlapping CTCF sites, and \Rcode{RLE} over the CTCF sites.}
+
+Figure~\ref{DiffBind-parfacMA} shows how the parallel factor  is
+able to avoid over-normalizing the data and results in analyses identifying
+the majority of ER binding sites
+as significantly losing binding affinity when treated with Fulvestrant.
 
 \subsection{Offsets and loess normalization}
 --csaw
@@ -1822,7 +2018,7 @@ are designed for RNA-seq and those that focus
 on a more neutral read distributions, particularly 
 background reads and full library size.
 
-Within the cluster that use native normalization (or, in one case,
+Within the cluster that uses native normalization (or, in one case,
 highly enriched reads in consensus peaks), the results are similar
 and highly correlated. 
 These sub-cluster by analysis method (\DESeq vs \edgeR), 

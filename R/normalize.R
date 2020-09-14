@@ -49,6 +49,7 @@ pv.normalize <- function(pv,
     if(background[1] == FALSE) {
       if(dospikein) {
         background <- TRUE
+        libSizes <- DBA_LIBSIZE_BACKGROUND
       } else {
         dobackground <- FALSE
       }

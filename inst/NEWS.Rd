@@ -2,7 +2,7 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.99.8}{
+\section{Version 2.99.10}{
 \itemize{
 \item{
 This is a major release of DiffBind and the new version will be 3.0.
@@ -31,11 +31,19 @@ Any non-default normalization options must be specified using dba.normalize().
 }
  \item{Changes in this point release:}
    \itemize{
+     \item{spike-in and parallel normalization examples}
+     \item{updated vignette}
+    }
+}
+}
+
+\section{Version 2.99.9}{
+  Changes in this point release:
+   \itemize{
      \item{dba.analyze() now performs a complete default analysis from a sample sheet}
      \item{updated vignette}
      \item{removed option for full library size for TMM, RLE, and loess normalization}
     }
-}
 }
 
 \section{Version 2.99.8}{
