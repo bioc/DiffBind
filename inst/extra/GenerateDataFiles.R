@@ -86,8 +86,15 @@ tamoxifen <- dba.analyze(tamoxifen)
 tamoxifen$config <- config
 save(tamoxifen,file="tamoxifen_analysis.rda")
 
+## spikein and parallel factors ##
+curwd <- getwd()
+setwd("holding/BrundleData/inst/extdata")
+source("test_spikein.R", echo=TRUE)
+setwd(curwd)
+system("cp holding/BrundleData/inst/extdata/*.rda .")
+
 ## Compress files
 resaveRdaFiles(".", compress="auto",compression_level = 9)
 
 # cp tamoxifen_*.rda DiffBind/data/
-# cp ktypes.rda DiffBind/inst/extra
+# cp ktypes.rda spikes.rda parallelFactor.rda DiffBind/inst/extra
