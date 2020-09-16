@@ -42,6 +42,18 @@ pv.normalize <- function(pv,
     }
   } else if (is(spikein,"GRanges")) {
     libSizes <- DBA_LIBSIZE_BACKGROUND
+  } else if(is(spikein,"list")) {
+    if(!is.null(spikein$back.calc)) {
+      if(spikein$back.calc == "Spike-in" ||
+         spikein$back.calc == "Parallel factor") {
+        background <- spikein
+        spikein <- TRUE
+      } else {
+        stop("spikein: invalid background record.", call.=FALSE)
+      }
+    } else {
+      stop("spikein: invalid background record.", call.=FALSE)
+    }
   }
   
   dobackground <- TRUE
@@ -56,11 +68,18 @@ pv.normalize <- function(pv,
     } else {
       libSizes <- DBA_LIBSIZE_BACKGROUND
     }
+  } else if(is(background,"list")) {
+    if(!is.null(background$binned)) {
+      pv$norm$background <- background
+      background <- TRUE
+    } else {
+      stop("Invalid background record.", call.=FALSE)
+    }    
   }
   
   if(all(method == DBA_ALL_METHODS)) {
     
-    if(dobackground || libSizes==DBA_LIBSIZE_BACKGROUND) {
+    if(dobackground) {
       pv$norm$background <- pv.getBackground(pv, background, spikein)
     }
     
@@ -109,7 +128,7 @@ pv.normalize <- function(pv,
     stop("offsets must be a logical, matrix, or SummarizedExperiment",call.=FALSE)
   }
   
-  if(dobackground || libSizes==DBA_LIBSIZE_BACKGROUND) {
+  if(dobackground) {
     
     norm.background <- pv.getBackground(pv, background, spikein) 
     binned    <- norm.background$binned
@@ -118,7 +137,7 @@ pv.normalize <- function(pv,
     
   } else {
     
-    binned  <- pv$norm$background$binned
+    binned    <- pv$norm$background$binned
     bin.size  <- pv$norm$background$bin.size
     back.calc <- pv$norm.background$back.calc
     

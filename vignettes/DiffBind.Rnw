@@ -32,7 +32,7 @@ BiocStyle::latex()
    University of Cambridge
 }
 
-\date{Edited: 14 September 2020; Compiled: \today}
+\date{Edited: 16 September 2020; Compiled: \today}
 
 \maketitle
 
@@ -1676,11 +1676,252 @@ identifying many additional sites that gain binding affinity in the
 Resistant cells, while "missing" many sites that lose binding affinity in the
 Resistant cells.
 
+\subsection{Offsets and loess normalization}
+
+While the normalization discussed so far have relied on computing 
+normalization coefficients for each sample,
+an alternative is to compute normalization factors for
+each read count in the consensus count matrix (that is, for each
+consensus peak for each sample).
+These are called \emph{normalization factors} in \DESeq and
+\emph{offsets} in \edgeR).
+
+A matrix of offsets can be supplied via the \Rcode{dba.normalize}
+function, or an offset matrix can be calculated
+using a \Rcode{loess} fit.
+As described in the user guide for the 
+\Rpackage{csaw} package\cite{lun2016csaw},
+this method can help correct certain kinds of biases in the data,
+particularly trended biases where there is a systematic difference
+in fold changes at difference mean concentration levels.
+This normalization method was also identified in
+\cite{reske2020atac} as being advantageous for ATAC-seq data
+that show a trended bias.
+
+In the tamoxifen example, we don't see this kind of bias.
+However we can approximate it by reducing the data to two
+sample groups:
+
+<<MCF7T47D,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
+mcf7t47d <- dba(tamoxifen,mask=c(3:7))
+dba.plotMA(mcf7t47d,
+           contrast=list(MCF7=mcf7t47d$masks$MCF7,
+                         T47D=mcf7t47d$masks$T47D), 
+           bNormalized=FALSE)
+@
+\incfig{DiffBind-MCF7T47D}{1\textwidth}
+{MA Plot showing evidence of a "trended bias" in reduced dataset}
+
+Figure~\ref{DiffBind-MCF7T47D} shows the apparent trended bias between the 
+Responsive MCF7 and T47D samples.
+
+Next we will use a loess fit to generate offsets, 
+followed by an \edgeR analysis 
+(to better approximate the \Rpackage{csaw} example):
+<<loessfit,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=12,height=9>>=
+mcf7t47d$config$AnalysisMethod <- DBA_EDGER
+mcf7t47d <- dba.normalize(mcf7t47d, offsets=TRUE)
+mcf7t47d <- dba.contrast(mcf7t47d, contrast=c("Tissue","MCF7","T47D"))
+mcf7t47d <- dba.analyze(mcf7t47d)
+dba.plotMA(mcf7t47d)
+@
+\incfig{DiffBind-loessfit}{1\textwidth}
+{MA Plot showing results of  normalizing with offsets
+generated using a loess fit.}
+
+Figure~\ref{DiffBind-loessfit} shows how the bias is "corrected" by this
+normalization.
+The result is a very close balance between sites identified
+and significantly gaining binding affinity in the MCF7 samples
+versus those gaining binding affinity in the T47D samples:
+
+<<compareLoess,eval=TRUE,echo=TRUE,results=verbatim>>=
+mcf7t47d.DB <- dba.report(mcf7t47d)
+sum(mcf7t47d.DB$Fold > 0)
+sum(mcf7t47d.DB$Fold < 0)
+@
+
+If we are certain that the bias is technical, this could save
+the dataset.
+However, if we are not certain that the observed
+trend does not reflect a genuine biological
+signal, such as a case where the MCF7 cells have a set of
+sites with much higher binding affinity overall, this normalization
+could skew the data so as to remove identification of these sites.
+
+\subsection{Comparing the impact of normalization methods on analysis results}
+
+As can be seen, there are many possible ways of analyzing the same data
+when taking into account analysis methods (\DESeq and \edgeR),
+library size calculations (relying on all sequencing reads or only those 
+that overlap consensus peaks), normalization methods 
+(\Rcode{RLE}, \Rcode{TMM}, \Rcode{loess offsets}, or solely by library size), 
+and finally whether to normalize based on enriched versus background regions.
+
+There are seven primary ways to normalize the example dataset:
+\begin{enumerate}
+\item
+Library size normalization using full sequencing depth
+\item
+Library size normalization using Reads in Peaks
+\item
+\Rcode{RLE} on Reads in Peaks
+\item
+\Rcode{TMM} on Reads in Peaks
+\item
+\Rcode{loess} fit on Reads in Peaks
+\item
+\Rcode{RLE} on Background bins
+\item
+\Rcode{TMM} on Background bins
+\end{enumerate}
+
+The following code chunk cycles through the seven possibilities,
+repeated for \DESeq and for \edgeR,
+and gathers the results in a report-based \Rcode{DBA} object
+for plotting and further analysis:
+<<normCompare,eval=TRUE,echo=TRUE,results=verbatim>>=
+data(tamoxifen_analysis)
+dbs.all <- NULL
+for(norm in c("lib","RLE","TMM", "loess")) {
+  for(libsize in c("full","RiP","background")) {
+    tam <- NULL
+    background <- offsets <- FALSE
+    if(libsize == "full" && norm != "lib") {
+      background <- NULL
+    }
+    if(libsize == DBA_LIBSIZE_BACKGROUND) {
+      background <- TRUE
+      if(norm == DBA_NORM_LIB) {
+        background <- NULL
+      }
+    } 
+    if(norm == "loess" && !is.null(background)) {
+      offsets <- TRUE
+      if(libsize != "background") {
+        background <- FALSE
+      } else {
+        background <- NULL
+      }
+    }
+    if(!is.null(background)) {
+      tam <- dba.normalize(tamoxifen, method=DBA_ALL_METHODS,
+                           normalize=norm, library=libsize, 
+                           background=background, offsets=offsets)
+    }
+    if(!is.null(tam)) {
+      tam <- dba.analyze(tam, method=DBA_ALL_METHODS)
+      for(meth in DBA_ALL_METHODS) {
+        db <- dba.report(tam, method=meth, bDB=TRUE)
+        if(meth == DBA_EDGER) {
+          methstr <- "edgeR"
+        } else {
+          methstr <- "DESeq2"
+        }
+        if(libsize == "background") {
+          libstr <- "BG"
+        } else {
+          libstr <- libsize
+        }
+        if(is.null(dbs.all)) {
+          dbs.all <- db
+          dbs.all$config$factor    <- "normalize"
+          dbs.all$config$condition <- "lib.size"
+          dbs.all$config$treatment <- "method"
+          dbs.all$class[DBA_ID,]  <- colnames(dbs.all$class)[1] <- 
+            paste(norm,libstr,methstr,sep="_")
+          dbs.all$class[DBA_FACTOR,]    <- norm
+          dbs.all$class[DBA_CONDITION,] <- libstr
+          dbs.all$class[DBA_TREATMENT,] <- "edgeR"
+          dbs.all$class[DBA_TISSUE,]    <- NA
+        } else {
+          db$class[DBA_ID,]        <- paste(norm,libstr,methstr,sep="_")
+          db$class[DBA_FACTOR,]    <- norm
+          db$class[DBA_CONDITION,] <- libsize
+          db$class[DBA_TREATMENT,] <- methstr
+          db$class[DBA_TISSUE,]    <- NA
+          dbs.all <- dba.peakset(dbs.all,db)
+        }
+      }
+    }
+  }
+}
+dbs.all <- dba(dbs.all,minOverlap=1)
+dbs.all
+@
+
+First considering the \DESeq results, we can plot
+a heatmap of the identified differentially bound peaks
+to see how the methods cluster:
+
+<<normClusterDESeq2,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, width=12,height=12>>=
+deseq <- dba(dbs.all,mask=dbs.all$masks$DESeq2, minOverlap = 1)
+pl <- colorRampPalette(c("red", "black", "green"))(n = 13)
+dba.plotHeatmap(deseq, maxSites=nrow(deseq$binding),  bLog=FALSE,
+                correlations=FALSE,minval=-6, maxval=6, cexCol=1.3, 
+                colScheme = pl, main="DESeq2")
+@
+\incfig{DiffBind-normClusterDESeq2}{1\textwidth}
+{Clustering heatmap of differentially bound sites from \Rpackage{DESeq2}
+analyses using various normalization and library size methods}
+
+In Figure~\ref{DiffBind-normClusterDESeq2}, sites that gain affinity in
+the tamoxifen Resistant condition are shown in green (positive fold changes),
+those that gain affinity in the Responsive condition are shown in red
+(negative fold changes), and those that are not identified by a specific
+analysis are shown in black (zero fold change).
+
+The analyses break into two main clusters, one containing the four analyses
+that relied on the main count matrix ("RiP") for normalizing, and the
+other encompassing the three analysis that did not 
+(relying on either background read counts, 
+or on the total number of reads in the sequencing libraries.)
+The RiP cluster shows a greater balance between sites that gain binding strength 
+in each of the two conditions,
+while sites identified by analyses using background reads identify
+mostly sites with greater binding affinity in the Responsive sample group.
+
+What happen when we consider analyses using both underlying methods 
+(\DESeq and \edgeR)?
+<<normCluster,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, width=16,height=16>>=
+dba.plotHeatmap(dbs.all, maxSites=nrow(dbs.all$binding), bLog=FALSE,
+                correlations=FALSE, minval=-6, maxval=6, cexCol=1.3, 
+                colScheme = pl)
+@
+\incfig{DiffBind-normCluster}{1\textwidth}
+{Clustering heatmap of differentially bound sites from \DESeq and 
+\edgeR analyses using various normalization and library size methods}
+
+Figure~\ref{DiffBind-normCluster} shows that main division into a cluster
+that normalizes using the consensus count matrix and another that
+uses background reads (or raw sequencing depth) is maintained.
+Within each of these two clusters, the analyses cluster by
+analysis method (\DESeq vs \edgeR).
+
+The specific normalization method used appears to be far less important
+than which reads are used as the basis for normalization.
+Indeed, the native RNA-seq methods, \Rcode{RLE} and \Rcode{TMM},
+give very similar and highly correlated results when using
+the same count data.
+It is not clear that using these methods on the consensus reads
+will not alter biological signals.
+An assumption in RNA-seq analysis, that the read count matrix reflects
+an unbiased representation of the experimental data,
+may be violated when using a narrow set of consensus
+peaks that are chosen specifically based on their rates
+of enrichment.
+
+In general, it is probably a good idea to
+avoid using the using the consensus count matrix (Reads in Peaks) 
+for normalizing unless there is a good prior reason 
+to expect balanced changed in binding.
+
 \subsection{Spike-in normalization}
 
-An alternative to using large background bins as a basis for normalizing
-ChIP-seq data is to use \emph{spike-in} data, where
-exogenous chromatin (usually from \emph{Drosophila melanogaster})
+An alternative for avoiding the use of the consensus count matrix
+when normalizing ChIP-seq data is to use
+\emph{spike-in} data, where exogenous chromatin 
+(usually from \emph{Drosophila melanogaster})
 is "spiked in" to the ChIP.
 If the amount of spiked-in chromatin can be precisely controlled,
 then we can use the relative amounts of reads that map
@@ -1743,16 +1984,18 @@ we do not need to re-count them for the vignette.}
 
 <<spikeMAstraight,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=10,height=18>>=
 par(mfrow=c(3,1))
-spikes <- dba.normalize(spikes, normalize=DBA_NORM_LIB, library="full")
+spikes <- dba.normalize(spikes, normalize=DBA_NORM_LIB, 
+                        background=FALSE)
 spikes <- dba.analyze(spikes)
 dba.plotMA(spikes, sub="LIB full")
 
-spikes <- dba.normalize(spikes, normalize="RLE")
+spikes <- dba.normalize(spikes, normalize="RLE",
+                        background=FALSE)
 spikes <- dba.analyze(spikes)
 dba.plotMA(spikes, sub="RLE RiP")
 
-spikes$norm$background <- spikes.background
-spikes <- dba.normalize(spikes, normalize="RLE", background=TRUE)
+spikes <- dba.normalize(spikes, normalize="RLE", 
+                        background=TRUE)
 spikes <- dba.analyze(spikes)
 dba.plotMA(spikes, sub="RLE BG")
 par(mfrow=c(1,1))
@@ -1780,8 +2023,7 @@ we do not need to re-count them for the vignette.}:
 
 <<spikeMAspikein,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=10,height=14>>=
 par(mfrow=c(2,1))
-spikes$norm$background <- spikes.spikeins
-spikes <- dba.normalize(spikes, spikein = TRUE)
+spikes <- dba.normalize(spikes, spikein = spikes.spikeins)
 spikes <- dba.analyze(spikes)
 dba.plotMA(spikes, sub="LIB spikein")
 
@@ -1850,13 +2092,12 @@ the background distributions and proceed to normalization:
 
 <<parfacMA,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=10,height=14>>=
 par(mfrow=c(2,1))
-parallelFactor$norm$background <- parallelFactor.ctcf
 parallelFactor <- dba.normalize(parallelFactor,spikein = parallelFactor.peaks)
 parallelFactor <- dba.analyze(parallelFactor)
 dba.plotMA(parallelFactor, sub="LIB CTCF")
 
-parallelFactor <- dba.normalize(parallelFactor,spikein = parallelFactor.peaks, 
-                                norm=DBA_NORM_RLE)
+parallelFactor <- dba.normalize(parallelFactor,norm=DBA_NORM_RLE,
+                                spikein = TRUE) 
 parallelFactor <- dba.analyze(parallelFactor)
 dba.plotMA(parallelFactor, sub="RLE CTCF")
 par(mfrow=c(1,1))
@@ -1870,160 +2111,6 @@ Figure~\ref{DiffBind-parfacMA} shows how the parallel factor  is
 able to avoid over-normalizing the data and results in analyses identifying
 the majority of ER binding sites
 as significantly losing binding affinity when treated with Fulvestrant.
-
-\subsection{Offsets and loess normalization}
---csaw
-
-% 
-% tamoxifen <- dba.normalize(tamoxifen, library=DBA_LIBSIZE_PEAKREADS,
-%                            offsets=TRUE)
-% tamoxifen <- dba.analyze(tamoxifen)
-% db <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
-% db$class[DBA_ID,] <- "RiP_loess"
-% db$class[DBA_FACTOR,] <- DBA_OFFSETS_LOESS
-% db$class[DBA_CONDITION,] <- DBA_LIBSIZE_PEAKREADS
-% dbs <- dba.peakset(dbs, db)
-% 
-% par(mfcol=c(2,2))
-% dba.plotMA(tamoxifen, th=0, bNormalized=FALSE, sub="RAW")
-% dba.plotMA(tamoxifen, method=DBA_DESEQ2, sub="DESeq2:loess:RiP")
-% 
-% tamoxifen <- dba.normalize(tamoxifen, library=DBA_LIBSIZE_FULL,
-%                            offsets=TRUE)
-% tamoxifen <- dba.analyze(tamoxifen)
-% db <- dba.report(tamoxifen, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
-% db$class[DBA_ID,] <- "LIB_loess"
-% db$class[DBA_FACTOR,] <- DBA_OFFSETS_LOESS
-% db$class[DBA_CONDITION,] <- DBA_LIBSIZE_FULL
-% dbs <- dba.peakset(dbs, db)
-% dba.plotMA(tamoxifen, method=DBA_DESEQ2, sub="DESeq2:loess:Full")
-% 
-% tamoxifen <- dba.normalize(tamoxifen, method=DBA_EDGER,
-%                            library=DBA_LIBSIZE_PEAKREADS,
-%                            offsets=TRUE)
-% tamoxifen <- dba.analyze(tamoxifen, method=DBA_EDGER)
-% db <- dba.report(tamoxifen, method=DBA_EDGER, bDB=TRUE, bGain=TRUE, bLoss=TRUE)
-% db$class[DBA_ID,] <- "RiP_loess_edgeR"
-% db$class[DBA_FACTOR,] <- DBA_OFFSETS_LOESS
-% db$class[DBA_CONDITION,] <- DBA_LIBSIZE_PEAKREADS
-% dbs <- dba.peakset(dbs, db)
-% dba.plotMA(tamoxifen, method=DBA_EDGER, sub="edgeR:loess:RiP")
-
-\subsection{Comparing the impact of normalization methods on analysis results}
-As can be seen, there are many possible ways of analyzing the same data
-when taking into account analysis methods (\DESeq and \edgeR),
-library size calculations (counting all sequencing reads or only those 
-that overlap consensus peaks), normalization methods 
-(\Rcode{RLE}, \Rcode{TMM}, or solely by library size), 
-and finally whether to normalize based on enriched versus background regions.
-The following code chunk cycles through all the possibilities and shows
-how these options are related:
-<<normCompare,eval=TRUE,echo=TRUE,results=verbatim>>=
-data(tamoxifen_analysis)
-dbs.all <- NULL
-for(norm in c("lib","RLE","TMM", "loess")) {
-  for(libsize in c("full","RiP","background")) {
-    tam <- NULL
-    background <- offsets <- FALSE
-    if(libsize == "full" && norm != "lib") {
-      background <- NULL
-    }
-    if(libsize == DBA_LIBSIZE_BACKGROUND) {
-      background <- TRUE
-      if(norm == DBA_NORM_LIB) {
-        background <- NULL
-      }
-    } 
-    if(norm == "loess" && !is.null(background)) {
-      offsets <- TRUE
-      if(libsize != "background") {
-        background <- FALSE
-      } else {
-        background <- NULL
-      }
-    }
-    if(!is.null(background)) {
-      tam <- dba.normalize(tamoxifen, method=DBA_ALL_METHODS,
-                           normalize=norm, library=libsize, 
-                           background=background, offsets=offsets)
-    }
-    if(!is.null(tam)) {
-      tam <- dba.analyze(tam, method=DBA_ALL_METHODS)
-      for(meth in DBA_ALL_METHODS) {
-        db <- dba.report(tam, method=meth, bDB=TRUE)
-        if(meth == DBA_EDGER) {
-          methstr <- "edgeR"
-        } else {
-          methstr <- "DESeq2"
-        }
-        if(is.null(dbs.all)) {
-          dbs.all <- db
-          dbs.all$config$factor    <- "normalize"
-          dbs.all$config$condition <- "lib.size"
-          dbs.all$config$treatment <- "method"
-          dbs.all$class[DBA_ID,]  <- colnames(dbs.all$class)[1] <- 
-            paste(norm,libsize,methstr,sep="_")
-          dbs.all$class[DBA_FACTOR,]    <- norm
-          dbs.all$class[DBA_CONDITION,] <- libsize
-          dbs.all$class[DBA_TREATMENT,] <- "edgeR"
-        } else {
-          db$class[DBA_ID,]        <- paste(norm,libsize,methstr,sep="_")
-          db$class[DBA_FACTOR,]    <- norm
-          db$class[DBA_CONDITION,] <- libsize
-          db$class[DBA_TREATMENT,] <- methstr
-          dbs.all <- dba.peakset(dbs.all,db)
-        }
-      }
-    }
-  }
-}
-dbs.all <- dba(dbs.all,minOverlap=1)
-dbs.all
-deseq <- dba(dbs.all,mask=dbs.all$masks$DESeq2, minOverlap = 1)
-edger <- dba(dbs.all,mask=dbs.all$masks$edgeR, minOverlap = 1)
-dba.overlap(deseq,mode=DBA_OLAP_ALL,bCorOnly=FALSE)
-dba.overlap(edger,mode=DBA_OLAP_ALL,bCorOnly=FALSE)
-@
-
-Plots: 
-
-<<normClusterDESeq2,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, width=12,height=12>>=
-pl <- colorRampPalette(c("red", "black", "green"))(n = 13)
-dba.plotHeatmap(deseq, maxSites=nrow(deseq$binding),  bLog=FALSE,
-                correlations=FALSE,minval=-6, maxval=6, cexCol=.85, 
-                colScheme = pl, main="DESeq2")
-@
-\incfig{DiffBind-normClusterDESeq2}{1\textwidth}
-{Clustering heatmap of differentially bound sites  from \Rpackage{DESeq2}
-analyses using various normalization and library size methods}
-
-<<normCluster,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, width=16,height=16>>=
-dba.plotHeatmap(dbs.all, maxSites=nrow(dbs.all$binding), bLog=FALSE,
-                correlations=FALSE, minval=-6, maxval=6,  cexCol=.85, 
-                colScheme = pl)
-@
-\incfig{DiffBind-normCluster}{1\textwidth}
-{Clustering heatmap of differentially bound sites from \DESeq and 
-\edgeR analyses using various normalization and library size methods}
-
-<<normPCA,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, width=9,height=9>>=
-dba.plotPCA(dbs.all,c(DBA_TREATMENT,DBA_CONDITION), label=DBA_FACTOR)
-@
-\incfig{DiffBind-normPCA}{1\textwidth}
-{PCA plot of correlations analyses using various 
-analysis, normalization, and library size methods}
-
-The primary division is between normalization strategies that
-are designed for RNA-seq and those that focus
-on a more neutral read distributions, particularly 
-background reads and full library size.
-
-Within the cluster that uses native normalization (or, in one case,
-highly enriched reads in consensus peaks), the results are similar
-and highly correlated. 
-These sub-cluster by analysis method (\DESeq vs \edgeR), 
-then further by normalization method (\Rcode{RLE} vs \Rcode{TMM}),
-and finally by library size method (full vs reads in peaks).
 
 \section{Example: Occupancy analysis and overlaps}
 \label{sec:occupancy}

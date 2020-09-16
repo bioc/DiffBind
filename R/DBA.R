@@ -644,12 +644,12 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
     filtval <- 0
   } else {
     # defaults are 3.0+    
-    deflib  <- DBA_LIBSIZE_FULL
-    if(!missing(background)) {
-      if(background==TRUE) {
-        deflib  <- DBA_LIBSIZE_BACKGROUND
-      } 
-    }
+    deflib  <-  DBA_LIBSIZE_BACKGROUND
+    if(is(background,"logical")) {
+      if(background == FALSE) {
+        deflib  <- DBA_LIBSIZE_FULL
+      }
+    } 
     defnorm <- DBA_NORM_LIB
     defback <- FALSE    
     filtval <- 5

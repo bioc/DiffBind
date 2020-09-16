@@ -3,11 +3,11 @@
 ##
 ## To be run from working directory containing vignette data (including bam files)
 
+# setwd("~/Work/DiffBind/Vignette/DiffBind_Vignette/")
+
 library(DiffBind)
 library(tools)
 NUMCORES <- 18
-
-setwd("~/Work/DiffBind/Vignette/DiffBind_Vignette/")
 
 ## Greylists: Gather karyotypes for internally supported reference genomes
 
@@ -87,11 +87,7 @@ tamoxifen$config <- config
 save(tamoxifen,file="tamoxifen_analysis.rda")
 
 ## spikein and parallel factors ##
-curwd <- getwd()
-setwd("holding/BrundleData/inst/extdata")
-source("test_spikein.R", echo=TRUE)
-setwd(curwd)
-system("cp holding/BrundleData/inst/extdata/*.rda .")
+source("GenerateSpikein.R")
 
 ## Compress files
 resaveRdaFiles(".", compress="auto",compression_level = 9)
