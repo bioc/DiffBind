@@ -12,6 +12,8 @@ not been specified.
 }
 \usage{
 dba.analyze(DBA, method=DBA$config$AnalysisMethod, 
+            bBlacklist=DBA$config$doBlacklist,
+            bGreylist=DBA$config$doGreylist,
             bRetrieveAnalysis=FALSE, bReduceObjects=TRUE, 
             bParallel=DBA$config$RunParallel)
 }
@@ -20,11 +22,17 @@ dba.analyze(DBA, method=DBA$config$AnalysisMethod,
 
 %\subsection{Required arguments}{}
 
-  \item{DBA}{
+\item{DBA}{
 Either a \code{DBA} object, or a sample sheet 
 (either a \code{character} vector with the name of the
 sample sheet, or a \code{data.frame} containing the experimental
 metadata.
+
+If no blacklist or greylists are included,
+a call will be made to
+\code{\link{dba.blacklist}} using defaults.
+This can be skipped by setting the \code{bBlacklist} and/or
+\code{bGreylist} parameters.
 
 If no counts are included, a default consensus will be formed
 and read counts computed via a call to
@@ -40,7 +48,8 @@ using defaults.
 }
 
 \item{method}{
-Underlying method, or vector of methods, by which to analyze differential binding affinity. 
+Underlying method, or vector of methods, by which to analyze 
+differential binding affinity. 
 
 Supported methods:
 \itemize{ 
@@ -51,23 +60,49 @@ using both \code{edgeR} and \code{DESeq2}}
 }
 }
 
+\item{bBlacklist}{
+If \code{TRUE}, and no blacklist has been applied to the \code{DBA} object
+(or when starting from a samplesheet), the read bam files will
+be examined to determine the reference genome, and an appropriate blacklist
+applied, if available.
+See \code{link{dba.blacklist}}.
+}
+
+\item{bGreylist}{
+If \code{TRUE}, and no greylist has been applied to the \code{DBA} object
+(or when starting from a samplesheet), the control bam files, if present, will
+be examined to determine the reference genome, greylists will be
+computed for each, merged into a master greylist, and applied to the
+peaksets.
+See \code{link{dba.blacklist}}.
+}
+
 \item{bRetrieveAnalysis}{
-If changed from \code{FALSE}, the underlying DE analysis object is returned instead of running a new analysis. Possible values for \code{bRetrieveAnalysis}:
+If changed from \code{FALSE}, the underlying DE analysis object is returned
+instead of running a new analysis.
+Possible values for \code{bRetrieveAnalysis}:
 \itemize{
   \item{\code{DBA_DESEQ2}} {Returns the \code{DESeq2} \code{\link{DESeqDataSet}}}.
   \item{\code{DBA_EDGER}} {Returns the \code{edgeR} \code{DGEList}}.  
   \item{\code{TRUE}} {Returns the \code{DESeq2} \code{\link{DESeqDataSet}}, 
   if present. If not, returns the \code{edgeR} \code{DGEList}, if present.}.
 }
-An analysis object will only be successfully returned if there is at least one contrast utilizing an explicit design (see \code{\link{dba.contrast}}), and an analysis has been carried out.
+An analysis object will only be successfully returned if there is at
+least one contrast utilizing an explicit design 
+(see \code{\link{dba.contrast}}), and an analysis has been carried out.
 }
 
 \item{bReduceObjects}{
-logical indicating whether strip the analysis objects of unnecessary fields to save memory. If it is desired to use the \code{DBA$contrasts[[n]]$edgeR}
-and/or \code{DBA$contrasts[[n]]$DESeq2} objects directly in the \code{edgeR} and/or \code{DESeq2} packages, this should be set to \code{FALSE}.
+logical indicating whether strip the analysis objects of unnecessary
+fields to save memory. 
+If it is desired to use the \code{DBA$contrasts[[n]]$edgeR}
+and/or \code{DBA$contrasts[[n]]$DESeq2} objects directly in the
+\code{edgeR} and/or \code{DESeq2} packages, this should be set to \code{FALSE}.
 }
 \item{bParallel}{
-logical indicating that the analyses is to be done in parallel using multicore (one process for each contrast for each method, plus an additional process per method).
+logical indicating that the analyses is to be done in parallel using multicore 
+(one process for each contrast for each method,
+plus an additional process per method).
 }
 }
 \details{
@@ -96,12 +131,15 @@ Rory Stark
 \note{
 If there is a blocking factor for the contrast(s) specified using a 
 previous call to \code{\link{dba.contrast}} with \code{design=FALSE}, 
-a multi-factor analysis will automatically be carried out in addition to a single factor analysis.
+a multi-factor analysis will automatically be carried out in addition
+to a single factor analysis.
 }
 
 \seealso{
 
-\code{\link{dba.contrast}}, \code{\link{dba.normalize}}, \code{\link{dba.report}}
+\code{\link{dba.blacklist}}, \code{\link{dba.count}},
+\code{\link{dba.contrast}}, \code{\link{dba.normalize}},
+\code{\link{dba.report}}
 
 }
 

@@ -10,7 +10,7 @@ Filter peak intervals that overlap a greylist, either user supplied or generated
 aligned reads for control samples (e.g. Inputs).
 }
 \usage{
-dba.blacklist(DBA, blacklist, greylist, 
+dba.blacklist(DBA, blacklist=TRUE, greylist=TRUE, 
               Retrieve, cores=DBA$config$cores)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -19,8 +19,13 @@ dba.blacklist(DBA, blacklist, greylist,
 DBA object
 }
   \item{blacklist}{
-If present, specifies that a blacklist should be applied to the peak intervals
-in the \code{DBA} object.
+If not equal to \code{FALSE}, specifies that a blacklist should be 
+applied to the peak intervals in the \code{DBA} object.
+
+If equal to \code{TRUE}, the read bam files will be examined
+to determine an appropriate reference genome.
+If successful, and a blacklist is available for that genome, it
+will be applied.
 
 A user specified blacklist can be specified by setting this parameter to
 a \code{\link{GRanges}} object containing the blacklisted regions.
@@ -41,22 +46,22 @@ indicating which of the ENCODE blacklists should be applied:
  }
 }
   \item{greylist}{
-If present, specifies that a greylist should be applied to the peak intervals
-in the \code{DBA} object.
+If not equal to \code{FALSE}, specifies that a greylist should be 
+applied to the peak intervals in the \code{DBA} object.
 
-A user specified greylist can be specified by setting this parameter to
-a \code{\link{GRanges}} object containing the greylisted regions.
-It can also be a \code{list} with an element named \code{greylist$master},
-which is a \code{\link{GRanges}} object containing the greylist to be applied.
+If equal to \code{TRUE}, the control bam files (if present),
+will be examined to determine an appropriate reference genome.
+Genomes associated with a valid \code{BSgenome}
+can be detected.
+If successful, this genome will be used to generate greylists
+for each available control 
+(eg specified as \code{bamControls} in the sample sheet.)).
 
-If the \code{greylist} parameter is present and does not contain 
-a \code{GRanges} object, a greylist will be generated
-using the aligned reads in the bam files associated 
-with the designated controls (eg. \code{bamControls} in the sample sheet.)
-These will be based on a \code{BSgenome} corresponding
-to the genome reference assembly used for the alignments.
-The genome reference can be specified either as a \code{BSgenome} object,
-or using a constant as follows:
+The \code{greylist} parameter can also be set explicitly to either
+a valid \code{BSgenome} object, or a character string
+with the name of a valid \code{BSgenome} object.
+the following constants map to a subset of possible \code{BSgenome}
+objects:
 
 \itemize{
 \item{\code{DBA_BLACKLIST_HG19}  :} {\code{ seqinfo from BSgenome.Hsapiens.UCSC.hg19}}
@@ -69,7 +74,13 @@ or using a constant as follows:
 \item{\code{DBA_BLACKLIST_DM3}    :} {\code{ seqinfo from BSgenome.Dmelanogaster.UCSC.dm3}}
 \item{\code{DBA_BLACKLIST_DM6}    :} {\code{ seqinfo from BSgenome.Dmelanogaster.UCSC.dm6}}
 }     
+
+A user specified greylist can also be specified by setting this parameter to
+a \code{\link{GRanges}} object containing the greylisted regions.
+It can also be a \code{list} with an element named \code{greylist$master},
+which is a \code{\link{GRanges}} object containing the greylist to be applied.
 }
+
 \item{Retrieve}{
 
 If present, some aspects of a previous run of the function is retrieved instead
@@ -96,10 +107,9 @@ If counts are available for the peaks, this will include the following metadata 
 \item{Score:}  {Read score calculated by \code{\link{dba.count}}}
 }
 
-Note that the
-\code{blacklist} and \code{greylist} parameters
-must not be specified when retrieving results, and
-that \code{dba.blacklist} must have been previously run.
+Note that the if \code{Retrieve} is set,
+\code{dba.blacklist} must have been previously run,
+and all other parameters will be ignored.
 }
   \item{cores}{
 Parallel cores to use when running greylist generation.
@@ -151,16 +161,13 @@ re-called and read into \code{DiffBind}.
 }
 
 \seealso{
-\code{GreyListChIP (\link{GreyList})}
+\code{GreyListChIP (\link{GreyList})}, \code{BSgenome}
 }
 \examples{
 
 data(tamoxifen_peaks)
-load(system.file("extra/ktypes.rda", package="DiffBind"),
-                  envir = environment())
-ktype.chr18 <- dba.ktypes$BSgenome.Hsapiens.UCSC.hg19["chr18"]
 \dontrun{tamoxifen <- dba.blacklist(tamoxifen, blacklist=DBA_BLACKLIST_HG19,
-                                    greylist=ktype.chr18)}
+                                    greylist="BSgenome.Hsapiens.UCSC.hg19")}
 data(tamoxifen_greylist)
 tamoxifen <- dba.blacklist(tamoxifen, blacklist=DBA_BLACKLIST_HG19,
                            greylist=tamoxifen.greylist$master)

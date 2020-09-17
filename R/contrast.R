@@ -113,7 +113,8 @@ pv.contrast <- function(pv,group1,group2=!group1,name1,name2,
       if(!is.null(res)) {
          res <- pv.contrastDups(res)
       } else {
-         warning("No contrasts added. Perhaps try more categories, or lower value for minMembers.",call.=FALSE)	
+         warning("No contrasts added. There must be at least two sample groups with at least three replicates.",
+                 call.=FALSE)	
       }
       if(doBlock){
          problem <- NULL

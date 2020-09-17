@@ -168,7 +168,8 @@ if (tools:::.OStype() == "unix") {
 
 importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-", mcols)
 
-importFrom(Rsamtools, BamFileList, ScanBamParam, scanBamFlag, countBam)
+importFrom(Rsamtools, BamFileList, ScanBamParam, scanBamFlag, 
+           countBam, scanBamHeader)
 
 importFrom(methods,as, is)
 

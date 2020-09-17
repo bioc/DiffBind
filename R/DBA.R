@@ -15,7 +15,7 @@
 ## dba.normalize    Normalize dataset
 
 ## dba.contrast	    Establish contrast(s) for analysis
-## dba.analyze  	  Execute affinity analysis
+##   	  Execute affinity analysis
 ## dba.report	      Generate report for a contrast analysis
 
 ## dba.plotClust	Cluster dendrogram plo
@@ -81,7 +81,8 @@ dba <- function(DBA,mask, minOverlap=2,
                                   DataType=DBA_DATA_GRANGES, RunParallel=TRUE, 
                                   minQCth=15, fragmentSize=125, 
                                   bCorPlot=FALSE, reportInit="DBA", 
-                                  bUsePval=FALSE, design=TRUE),
+                                  bUsePval=FALSE, design=TRUE,
+                                  doBlacklist=TRUE, doGreylist=TRUE),
                 peakCaller="raw", peakFormat, scoreCol, bLowerScoreBetter, 
                 filter, skipLines=0, bAddCallerConsensus=FALSE, 
                 bRemoveM=TRUE, bRemoveRandom=TRUE, bSummarizedExperiment=FALSE,
@@ -108,7 +109,7 @@ dba <- function(DBA,mask, minOverlap=2,
   }
   
   if(is.null(res$config$DataType)) {
-    res$config$DataType=DBA_DATA_DEFAULT
+    res$config$DataType <- DBA_DATA_DEFAULT
   }
   
   if(is.null(res$config$parallelPackage)){
@@ -130,11 +131,22 @@ dba <- function(DBA,mask, minOverlap=2,
     res$config$bUsePval <- FALSE
   }
   
+  if(is.null(res$config$cores)){
+    res$config$cores <- parallel::detectCores(logical=FALSE)
+  }
+  
+  if(is.null(res$config$doBlacklist)){
+    res$config$doBlacklist <- TRUE
+  }
+  if(is.null(res$config$doGreylist)){
+    res$config$doGreylist <- TRUE
+  }
+  
   if(missing(DBA)){
     DBA <- NULL
   } 
   if(is.null(DBA$config$reportInit)){
-    res$config$reportInit="DBA"
+    res$config$reportInit <- "DBA"
   } else {
     res$config$reportInit <- DBA$config$reportInit
   }
@@ -292,6 +304,17 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor,
       res$config$bCorPlot <- FALSE
     } 
     
+    if(is.null(res$config$cores)){
+      res$config$cores <- parallel::detectCores(logical=FALSE)
+    }
+    
+    if(is.null(res$config$doBlacklist)){
+      res$config$doBlacklist <- TRUE
+    }
+    if(is.null(res$config$doGreylist)){
+      res$config$doGreylist <- TRUE
+    }
+    
     if(bMerge) {
       res <- pv.check(res,bCheckSort=bCheckS,bDoVectors=bDoV)
     }
@@ -411,9 +434,8 @@ DBA_BLACKLIST         <- "blacklist"
 DBA_GREYLIST          <- "greylist"
 DBA_BLACKLISTED_PEAKS <- "blacklisted peaks"
 
-dba.blacklist <- function(DBA, blacklist, greylist, 
-                          Retrieve,
-                          cores=DBA$config$cores) {
+dba.blacklist <- function(DBA, blacklist=TRUE, greylist=TRUE, 
+                          Retrieve, cores=DBA$config$cores) {
   
   DBA <- pv.check(DBA)
   
@@ -724,10 +746,12 @@ dba.contrast <- function(DBA, design=missing(group1), contrast,
 }
 
 ###################################################################
-## dba.analyze -- perform differential binding affinity analysis ##
+##  -- perform differential binding affinity analysis ##
 ###################################################################
 
 dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, 
+                        bBlacklist=DBA$config$doBlacklist,
+                        bGreylist=DBA$config$doGreylist,
                         bRetrieveAnalysis=FALSE, bReduceObjects=TRUE, 
                         bParallel=DBA$config$RunParallel)
 {
@@ -759,10 +783,36 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
     }
   }
   
+  if(is.null(bBlacklist)) {
+    bBlacklist <- TRUE
+  }
+  if(is.null(bGreylist)) {
+    bGreylist <- TRUE
+  }
+  
+  doblacklist <- dogreylist <-  FALSE
+  if(is.null(DBA$blacklist)) {
+    if(bBlacklist == TRUE) {
+      doblacklist <- TRUE
+    }
+  }
+  
+  if(is.null(DBA$greylist)) {
+    if(bGreylist == TRUE) {
+      dogreylist <- TRUE
+    } 
+  }
+  
+  if(doblacklist || dogreylist) {
+    message("Applying Blacklist/Greylists...")
+    DBA <- dba.blacklist(DBA, blacklist=doblacklist, greylist=dogreylist)
+  }
+  
   if(sum(DBA$class[DBA_CALLER,] %in% c("source","counts"))==0) {
     message("Forming consensus peakset and counting reads...")
     DBA <- dba.count(DBA, bParallel=bParallel)
   }
+  
   
   if (DBA_EDGER %in% method) {
     if(is.null(DBA$norm$edgeR)) {
@@ -775,6 +825,14 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
     if(is.null(DBA$norm$DESeq2)) {
       message("Normalize DESeq2 with defaults...")
       DBA <- dba.normalize(DBA, method=DBA_DESEQ2)
+    }
+  }
+  
+  if(is.null(DBA$contrasts)) {
+    message("Forming default model design and contrast(s)...")
+    DBA <- dba.contrast(DBA)
+    if(is.null(DBA$contrasts)) {
+      return(DBA)
     }
   }
   

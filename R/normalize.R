@@ -408,7 +408,7 @@ pv.getBackground <- function(pv,background=PV_BACKGROUND_BINSIZE,
           stop("Spike-in reads not available for all samples.", call.=FALSE)
         }
       } else {
-        message("Generating background bins with csaw...")
+        message("Generating background bins...")
         back.calc <- "Background bins"
       }
     } else if(is(spikein,"GRanges")) {

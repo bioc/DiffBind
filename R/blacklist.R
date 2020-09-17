@@ -1,13 +1,13 @@
-PV_BLACKLIST_HG19   <- 200
-PV_BLACKLIST_HG38   <- 201
-PV_BLACKLIST_GRCH37 <- 202
-PV_BLACKLIST_GRCH38 <- 203
-PV_BLACKLIST_MM9    <- 204
-PV_BLACKLIST_MM10   <- 205
-PV_BLACKLIST_CE10   <- 206
-PV_BLACKLIST_CE11   <- 207
-PV_BLACKLIST_DM3    <- 208
-PV_BLACKLIST_DM6    <- 209
+PV_BLACKLIST_HG19   <- "BSgenome.Hsapiens.UCSC.hg19"
+PV_BLACKLIST_HG38   <- "BSgenome.Hsapiens.UCSC.hg38"
+PV_BLACKLIST_GRCH37 <- "BSgenome.Hsapiens.NCBI.GRCh37"
+PV_BLACKLIST_GRCH38 <- "BSgenome.Hsapiens.NCBI.GRCh38"
+PV_BLACKLIST_MM9    <- "BSgenome.Mmusculus.UCSC.mm9"
+PV_BLACKLIST_MM10   <- "BSgenome.Mmusculus.UCSC.mm10"
+PV_BLACKLIST_CE10   <- "BSgenome.Celegans.UCSC.ce10"
+PV_BLACKLIST_CE11   <- "BSgenome.Celegans.UCSC.ce11"
+PV_BLACKLIST_DM3    <- "BSgenome.Dmelanogaster.UCSC.dm3"
+PV_BLACKLIST_DM6    <- "BSgenome.Dmelanogaster.UCSC.dm6"
 
 pv.BlackGreyList <- function (DBA, blacklist, greylist,
                               Retrieve, cores) {
@@ -15,9 +15,6 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
   allsame <- pv.allSame(DBA)
   
   if(!missing(Retrieve)) {
-    if(!missing(blacklist) || !missing(greylist)) 
-      stop('blacklist and greylist parameters must be missing to retrieve blacklisted peaks.',
-           call.=FALSE)
     
     if(Retrieve==DBA_BLACKLIST){
       if(is.null(DBA$blacklist)) {
@@ -47,15 +44,59 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
     originalConsensus <- nrow(DBA$binding)
   }
   
-  if(!missing(blacklist)) {
+  doblacklist <- dogreylist <- getgenome <- genome <- FALSE
+  if(is(blacklist,"logical")) {
+    if(blacklist == TRUE) {
+      doblacklist <- TRUE
+      getgenome <- TRUE
+    } 
+  } else {
+    genome <- blacklist
+    doblacklist <- TRUE
+  }
+  
+  if(is(greylist,"logical")) {
+    if(greylist == TRUE) {
+      dogreylist <- TRUE
+      getgenome <- TRUE
+    } 
+  } else {
+    if(is.null(genome)) {
+      genome <- greylist
+    }
+    dogreylist <- TRUE
+  }
+  
+  if(getgenome) {
+    if(doblacklist) {
+      blacklist <- genome <- pv.genomes(DBA$class["bamRead",],DBA$chrmap)
+    } 
+    if(dogreylist) {
+      if(is.null(genome)) {
+        greylist <- pv.genomes(DBA$class["bamControl",],DBA$chrmap)
+      } else {
+        greylist <- genome
+      }
+    }
+  } 
+  
+  if(doblacklist || dogreylist) {
+    if(is.null(genome)) {
+      message("No genome detected.")
+      return(DBA)
+    } else {
+      message("Genome detected:",strsplit(genome,"BSgenome.")[[1]][2])
+    }
+  }
+  
+  if(doblacklist) {
     message("Applying blacklist...")
     DBA <- pv.blacklist(DBA, blacklist=blacklist, allsame=allsame)
   }
   
-  if(!missing(greylist)) {
+  if(dogreylist) {
     DBA <- pv.greylist(DBA, greylist=greylist, allsame=allsame, cores=cores)
   }
-  
   
   if(allsame) {
     endPeaks <- nrow(DBA$peaks[[1]])
@@ -156,6 +197,10 @@ pv.blacklist <- function(pv, blacklist, allsame=FALSE) {
       load(system.file("data/dm6.blacklist.RData",package="GreyListChIP"),
            envir = environment())
       blacklist <- dm6.blacklist
+    } else {
+      message("No blacklist found for",blacklist)
+      pv$blacklist <- NULL
+      return(pv)
     }
   }
   
@@ -255,7 +300,6 @@ pv.greylist <- function(pv, greylist, allsame=FALSE,
       }
     }
     
-    
     if(is(greylist,"BSgenome")){
       ktype <- seqinfo(greylist)
     } else if(is(greylist,"Seqinfo")) {
@@ -263,29 +307,17 @@ pv.greylist <- function(pv, greylist, allsame=FALSE,
     } else {
       
       dba.ktypes <- NULL
-      load(system.file("extra/ktypes.rda", package="DiffBind"),envir = environment())
+      load(system.file("extra/ktypes.rda", package="DiffBind"),
+           envir = environment())
       
-      if(greylist==PV_BLACKLIST_HG19) {
-        ktype <- dba.ktypes$BSgenome.Hsapiens.UCSC.hg19
-      } else if(greylist==PV_BLACKLIST_HG38) {
-        ktype <- dba.ktypes$BSgenome.Hsapiens.UCSC.hg38
-      }  else if(greylist==PV_BLACKLIST_GRCH38) {
-        ktype <- dba.ktypes$BSgenome.Hsapiens.NCBI.GRCh38
-      } else if(greylist==PV_BLACKLIST_MM9) {
-        ktype <- dba.ktypes$BSgenome.Mmusculus.UCSC.mm9
-      } else if(greylist==PV_BLACKLIST_MM10) {
-        ktype <- dba.ktypes$BSgenome.Mmusculus.UCSC.mm10
-      } else if(greylist==PV_BLACKLIST_CE10) {
-        ktype <- dba.ktypes$BSgenome.Celegans.UCSC.ce10
-      } else if(greylist==PV_BLACKLIST_CE11) {
-        ktype <- dba.ktypes$BSgenome.Celegans.UCSC.ce11
-      } else if(greylist==PV_BLACKLIST_DM3) {
-        ktype <- dba.ktypes$BSgenome.Dmelanogaster.UCSC.dm3
-      } else if(greylist==PV_BLACKLIST_DM6) {
-        ktype <- dba.ktypes$BSgenome.Dmelanogaster.UCSC.dm6
-      } else {
-        stop("Unknown genome ID.",call.=FALSE)
+      ktype <- match(greylist,names(dba.ktypes))
+      if(is.na(ktype)) {
+        message("No known BSgenome:",greylist)
+        pv$greylist <- NULL
+        return(pv)
       }
+      ktype <- dba.ktypes[[ktype]]
+      
       rm(dba.ktypes)
     }
     
@@ -293,7 +325,7 @@ pv.greylist <- function(pv, greylist, allsame=FALSE,
     controllist <- NULL
     for (i in 1:length(controls)) {
       message(sprintf("Building greylist: %s",controlnames[i]))
-      greylist <- pv.makeGreylist(ktype,controls[i],cores,pval=pv$config$greylist.pval)
+      greylist <- pv.makeGreylist(pv,ktype,controls[i],cores,pval=pv$config$greylist.pval)
       controllist <- pv.listadd(controllist, greylist)
     }
     ## Merge
@@ -349,8 +381,8 @@ pv.greylist <- function(pv, greylist, allsame=FALSE,
   return(pv)
 }
 
-pv.makeGreylist <- function(ktype,bamfile,parallel,pval=.999){
-  gl <- new("GreyList",karyotype=ktype)
+pv.makeGreylist <- function(pv,ktype,bamfile,parallel,pval=.999){
+  gl <- new("GreyList",karyotype=ktype[pv$chrmap,])
   gl <- GreyListChIP::countReads(gl, bamfile)
   usecores <- 1
   if(!is.null(parallel)) {
@@ -396,7 +428,82 @@ pv.removeBlacklistedPeaks <- function(DBA) {
   return(DBA)
 }
 
+pv.genome <- function(bamfile, chrmap=NULL, ref=NULL, dba.ktypes=NULL) {
+  
+  header <- Rsamtools::scanBamHeader(bamfile)[[1]]$targets
+  
+  if(is.null(chrmap)) {
+    chrmap <- names(header)
+  }
+  chrs <- match(chrmap,names(header))
+  if(is.na(chrs)) {
+    message('No matching chromosomes found for file',bamfile)
+    return(NULL)
+  }
+  chrnames <- names(header)[chrs]
+  
+  if(is.null(dba.ktypes)) {
+    load(system.file("extra/ktypes.rda", package="DiffBind"),
+         envir = environment())
+  }
+  
+  if(!is.null(ref)) {
+    dba.ktypes <- list(dba.ktypes[[match(ref,names(dba.ktypes))]])
+    names(dba.ktypes) <- ref
+  }
+  
+  res <- NULL
+  for(knum in 1:length(dba.ktypes)) {
+    matches <- mismatches <- 0
+    ktype <- dba.ktypes[[knum]]
+    matchChrs <- match(chrnames, names(ktype)) 
+    if(!is.na(matchChrs)) {
+      for(chr in chrs) {
+        bamlen <- header[chr]
+        krec   <- ktype[names(header)[chr],]
+        klen <- GenomeInfoDb::seqlengths(krec)
+        if(!is.na(klen)) {
+          if(bamlen == klen ) {
+            matches <- matches + 1
+          } else {
+            mismatches <- mismatches + 1
+          }
+        }
+      }
+    }
+    if(matches > 0 && mismatches == 0) {
+      res <- names(dba.ktypes)[knum]
+    }
+  }
+  
+  if(is.null(dba.ktypes)) {
+    rm(dba.ktypes)
+  }
+  
+  return(res)
+}
 
+pv.genomes <- function(bamfiles, chrmap=NULL) {
+  
+  load(system.file("extra/ktypes.rda", package="DiffBind"),
+       envir = environment())
+  
+  ref <- NULL
+  for(bamfile in bamfiles) {
+    newref <- pv.genome(bamfile, chrmap, ref, dba.ktypes)
+    if(is.null(ref)) {
+      ref <- newref
+    } else if(is.null(newref)) {
+      return(NULL)      
+    }  else if (ref != newref) {
+      message("bam files match different reference genomes")
+      return(NULL)
+    }
+  }
+  
+  rm(dba.ktypes)
+  return(ref)
+}
 
 
 

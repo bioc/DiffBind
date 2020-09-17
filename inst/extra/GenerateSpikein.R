@@ -8,6 +8,7 @@ dmsamples <- read.csv("samplesheet/samplesheet_SLX8047_dm.csv")
 
 samples$Spikein <- dmsamples$bamReads
 spikes <- dba(sampleSheet = samples)
+spikes$config$doBlacklist <- spikes$config$doGreylist <- FALSE
 spikes <- dba.count(spikes)
 
 par(mfrow=c(3,2))
@@ -56,7 +57,8 @@ dba.plotMA(spikes,bNormalized=TRUE, sub="RLE spikein")
 ############# parallel factor with CTCF #############
 library(Brundle)
 data(dbaExperiment,package="Brundle")
-pfac <- dba(dbaExperiment, minOverlap =1)
+pfac <- dba(dbaExperiment, minOverlap=1)
+dbaExperiment$config$doBlacklist <- dbaExperiment$config$doGreylist <- FALSE
 pfac$class["Spikein",] <- pfac$class["bamRead",]
 ctcf <- GRanges(jg.controlPeakset[,1:3])
 parallelFactor.peaks <- ctcf

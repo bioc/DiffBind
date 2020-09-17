@@ -244,17 +244,17 @@ However this may not be the optimal (or even correct) analysis,
 so it is often necessary to
 perform each step separately in order to have greater control
 of the analysis.
-There are six such steps (as well an one additional recommended step,
-applying blacklists, discussed in  Section ~\ref{sec:blacklists}),
-as follows:
+The default analysis involves six such steps,
+as follows (using pipes):
 
 <<eval=FALSE,echo=TRUE,results=hide>>=
-tamoxifen <- dba(sampleSheet="tamoxifen.csv")
-tamoxifen <- dba.count(tamoxifen)
-tamoxifen <- dba.normalize(tamoxifen)
-tamoxifen <- dba.contrast(tamoxifen)
-tamoxifen <- dba.analyze(tamoxifen)
-tamoxifen.DB <- dba.report(tamoxifen)
+library(tidyr)
+tamoxifen <- dba(sampleSheet="tamoxifen.csv") %>%
+             dba.blacklist() %>%
+             dba.count()     %>%
+             dba.normalize() %>%
+             dba.contrast()  %>%
+             dba.analyze()
 @
 
 Along the way, there are a number of useful plots and reports
@@ -329,6 +329,11 @@ to those that are responsive (MCF7, T47D, and ZR75)
 vs. those resistant (BT474 and MCF7r) to tamoxifen treatment.
 It also shows that the two most highly correlated cell lines are the two
 MCF7-based ones, even though they respond differently to tamoxifen treatment. 
+
+\subsection{Blacklists and greylists}
+
+Blacklists and greylists are discussed in a subsequent section.
+See Section ~\ref{sec:blacklists} for more details.
 
 \subsection{Counting reads}
 The next step is to calculate a binding matrix with scores 
@@ -1102,12 +1107,16 @@ an existing blacklist, or know the reference genome
 used to align your sequencing data.
 In the example dataset, the reference is Hg19.
 
-ENCODE blacklists can be applied straightforwardly as follows:
+ENCODE blacklists can be applied straightforwardly as follows:\footnote{while
+in this example the blacklist used is specified explicitly,
+\DBA can usually determine the correct blacklist to apply
+using the default \Rcode{blacklist=TRUE}}
 <<blacklistPeaks,eval=TRUE,echo=TRUE,results=verbatim>>=
 data(tamoxifen_peaks)
 tamoxifen
 peakdata  <- dba.show(tamoxifen)$Intervals
-tamoxifen <- dba.blacklist(tamoxifen, blacklist=DBA_BLACKLIST_HG19)
+tamoxifen <- dba.blacklist(tamoxifen, blacklist=DBA_BLACKLIST_HG19, 
+                           greylist=FALSE)
 tamoxifen
 peakdata.BL <- dba.show(tamoxifen)$Intervals
 peakdata - peakdata.BL
@@ -1126,7 +1135,8 @@ in \Rcode{multifactor.DB}:
 <<blacklistAnal,eval=TRUE,echo=TRUE,results=verbatim>>=
 length(multifactor.DB)
 data(tamoxifen_counts)
-tamoxifen   <- dba.blacklist(tamoxifen, blacklist=DBA_BLACKLIST_HG19)
+tamoxifen   <- dba.blacklist(tamoxifen, blacklist=DBA_BLACKLIST_HG19,
+                             greylist=FALSE)
 blacklisted <- dba.blacklist(tamoxifen, Retrieve=DBA_BLACKLISTED_PEAKS)
 tamoxifen   <- dba.contrast(tamoxifen, design="~Tissue + Condition")
 tamoxifen   <- dba.analyze(tamoxifen)
@@ -1153,7 +1163,6 @@ or from a previous run of \DBA, they can be supplied
 directly to \Rcode{dba.blacklist}.
 A pre-computed greylist for the sample experiment has
 been included with the \DBA package:
-
 <<greylistGet,eval=TRUE,echo=TRUE,results=verbatim>>=
 data(tamoxifen_greylist)
 names(tamoxifen.greylist)
@@ -1211,8 +1220,10 @@ Here is how the sample greylist was computed for this example.
 You can execute this code if you have all the read data for the vignette
 (see Section ~\ref{sec:vignette_data}).
 
-Instead of specifying a greylist explicitly, the \Rcode{greylist} 
-parameter can be set to specify a specific reference genome, either using
+Instead of specifying a greylist explicitly, if the \Rcode{greylist} 
+is set to \Rcode{TRUE}, the genome will be determined (if possible)
+from the control bam files associated with the experiment.
+Alternatively, a specific reference genome can be supplied, either using
 a constant provided by \DBA (such as \Rcode{DBA\_BLACKLIST\_HG19}),
 or a \Rpackage{BSgenome} object (such as \Rcode{BSgenome.Hsapiens.UCSC.hg19}),
 or a karyotype (such as \Rcode{seqinfo(BSgenome.Hsapiens.UCSC.hg19)}).
@@ -1222,23 +1233,23 @@ control in the experiment, as as well as a merged
 "master" greylist of all the overlapping regions of all the
 control greylists.
 
-In the current example, we only have data for \Rcode{chr18}, so
+In the current example
 we can use the following code. 
 (Note that even for the sample data, this
 can take a substantial amount of time to run, as long or longer
-than running \Rcode{dba.count}).
-
+than running \Rcode{dba.count}):
 <<greylistMake,eval=FALSE,echo=TRUE,results=verbatim>>=
-library(BSgenome.Hsapiens.UCSC.hg19)
-ktype <- seqinfo(BSgenome.Hsapiens.UCSC.hg19)["chr18"]
-data(tamoxifen_peaks)
-tamoxifen <- dba.blacklist(tamoxifen,greylist=ktype)
+tamoxifen <- dba(sampleSheet="tamoxifen.csv")
+tamoxifen <- dba.blacklist(tamoxifen)
 tamoxifen.greylist <- dba.blacklist(tamoxifen, Retrieve=DBA_GREYLIST)
 @
 
 The output for this command appears as follows:
 
 \begin{verbatim}
+Genome detected:Hsapiens.UCSC.hg19
+Applying blacklist...
+Removed: 3 of 14102 intervals.
 Building greylist: BT474c
 coverage: 166912 bp (0.21%)
 Building greylist: MCF7c

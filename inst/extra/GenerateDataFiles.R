@@ -11,6 +11,12 @@ NUMCORES <- 18
 
 ## Greylists: Gather karyotypes for internally supported reference genomes
 
+lib <- "/data/personal/stark01/rlibs"
+alllibs <- .libPaths()
+.libPaths(c(lib,alllibs))
+alllibs <- .libPaths()
+library(BSgenome)
+
 genomes <- c("BSgenome.Hsapiens.UCSC.hg19",
              "BSgenome.Hsapiens.UCSC.hg38",
              "BSgenome.Hsapiens.NCBI.GRCh38",
@@ -21,34 +27,33 @@ genomes <- c("BSgenome.Hsapiens.UCSC.hg19",
              "BSgenome.Dmelanogaster.UCSC.dm3",
              "BSgenome.Dmelanogaster.UCSC.dm6")
 
-library("BSgenome.Hsapiens.UCSC.hg19")
-library("BSgenome.Hsapiens.UCSC.hg38")
-library("BSgenome.Hsapiens.NCBI.GRCh38")
-library("BSgenome.Mmusculus.UCSC.mm9")
-library("BSgenome.Mmusculus.UCSC.mm10")
-library("BSgenome.Celegans.UCSC.ce10")
-library("BSgenome.Celegans.UCSC.ce11")
-library("BSgenome.Dmelanogaster.UCSC.dm3")
-library("BSgenome.Dmelanogaster.UCSC.dm6")
+dba.ktypes <- NULL
+for(genome in genomes) {
+  bsgenes <- getBSgenome(genome)
+  if(is.null(dba.ktypes)) {
+    dba.ktypes <- list(seqinfo(bsgenes))
+  } else {
+    dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(bsgenes))
+  }
+}
 
-dba.ktypes <- list(seqinfo(BSgenome.Hsapiens.UCSC.hg19))
-dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(BSgenome.Hsapiens.UCSC.hg38))
-dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(BSgenome.Hsapiens.NCBI.GRCh38))
-dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(BSgenome.Mmusculus.UCSC.mm9))
-dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(BSgenome.Mmusculus.UCSC.mm10))
-dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(BSgenome.Celegans.UCSC.ce10))
-dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(BSgenome.Celegans.UCSC.ce11))
-dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(BSgenome.Dmelanogaster.UCSC.dm3))
-dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(BSgenome.Dmelanogaster.UCSC.dm6))
-names(dba.ktypes) <- genomes
-
+installed <- installed.genomes()
+othergenomes <- available.genomes(splitNameParts = TRUE)
+othergenomes <- othergenomes[!othergenomes[,5],1]
+othergenomes <- othergenomes[-match(genomes,othergenomes)]
+othergenomes <- othergenomes[othergenomes %in% installed]
+for(genome in othergenomes) {
+  bsgenes <- getBSgenome(genome)
+  dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(bsgenes))
+}
+names(dba.ktypes) <- c(genomes, othergenomes)
 save(dba.ktypes,file="ktypes.rda")
 
 ## Load sample sheet to generate peak data
 tamoxifen <- dba(sampleSheet = "tamoxifen.csv")
 tamoxifen$config$RunParallel <- FALSE
 config <- tamoxifen$config
-save(tamoxifen,file="tamoxifen_peaks.rda")
+tam.bl <- tamoxifen
 
 ## Generate greylist
 tamoxifen$config$RunParallel <- TRUE
@@ -62,10 +67,13 @@ tamoxifen.greylist <- dba.blacklist(tamoxifen, Retrieve=DBA_GREYLIST)
 
 save(tamoxifen.greylist,file="tamoxifen_greylist.rda")
 
-tam.bl <- tamoxifen
+tam.bl$blacklist <- tamoxifen$blacklist
+tam.bl$greylist  <- tamoxifen$greylist
+tamoxifen <- tam.bl
+tamoxifen$config <- config
+save(tamoxifen,file="tamoxifen_peaks.rda")
 
 ## Generate count data with background normalization
-load("tamoxifen_peaks.rda")
 tamoxifen$config$RunParallel <- TRUE
 tamoxifen$config$cores <- NUMCORES
 tamoxifen <- dba.count(tamoxifen)

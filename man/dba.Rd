@@ -5,7 +5,8 @@
 Construct a DBA object
 }
 \description{
-Constructs a new DBA object from a sample sheet,  or based on an existing DBA object
+Constructs a new DBA object from a sample sheet, 
+or based on an existing DBA object
 }
 \usage{
 dba(DBA,mask, minOverlap=2,
@@ -13,8 +14,9 @@ dba(DBA,mask, minOverlap=2,
     config=data.frame(AnalysisMethod=DBA_DESEQ2,th=0.05,
                       DataType=DBA_DATA_GRANGES, RunParallel=TRUE, 
                       minQCth=15, fragmentSize=125, 
-                      bCorPlot=FALSE, reportInit="DBA",
-                      bUsePval=FALSE, design=TRUE),
+                      bCorPlot=FALSE, reportInit="DBA", 
+                      bUsePval=FALSE, design=TRUE,
+                      doBlacklist=TRUE, doGreylist=TRUE),
     peakCaller="raw", peakFormat, scoreCol, bLowerScoreBetter, 
     filter, skipLines=0, 
     bAddCallerConsensus=FALSE, 
@@ -28,22 +30,25 @@ dba(DBA,mask, minOverlap=2,
 %\subsection{Optional or defaulted arguments}{}
 
   \item{DBA}{
-existing DBA object -- if present, will return a fully-constructed DBA object based on the passed one,
+existing DBA object -- if present, will return a fully-constructed DBA object
+based on the passed one,
 using criteria specified in the \code{mask} and/or \code{minOverlap} parameters. 
 If missing, will create a new DBA object based on the \code{sampleSheet}.
 }
 \item{mask}{
-logical or numerical vector indicating which peaksets to include in the resulting model 
-if basing DBA object on an existing one. 
+logical or numerical vector indicating which peaksets to include 
+in the resulting model if basing DBA object on an existing one. 
 See  \code{\link{dba.mask}}.
 }
 \item{minOverlap}{
 only include peaks in at least this many peaksets in the main binding matrix
 if basing DBA object on an existing one. 
-If \code{minOverlap} is between zero and one, peak will be included from at least this proportion of peaksets.
+If \code{minOverlap} is between zero and one, peak will be included from at
+least this proportion of peaksets.
 }
 \item{sampleSheet}{
-data frame containing sample sheet, or file name of sample sheet to load (ignored if DBA is specified). 
+data frame containing sample sheet, or file name of sample sheet to load 
+(ignored if DBA is specified). 
 Columns names in sample sheet may include:
 \itemize{
 \item {\code{SampleID:}}	{Identifier string for sample. 
@@ -57,7 +62,8 @@ Must be unique for each sample.}
 \item {\code{bamControl:}}	{file path for bam file containing aligned reads for control sample}
 \item {\code{Spikein:}}	{file path for bam file containing aligned spike-in reads}
 \item {\code{ControlID:}}	{Identifier string for control sample}
-\item {\code{Peaks:}}	{path for file containing peaks for sample. format determined by PeakCaller field or caller parameter}
+\item {\code{Peaks:}}	{path for file containing peaks for sample. 
+Format determined by PeakCaller field or caller parameter}
 \item {\code{PeakCaller:}}	{Identifier string for peak caller used. 
 If Peaks is not a bed file, this will determine how the Peaks file is parsed. 
 If missing, will use default peak caller specified in caller parameter. Possible values:}
@@ -71,7 +77,8 @@ If missing, will use default peak caller specified in caller parameter. Possible
 \item {\dQuote{peakset}:}	{peakset written out using pv.writepeakset}
 \item {\dQuote{fp4}:}	{FindPeaks v4}
 }
-\item {\code{PeakFormat:}}	{string indicating format for peak files; see PeakCaller and  \code{\link{dba.peakset}}}
+\item {\code{PeakFormat:}}	{string indicating format for peak files; 
+see PeakCaller and  \code{\link{dba.peakset}}}
 \item {\code{ScoreCol:}}	{column in peak files that contains peak scores}
 \item {\code{LowerBetter:}}	{logical indicating that lower scores signify better peaks}
 \item{\code{Counts:}} {file path for externally computed read counts; see \code{\link{dba.peakset}}
@@ -89,17 +96,28 @@ or file name of config file to load when constructing a new DBA object from a sa
 Relevant fields include:
 \itemize{
 \item {\code{AnalysisMethod:}}	{either \code{DBA_DESEQ2} or \code{DBA_EDGER}.}
-\item {\code{th:}}   {default threshold for reporting and plotting analysis results.}
-\item {\code{DataType:}}	{default class for peaks and reports (\code{DBA_DATA_GRANGES, DBA_DATA_RANGEDDATA, or DBA_DATA_FRAME}).}
-\item {\code{RunParallel:}}	{logical indicating if counting and analysis operations should be run in parallel using multicore by default.}
-\item {\code{minQCth:}}   {numeric, for filtering reads based on mapping quality score; only reads with a mapping quality score
+\item {\code{th:}}   {default threshold for reporting and 
+plotting analysis results.}
+\item {\code{DataType:}}	{default class for peaks and reports
+(\code{DBA_DATA_GRANGES, DBA_DATA_RANGEDDATA, or DBA_DATA_FRAME}).}
+\item {\code{RunParallel:}}	{logical indicating if counting and analysis 
+operations should be run in parallel using multicore by default.}
+\item {\code{minQCth:}}   {numeric, for filtering reads based on mapping 
+quality score; only reads with a mapping quality score
 greater than or equal to this will be counted.}
 \item {\code{fragmentSize:}} {numeric with mean fragment size.
 Reads will be extended to this length before counting overlaps. 
 May be a vector of lengths, one for each sample.}
-\item {\code{bCorPlot:}} {logical indicating that a correlation heatmap should be plotted automatically}
-\item {\code{ReportInit:}}   {string to append to the beginning of saved report file names.}
-\item {\code{bUsePval:}}   {logical, default indicating whether to use FDR (\code{FALSE}) or p-values (\code{TRUE}).}
+\item {\code{bCorPlot:}} {logical indicating that a correlation heatmap 
+should be plotted automatically}
+\item {\code{ReportInit:}}   {string to append to the beginning of saved 
+report file names.}
+\item {\code{bUsePval:}}   {logical, default indicating whether to use FDR 
+(\code{FALSE}) or p-values (\code{TRUE}).}
+\item {\code{doBlacklist:}}   {logical, whether to attempt to find and apply
+a blacklist if none is present when running \code{\link{dba.analyze}}}.
+\item {\code{doBlacklist:}}   {logical, whether to attempt to generate and apply 
+a greylist if none is present when running \code{\link{dba.analyze}}}.
 }
 }
   \item{peakCaller}{
