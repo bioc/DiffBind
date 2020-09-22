@@ -79,7 +79,9 @@ pv.loadPre3 <- function(pv) {
    }
    # Set mode to pre-2.0
    if(is.null(pv$design)) {
-      pv$design <- FALSE
+      if(!is.null(pv$contrasts)) {
+         pv$design <- FALSE
+      }
    }
    
    # Normalize
@@ -118,6 +120,15 @@ pv.loadPre3 <- function(pv) {
                           bSubControl = bSubControlE,
                           filter = filtval,filterFun = filtFun)      
    }
+   
+   # Turn off blacklists and greylists by default
+   if(is.null(pv$config$doBlacklist)) {
+      pv$config$doBlacklist <- FALSE
+   }
+   if(is.null(pv$config$doGreylist)) {
+      pv$config$doGreylist <- FALSE
+   }
+   
    return(pv)
 }
 

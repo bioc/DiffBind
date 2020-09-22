@@ -31,7 +31,10 @@ pv.peaks2DataType <- function(peaks,datatype=DBA_DATA_DEFAULT) {
       if(is(peaks,"RangedData")) {
          res <- suppressWarnings(as(peaks,"GRanges"))
       } else if (!is(peaks,"GRanges")) {
-         res <- GRanges(Rle(peaks[,1]),IRanges(peaks[,2],width=peaks[,3]-peaks[,2]+1,names=rownames(peaks)),
+         chrmap <- sort(unique(peaks[,1]))
+         res <- GRanges(Rle(factor(peaks[,1],levels=chrmap)),
+                        IRanges(peaks[,2],width=peaks[,3]-peaks[,2]+1,
+                                names=rownames(peaks)),
                         strand <- Rle("*", length(seqnames)))
          if(ncol(peaks)>3) {
             mdata <- data.frame(peaks[,4:ncol(peaks)])

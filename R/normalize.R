@@ -595,8 +595,8 @@ pv.reNormalize <- function(pv) {
   
   if(!is.null(pv$norm$DESeq2) || !is.null(pv$norm$edgeR)) {
     message("Re-normalizing...")
-    pv$norm$DESeq2 <- pv.doRenormalize(pv,DBA_DESEQ2)
-    pv$norm$edgeR  <- pv.doRenormalize(pv,DBA_EDGER)
+    pv$norm$DESeq2 <- pv.doRenormalize(pv,DBA_DESEQ2)$norm$DESeq2
+    pv$norm$edgeR  <- pv.doRenormalize(pv,DBA_EDGER)$norm$edgeR
   }
   
   return(pv)
@@ -641,7 +641,7 @@ pv.doRenormalize <- function(pv, method) {
   }
   
   offsets <- FALSE
-  if(norm$method == PV_NORM_OFFSETS) {
+  if(norm$norm.method == PV_NORM_OFFSETS) {
     if(is.null(pv$norm$offsets)) {
       offsets <- TRUE
     } else if(pv$norm$offsets$offset.method == PV_OFFSETS_USER) {
@@ -672,14 +672,18 @@ pv.edgeRCounts <- function(pv,method,bNormalized=TRUE) {
   counts <- pv$edgeR$DEdata$counts
   
   if(bNormalized) {
-    if(is.null(pv$edgeR$DEdata$offset)) {
-      counts <- edgeR::cpm(counts, normalized.lib.sizes=TRUE, 
-                           lib.size=pv$edgeR$DEdata$samples$lib.size)
-    } else {
-      counts <- edgeR::cpm(counts, normalized.lib.sizes=TRUE, 
-                           lib.size=pv$edgeR$DEdata$samples$lib.size,
-                           offset=pv$edgeR$DEdata$offset)
-    }
+    
+    counts <- pv$edgeR$DEdata$fitted.values
+    
+    # if(pv$norm$edgeR$norm.method == PV_NORM_OFFSETS ||
+    #    pv$norm$edgeR$norm.method == PV_NORM_OFFSETS_ADJUST) {
+    #   counts <- edgeR::cpm(counts, normalized.lib.sizes=TRUE, 
+    #                        lib.size=pv$edgeR$DEdata$samples$lib.size,
+    #                        offset=pv$edgeR$DEdata$offset)
+    # } else  {
+    #   counts <- edgeR::cpm(counts, normalized.lib.sizes=TRUE, 
+    #                        lib.size=pv$edgeR$DEdata$samples$lib.size)
+    # } 
   }
   
   return(counts)

@@ -702,8 +702,10 @@ pv.isConsensus <- function(DBA) {
   if(is.null(DBA$peaks)) {
     return(FALSE)
   }   
-  if (sum(sapply(DBA$peaks,function(x)nrow(x)!=nrow(DBA$peaks[[1]])))) {
+  
+  if(length(unique(sapply(DBA$peaks,nrow))) > 1) {
     return(FALSE)
   }
+
   return(TRUE)
 }

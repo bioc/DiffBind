@@ -301,6 +301,7 @@ pv.countsMA <- function(pv, method, contrast, bNormalized=FALSE) {
   return(res)
 }
 
+Legend <- Fold <- NULL
 pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
                               bUsePval=FALSE,fold=0,facname="",
                               bLabels=FALSE,maxLabels=50,

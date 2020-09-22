@@ -12,7 +12,7 @@ PV_BLACKLIST_DM6    <- "BSgenome.Dmelanogaster.UCSC.dm6"
 pv.BlackGreyList <- function (DBA, blacklist, greylist,
                               Retrieve, cores) {
   
-  allsame <- pv.allSame(DBA)
+  isConsensus <- pv.isConsensus(DBA) 
   
   if(!missing(Retrieve)) {
     
@@ -36,7 +36,7 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
     }
   }
   
-  if(allsame) {
+  if(isConsensus) {
     originalPeaks    <- nrow(DBA$binding)
   } else {
     originalPeaks     <- sum(unlist(lapply(DBA$peaks,nrow)))
@@ -85,20 +85,20 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
       message("No genome detected.")
       return(DBA)
     } else {
-      message("Genome detected:",strsplit(genome,"BSgenome.")[[1]][2])
+      message("Genome detected: ",strsplit(genome,"BSgenome.")[[1]][2])
     }
   }
   
   if(doblacklist) {
     message("Applying blacklist...")
-    DBA <- pv.blacklist(DBA, blacklist=blacklist, allsame=allsame)
+    DBA <- pv.blacklist(DBA, blacklist=blacklist, isConsensus=isConsensus)
   }
   
   if(dogreylist) {
-    DBA <- pv.greylist(DBA, greylist=greylist, allsame=allsame, cores=cores)
+    DBA <- pv.greylist(DBA, greylist=greylist, isConsensus=isConsensus, cores=cores)
   }
   
-  if(allsame) {
+  if(isConsensus) {
     endPeaks <- nrow(DBA$peaks[[1]])
   } else {
     endPeaks     <- sum(unlist(lapply(DBA$peaks,nrow)))
@@ -106,7 +106,7 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
   
   if(endPeaks < originalPeaks) {
     
-    if(allsame) {
+    if(isConsensus) {
       DBA <- pv.removeBlacklistedPeaks(DBA)
       DBA <- pv.reNormalize(DBA)
     } else {
@@ -117,7 +117,7 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
     endConsensus <- nrow(DBA$binding)
     
     if(!missing(blacklist) && !missing(greylist)) {
-      if(allsame) {
+      if(isConsensus) {
         DBA$peaks.blacklisted <- GRangesList(lapply(DBA$peaks.blacklisted,
                                                     function(x){
                                                       x[,c("cReads","Reads","Score")]
@@ -142,7 +142,7 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
   
 }
 
-pv.blacklist <- function(pv, blacklist, allsame=FALSE) {
+pv.blacklist <- function(pv, blacklist, isConsensus=FALSE) {
   
   if(missing(blacklist)) {
     pv$config$blacklist <- NULL
@@ -198,7 +198,7 @@ pv.blacklist <- function(pv, blacklist, allsame=FALSE) {
            envir = environment())
       blacklist <- dm6.blacklist
     } else {
-      message("No blacklist found for",blacklist)
+      message("No blacklist found for ",blacklist)
       pv$blacklist <- NULL
       return(pv)
     }
@@ -212,7 +212,7 @@ pv.blacklist <- function(pv, blacklist, allsame=FALSE) {
   
   # Apply blacklist to peaksets
   
-  if(allsame) {
+  if(isConsensus) {
     totalPeaks <- nrow(pv$peaks[[1]])
   } else {
     totalPeaks <- sum(unlist(lapply(pv$peaks,nrow)))
@@ -220,7 +220,7 @@ pv.blacklist <- function(pv, blacklist, allsame=FALSE) {
   
   pv <- pv.applyBlacklist(pv, blacklist)
   
-  if(allsame) {
+  if(isConsensus) {
     totalRemoved   <- totalPeaks - nrow(pv$peaks[[1]])
   } else {
     totalRemoved   <- totalPeaks - sum(unlist(lapply(pv$peaks,nrow)))
@@ -271,7 +271,7 @@ pv.doBlacklist <- function(peakset, blacklist, bReturnFiltered=FALSE){
   return(peakset)
 }
 
-pv.greylist <- function(pv, greylist, allsame=FALSE, 
+pv.greylist <- function(pv, greylist, isConsensus=FALSE, 
                         cores=pv$config$cores) {
   
   if(is(greylist,"list")) {
@@ -312,7 +312,7 @@ pv.greylist <- function(pv, greylist, allsame=FALSE,
       
       ktype <- match(greylist,names(dba.ktypes))
       if(is.na(ktype)) {
-        message("No known BSgenome:",greylist)
+        message("No known BSgenome: ",greylist)
         pv$greylist <- NULL
         return(pv)
       }
@@ -354,7 +354,7 @@ pv.greylist <- function(pv, greylist, allsame=FALSE,
   
   # Apply greylist to peaksets
   
-  if(allsame) {
+  if(isConsensus) {
     totalPeaks <- nrow(pv$peaks[[1]])
   } else {
     totalPeaks <- sum(unlist(lapply(pv$peaks,nrow)))
@@ -362,7 +362,7 @@ pv.greylist <- function(pv, greylist, allsame=FALSE,
   
   pv <- pv.applyBlacklist(pv, greylist)
   
-  if(allsame) {
+  if(isConsensus) {
     totalRemoved   <- totalPeaks - nrow(pv$peaks[[1]])
   } else {
     totalRemoved   <- totalPeaks - sum(unlist(lapply(pv$peaks,nrow)))
@@ -428,6 +428,7 @@ pv.removeBlacklistedPeaks <- function(DBA) {
   return(DBA)
 }
 
+
 pv.genome <- function(bamfile, chrmap=NULL, ref=NULL, dba.ktypes=NULL) {
   
   header <- Rsamtools::scanBamHeader(bamfile)[[1]]$targets
@@ -436,8 +437,8 @@ pv.genome <- function(bamfile, chrmap=NULL, ref=NULL, dba.ktypes=NULL) {
     chrmap <- names(header)
   }
   chrs <- match(chrmap,names(header))
-  if(is.na(chrs)) {
-    message('No matching chromosomes found for file',bamfile)
+  if(is.na(chrs[1])) {
+    message('No matching chromosomes found for file: ',bamfile)
     return(NULL)
   }
   chrnames <- names(header)[chrs]
@@ -445,6 +446,9 @@ pv.genome <- function(bamfile, chrmap=NULL, ref=NULL, dba.ktypes=NULL) {
   if(is.null(dba.ktypes)) {
     load(system.file("extra/ktypes.rda", package="DiffBind"),
          envir = environment())
+    remove.ktypes <- TRUE
+  } else {
+    remove.ktypes <- FALSE    
   }
   
   if(!is.null(ref)) {
@@ -457,7 +461,7 @@ pv.genome <- function(bamfile, chrmap=NULL, ref=NULL, dba.ktypes=NULL) {
     matches <- mismatches <- 0
     ktype <- dba.ktypes[[knum]]
     matchChrs <- match(chrnames, names(ktype)) 
-    if(!is.na(matchChrs)) {
+    if(!is.na(matchChrs[1])) {
       for(chr in chrs) {
         bamlen <- header[chr]
         krec   <- ktype[names(header)[chr],]
@@ -476,14 +480,15 @@ pv.genome <- function(bamfile, chrmap=NULL, ref=NULL, dba.ktypes=NULL) {
     }
   }
   
-  if(is.null(dba.ktypes)) {
-    rm(dba.ktypes)
+  if(remove.ktypes) {
+    dba.ktypes <- NULL
   }
   
   return(res)
 }
 
 pv.genomes <- function(bamfiles, chrmap=NULL) {
+  dba.ktypes <- NULL
   
   load(system.file("extra/ktypes.rda", package="DiffBind"),
        envir = environment())
@@ -496,12 +501,12 @@ pv.genomes <- function(bamfiles, chrmap=NULL) {
     } else if(is.null(newref)) {
       return(NULL)      
     }  else if (ref != newref) {
-      message("bam files match different reference genomes")
+      message("bam files match different reference genomes:",ref," ", newref)
       return(NULL)
     }
   }
   
-  rm(dba.ktypes)
+  dba.ktypes <- NULL
   return(ref)
 }
 

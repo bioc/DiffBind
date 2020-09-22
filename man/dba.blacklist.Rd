@@ -10,7 +10,8 @@ Filter peak intervals that overlap a greylist, either user supplied or generated
 aligned reads for control samples (e.g. Inputs).
 }
 \usage{
-dba.blacklist(DBA, blacklist=TRUE, greylist=TRUE, 
+dba.blacklist(DBA, blacklist=DBA$config$doBlacklist, 
+              greylist=DBA$config$doGreylist, 
               Retrieve, cores=DBA$config$cores)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -60,7 +61,8 @@ for each available control
 The \code{greylist} parameter can also be set explicitly to either
 a valid \code{BSgenome} object, or a character string
 with the name of a valid \code{BSgenome} object.
-the following constants map to a subset of possible \code{BSgenome}
+
+The following constants map to a subset of possible \code{BSgenome}
 objects:
 
 \itemize{
@@ -166,7 +168,7 @@ re-called and read into \code{DiffBind}.
 \examples{
 
 data(tamoxifen_peaks)
-\dontrun{tamoxifen <- dba.blacklist(tamoxifen, blacklist=DBA_BLACKLIST_HG19,
+\dontrun{tamoxifen <- dba.blacklist(tamoxifen, blacklist=TRUE,
                                     greylist="BSgenome.Hsapiens.UCSC.hg19")}
 data(tamoxifen_greylist)
 tamoxifen <- dba.blacklist(tamoxifen, blacklist=DBA_BLACKLIST_HG19,

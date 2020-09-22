@@ -434,10 +434,19 @@ DBA_BLACKLIST         <- "blacklist"
 DBA_GREYLIST          <- "greylist"
 DBA_BLACKLISTED_PEAKS <- "blacklisted peaks"
 
-dba.blacklist <- function(DBA, blacklist=TRUE, greylist=TRUE, 
+dba.blacklist <- function(DBA, blacklist=DBA$config$doBlacklist, 
+                          greylist=DBA$config$doGreylist, 
                           Retrieve, cores=DBA$config$cores) {
   
   DBA <- pv.check(DBA)
+  
+  if(is.null(blacklist)) {
+    blacklist <- TRUE
+  }
+  
+  if(is.null(greylist)) {
+    greylist <- TRUE
+  }
   
   res <- pv.BlackGreyList(DBA=DBA, blacklist=blacklist, greylist=greylist,
                           Retrieve=Retrieve, cores=cores)
@@ -803,36 +812,80 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
     } 
   }
   
+  res <- NULL
+  
   if(doblacklist || dogreylist) {
     message("Applying Blacklist/Greylists...")
-    DBA <- dba.blacklist(DBA, blacklist=doblacklist, greylist=dogreylist)
+    res <- tryCatch(
+      dba.blacklist(DBA, blacklist=doblacklist, greylist=dogreylist),
+      error=function(x){NULL}
+    )
+    if(is.null(res)){
+      message("Unable to apply Blacklist/Greylist.")
+      return(DBA)
+    } else {
+      DBA <- res
+    }
   }
   
   if(sum(DBA$class[DBA_CALLER,] %in% c("source","counts"))==0) {
     message("Forming consensus peakset and counting reads...")
-    DBA <- dba.count(DBA, bParallel=bParallel)
+    res <- tryCatch(
+      dba.count(DBA, bParallel=bParallel),
+      error=function(x){NULL}
+    ) 
+    if(is.null(res)){
+      message("Unable to count overlapping reads.")
+      return(DBA)
+    } else {
+      DBA <- res
+    }
   }
   
   
   if (DBA_EDGER %in% method) {
     if(is.null(DBA$norm$edgeR)) {
       message("Normalize edgeR with defaults...")
-      DBA <- dba.normalize(DBA, method=DBA_EDGER)
+      res <- tryCatch(
+        dba.normalize(DBA, method=DBA_EDGER),
+        error=function(x){NULL}
+      )
+      if(is.null(res)){
+        message("Unable to normalize datset with edgeR.")
+        return(DBA)
+      } else {
+        DBA <- res
+      }
     }
   }
   
   if (DBA_DESEQ2 %in% method) {
     if(is.null(DBA$norm$DESeq2)) {
       message("Normalize DESeq2 with defaults...")
-      DBA <- dba.normalize(DBA, method=DBA_DESEQ2)
+      res <- tryCatch(
+        dba.normalize(DBA, method=DBA_DESEQ2),
+        error=function(x){NULL}
+      )
+      if(is.null(res)){
+        message("Unable to normalize datset with DESeq2")
+        return(DBA)
+      } else {
+        DBA <- res
+      }
     }
   }
   
   if(is.null(DBA$contrasts)) {
     message("Forming default model design and contrast(s)...")
-    DBA <- dba.contrast(DBA)
-    if(is.null(DBA$contrasts)) {
+    res <- tryCatch(
+      dba.contrast(DBA),
+      error=function(x){NULL}
+    )
+    if(is.null(res)){
+      message("Unable to establish model design and contrasts(s).")
       return(DBA)
+    } else {
+      DBA <- res
     }
   }
   
@@ -841,8 +894,17 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
   } else {
     bTagwise <- DBA$config$edgeR$bTagwise 
   }
-  res <- pv.DBA(DBA, method,bTagwise=bTagwise,
-                minMembers=3, bParallel=bParallel)
+  
+  message("Analyzing...")
+  res <- tryCatch(
+    pv.DBA(DBA, method,bTagwise=bTagwise,
+           minMembers=3, bParallel=bParallel),
+    error=function(x){NULL}
+  )
+  if(is.null(res)){
+    message("Unable to complete analysis.")
+    return(DBA)
+  } 
   
   if(bReduceObjects) {
     if(!is.null(res$contrasts)) {
@@ -1042,7 +1104,7 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000,
       if(!is.character(res[1,1])) {
         res[,1] <- DBA$chrmap[res[,1]]
       }
-      res <- as(res,"GRanges")
+      res <- pv.peaks2DataType(res,datatype=DBA_DATA_GRANGES) 
     } else {
       
       if(is(sortFun,"function")) {
@@ -1062,7 +1124,7 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000,
       if(!is.character(res[1,1])) {
         res[,1] <- DBA$chrmap[res[,1]]
       }
-      res <- as(res,"GRanges")
+      res <- pv.peaks2DataType(res,datatype=DBA_DATA_GRANGES) 
       if(!is.null(savevecs)) {
         DBA$binding <- savevecs
       }
@@ -1218,7 +1280,7 @@ dba.plotVolcano <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                            facname=factor, dotSize=dotSize,
                            bFlip=bFlip, bLabels=bLabels, maxLabels=maxLabels)
   
-  invisible(as(res,"GRanges"))
+  invisible(pv.peaks2DataType(res,datatype=DBA_DATA_GRANGES))
 }
 
 ####################################################
