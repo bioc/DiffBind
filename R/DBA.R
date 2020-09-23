@@ -758,7 +758,7 @@ dba.contrast <- function(DBA, design=missing(group1), contrast,
 ##  -- perform differential binding affinity analysis ##
 ###################################################################
 
-dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, 
+dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
                         bBlacklist=DBA$config$doBlacklist,
                         bGreylist=DBA$config$doGreylist,
                         bRetrieveAnalysis=FALSE, bReduceObjects=TRUE, 
@@ -867,7 +867,7 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
         error=function(x){NULL}
       )
       if(is.null(res)){
-        message("Unable to normalize datset with DESeq2")
+        message("Unable to normalize datset with DESeq2.")
         return(DBA)
       } else {
         DBA <- res
@@ -875,14 +875,34 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod,
     }
   }
   
+  if(!missing(design)) {
+    message("Setting design...")
+    res <- tryCatch(
+      dba.contrast(DBA, design=design),
+      error=function(x){NULL}
+    )
+    if(is.null(res)){
+      message("Unable to set design.")
+      return(DBA)
+    } else {
+      DBA <- res
+    }
+  }
+  
   if(is.null(DBA$contrasts)) {
-    message("Forming default model design and contrast(s)...")
+    if(missing(design)) {
+      message("Forming default model design and contrast(s)...")
+    } else {
+      message("Setting default contrast(s)...")      
+    }
     res <- tryCatch(
       dba.contrast(DBA),
       error=function(x){NULL}
     )
     if(is.null(res)){
-      message("Unable to establish model design and contrasts(s).")
+      message("Unable to establish model design and contrasts(s). 
+Check that here are at least two groups each with at least three samples, 
+and that the default model is of full rank, and call dba.contrast() explicitly.")
       return(DBA)
     } else {
       DBA <- res

@@ -11,7 +11,7 @@ normalization, and setting up of contrasts if they have
 not been specified.
 }
 \usage{
-dba.analyze(DBA, method=DBA$config$AnalysisMethod, 
+dba.analyze(DBA, method=DBA$config$AnalysisMethod, design,
             bBlacklist=DBA$config$doBlacklist,
             bGreylist=DBA$config$doGreylist,
             bRetrieveAnalysis=FALSE, bReduceObjects=TRUE, 
@@ -58,6 +58,15 @@ Supported methods:
   \item{\code{\link{DBA_ALL_METHODS}}} {perform two analyses, 
 using both \code{edgeR} and \code{DESeq2}}
 }
+}
+
+\item{design}{
+If present and a character string, will be used as the design formula
+for the analysis, replacing any previously established design if present.
+
+If \code{FALSE}, will complete analysis in pre-version 3 mode.
+
+See \code{link{dba.contrast}}.
 }
 
 \item{bBlacklist}{
@@ -145,15 +154,14 @@ to a single factor analysis.
 
 \examples{
 data(tamoxifen_counts)
+dba.analyze(tamoxifen)
 
-tamoxifen <- dba.analyze(tamoxifen)
-tamoxifen
-
-tamoxifen <- dba.contrast(tamoxifen, design="~Tissue + Condition")
-tamoxifen <- dba.analyze(tamoxifen,method=DBA_ALL_METHODS)
-tamoxifen
+tamoxifen <- dba.analyze(tamoxifen, method=DBA_ALL_METHODS,
+                         design="~Tissue + Condition")
+dba.show(tamoxifen, bContrasts=TRUE)
 
 dba.analyze(tamoxifen, bRetrieveAnalysis=TRUE)
-dba.analyze(tamoxifen, bRetrieveAnalysis=DBA_EDGER)
+edger.object <- dba.analyze(tamoxifen, bRetrieveAnalysis=DBA_EDGER)
+class(edger.object)
 }
 

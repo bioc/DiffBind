@@ -81,11 +81,13 @@ If missing, will use default peak caller specified in caller parameter. Possible
 see PeakCaller and  \code{\link{dba.peakset}}}
 \item {\code{ScoreCol:}}	{column in peak files that contains peak scores}
 \item {\code{LowerBetter:}}	{logical indicating that lower scores signify better peaks}
-\item{\code{Counts:}} {file path for externally computed read counts; see \code{\link{dba.peakset}}
+\item{\code{Counts:}} {file path for externally computed read counts; 
+see \code{\link{dba.peakset}}
 (\code{counts} parameter)}
 }
 For sample sheets loaded from a file, the accepted formats are comma-separated values 
-(column headers, followed by one line per sample), or Excel-formatted spreadsheets (\code{.xls} 
+(column headers, followed by one line per sample), 
+or Excel-formatted spreadsheets (\code{.xls} 
 or \code{.xlsx} extension). 
 Leading and trailing white space will be removed from all values, with a warning.
 }
@@ -125,11 +127,12 @@ if a \code{sampleSheet} is specified, the default peak caller that will be used
 if the \code{PeakCaller} column is absent.
 }
  \item{peakFormat}{
-if a \code{sampleSheet} is specified, the default peak file format that will be used 
-if the \code{PeakFormat} column is absent.
+if a \code{sampleSheet} is specified, the default peak file format 
+that will be used if the \code{PeakFormat} column is absent.
 }
  \item{scoreCol}{
-if a \code{sampleSheet} is specified, the default column  in the peak files that will be used 
+if a \code{sampleSheet} is specified, the default column  
+in the peak files that will be used 
 for scoring if the \code{ScoreCol} column is absent.
 }
  \item{bLowerScoreBetter}{
@@ -137,9 +140,11 @@ if a \code{sampleSheet} is specified, the  sort order for peak scores
 if the \code{LowerBetter} column is absent.
 }
  \item{filter}{
-if a \code{sampleSheet} is specified, a filter value if the \code{Filter} column is absent.
+if a \code{sampleSheet} is specified, a filter value if the
+\code{Filter} column is absent.
 Peaks with scores lower than this value 
-(or higher if \code{ bLowerScoreBetter} or \code{LowerBetter} is \code{TRUE}) will be removed.
+(or higher if \code{ bLowerScoreBetter} or \code{LowerBetter} is
+\code{TRUE}) will be removed.
 }
   \item{skipLines}{
 if a \code{sampleSheet} is specified, the number of lines (ie header lines)
@@ -147,7 +152,8 @@ at the beginning of each peak file to skip.
 }
   \item{bAddCallerConsensus}{
 add a consensus peakset for each sample with more than one peakset 
-(i.e. different peak callers) when constructing a new DBA object from a \code{sampleSheet}.
+(i.e. different peak callers) when constructing a new DBA object from a
+\code{sampleSheet}.
 }
   \item{bRemoveM}{
 logical indicating whether to remove peaks on chrM (mitochondria) 
@@ -162,10 +168,16 @@ constructing a new DBA object from a sample sheet.
 logical indicating whether to return resulting object as a \code{\link{SummarizedExperiment}}.
 }
 \item{bCorPlot}{
-logical indicating that a correlation heatmap should be plotted before returning. If \code{DBA} is \code{NULL} (a new DBA object is being created), and \code{bCorPlot} is missing, then this will take the default value (\code{FALSE}). However if \code{DBA} is \code{NULL} (a new DBA object is being created), and \code{bCorPlot} is specified, then the specified value will become the default value of \code{bCorPlot} for the resultant \code{DBA} object.
+logical indicating that a correlation heatmap should be plotted before returning. 
+If \code{DBA} is \code{NULL} (a new DBA object is being created), 
+and \code{bCorPlot} is missing, then this will take the default value (\code{FALSE}).
+However if \code{DBA} is \code{NULL} (a new DBA object is being created), 
+and \code{bCorPlot} is specified, then the specified value will become the 
+default value of \code{bCorPlot} for the resultant \code{DBA} object.
 }
 \item{attributes}{
-vector of attributes to use subsequently as defaults when generating labels in plotting functions:
+vector of attributes to use subsequently as defaults when generating 
+labels in plotting functions:
 \itemize{ 
 \item \code{DBA_ID}
 \item \code{DBA_TISSUE}
@@ -182,7 +194,8 @@ vector of attributes to use subsequently as defaults when generating labels in p
 Directory path. 
 If supplied, files referenced in the \code{sampleSheet} will have
 this path prepended. 
-Applies to \code{PeakFiles}, \code{bamReads}, and \code{bamControl}, if present.
+Applies to \code{PeakFiles}, \code{bamReads}, \code{bamControl},
+and \code{Spikein}, if present.
 If \code{sampleSheet} is a filepath, this will prepended to that as well.
 }
 }
