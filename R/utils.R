@@ -463,20 +463,25 @@ checkinvalid = function (x)
 
 
 heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE, 
-                    distfun = dist, hclustfun = hclust, dendrogram = c("both", 
-                                                                       "row", "column", "none"), symm = FALSE, scale = c("none", 
-                                                                                                                         "row", "column"), na.rm = TRUE, revC = identical(Colv, 
-                                                                                                                                                                          "Rowv"), add.expr, breaks, symbreaks = min(x < 0, na.rm = TRUE) || 
-                       scale != "none", col = "heat.colors", colsep, rowsep, 
-                    sepcolor = "white", sepwidth = c(0.05, 0.05), cellnote, notecex = 1, 
-                    notecol = "cyan", na.color = par("bg"), trace = c("column", 
-                                                                      "row", "both", "none"), tracecol = "cyan", hline = median(breaks), 
-                    vline = median(breaks), linecol = tracecol, margins = c(5, 
-                                                                            5), ColSideColors, RowSideColors, cexRow = 0.2 + 1/log10(nr), 
+                    distfun = dist, hclustfun = hclust, 
+                    dendrogram = c("both","row", "column", "none"), 
+                    symm = FALSE, scale = c("none", "row", "column"),
+                    na.rm = TRUE, revC = identical(Colv, "Rowv"), add.expr, breaks, 
+                    symbreaks = min(x < 0, na.rm = TRUE) ||  scale != "none", 
+                    col = "heat.colors", colsep, rowsep, 
+                    sepcolor = "white", sepwidth = c(0.05, 0.05), cellnote, 
+                    notecex = 1, notecol = "cyan",
+                    na.color = par("bg"), trace = c("column","row", "both", "none"), 
+                    tracecol = "cyan", hline = median(breaks), 
+                    vline = median(breaks), linecol = tracecol, 
+                    margins = c(5, 5), ColSideColors, RowSideColors, 
+                    cexRow = 0.2 + 1/log10(nr), 
                     cexCol = 0.2 + 1/log10(nc), labRow = NULL, labCol = NULL, 
-                    key = TRUE, keysize = 1.5, density.info = c("histogram", 
-                                                                "density", "none"), denscol = tracecol, symkey = min(x < 
-                                                                                                                        0, na.rm = TRUE) || symbreaks, densadj = 0.25, main = NULL, 
+                    key = TRUE, keysize = 1.5, 
+                    density.info = c("histogram","density", "none"), 
+                    denscol = tracecol, 
+                    symkey = min(x < 0, na.rm = TRUE) || symbreaks,
+                    densadj = 0.25, main = NULL, 
                     xlab = NULL, ylab = NULL, lmat = NULL, lhei = NULL, lwid = NULL,
                     NumColSideColors = 1, NumRowSideColors = 1, KeyValueName="Value",
                     ...) 
@@ -792,14 +797,14 @@ heatmap.3=function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
    if (!missing(add.expr)) 
       eval(substitute(add.expr))
    if (!missing(colsep)) 
-      for (csep in colsep) rect(xleft = csep + 0.5, ybottom = rep(0, 
-                                                                  length(csep)), xright = csep + 0.5 + sepwidth[1], 
+      for (csep in colsep) rect(xleft = csep + 0.5, 
+                                ybottom = rep(0,  length(csep)), xright = csep + 0.5 + sepwidth[1], 
                                 ytop = rep(ncol(x) + 1, csep), lty = 1, lwd = 1, 
                                 col = sepcolor, border = sepcolor)
    if (!missing(rowsep)) 
-      for (rsep in rowsep) rect(xleft = 0, ybottom = (ncol(x) + 
-                                                         1 - rsep) - 0.5, xright = nrow(x) + 1, ytop = (ncol(x) + 
-                                                                                                           1 - rsep) - 0.5 - sepwidth[2], lty = 1, lwd = 1, 
+      for (rsep in rowsep) rect(xleft = 0, 
+                                ybottom = (ncol(x) + 1 - rsep) - 0.5, xright = nrow(x) + 1, 
+                                ytop = (ncol(x) + 1 - rsep) - 0.5 - sepwidth[2], lty = 1, lwd = 1, 
                                 col = sepcolor, border = sepcolor)
    min.scale <- min(breaks)
    max.scale <- max(breaks)

@@ -59,12 +59,14 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
   }
   
   bRecenter <- FALSE
+  saveLowMem <- bLowMem
   if(is.logical(summits) && summits==FALSE) {
     summits <- -1
   } 
   if(summits != -1) {
     if(bLowMem==TRUE) {
       stop("Can not compute summits when bUseSummarizeOverlaps is TRUE in dba.count",call.=FALSE)
+      bLowMem <- FALSE
     }
     if(is.logical(summits) && summits==TRUE) {
       summits=0
@@ -348,7 +350,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
       res <- pv.counts(res,peaks=res$merged,defaultScore=defaultScore,bLog=bLog,insertLength=insertLength,
                        bOnlyCounts=TRUE,bCalledMasks=TRUE,minMaxval=minMaxval,filterFun=filterFun,
                        bParallel=bParallel,bWithoutDupes=bWithoutDupes,bScaleControl=bScaleControl,
-                       bSignal2Noise=bSignal2Noise,bLowMem=FALSE,readFormat=readFormat,summits=0,
+                       bSignal2Noise=bSignal2Noise,bLowMem=saveLowMem,readFormat=readFormat,summits=0,
                        bRecentered=TRUE,minMappingQuality=minMappingQuality)
       pv.gc()
       return(res)

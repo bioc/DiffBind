@@ -172,7 +172,7 @@ pv.DEinitDESeq2 <- function(pv,
   }
   
   meta <- pv.getMeta(pv)
-  if(is.null(pv$design)) {
+  if(!pv.isDesign(pv$design)) {
     designstr <- "~ 1"
   } else {
     designstr <- pv$design

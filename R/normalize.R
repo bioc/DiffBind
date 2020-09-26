@@ -55,6 +55,9 @@ pv.normalize <- function(pv,
       stop("spikein: invalid background record.", call.=FALSE)
     }
   }
+  if(dospikein) {
+    libSizes <- DBA_LIBSIZE_BACKGROUND
+  }
   
   dobackground <- TRUE
   if(is(background,"logical")) {

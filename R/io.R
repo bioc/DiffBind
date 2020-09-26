@@ -93,33 +93,34 @@ pv.loadPre3 <- function(pv) {
    if(!is.null(pv$filterFun)) {
       filtFun <- pv$filterFun
    }
-   if(bFullLibrarySizeD) {
-      pv <- dba.normalize(pv, method = DBA_DESEQ2, 
-                          normalize = DBA_NORM_LIB,
-                          library = DBA_LIBSIZE_FULL, 
-                          bSubControl = bSubControlD, 
-                          filter = filtval,filterFun = filtFun)
-   } else {
-      pv <- dba.normalize(pv, method = DBA_DESEQ2, 
-                          normalize = DBA_NORM_RLE,
-                          library = DBA_LIBSIZE_PEAKREADS, 
-                          bSubControl = bSubControlD,
-                          filter = filtval,filterFun = filtFun)      
-   }
    
-   if(bFullLibrarySizeE) {
-      pv <- dba.normalize(pv, method = DBA_EDGER, 
-                          normalize = DBA_NORM_TMM,
-                          library = DBA_LIBSIZE_FULL, 
-                          bSubControl = bSubControlE, 
-                          filter = filtval,filterFun = filtFun)
-   } else {
-      pv <- dba.normalize(pv, method = DBA_EDGER,
-                          normalize = DBA_NORM_TMM,
-                          library = DBA_LIBSIZE_PEAKREADS, 
-                          bSubControl = bSubControlE,
-                          filter = filtval,filterFun = filtFun)      
-   }
+   # if(bFullLibrarySizeD) {
+   #    pv <- dba.normalize(pv, method = DBA_DESEQ2, 
+   #                        normalize = DBA_NORM_LIB,
+   #                        library = DBA_LIBSIZE_FULL, 
+   #                        bSubControl = bSubControlD, 
+   #                        filter = filtval,filterFun = filtFun)
+   # } else {
+   #    pv <- dba.normalize(pv, method = DBA_DESEQ2, 
+   #                        normalize = DBA_NORM_RLE,
+   #                        library = DBA_LIBSIZE_PEAKREADS, 
+   #                        bSubControl = bSubControlD,
+   #                        filter = filtval,filterFun = filtFun)      
+   # }
+   # 
+   # if(bFullLibrarySizeE) {
+   #    pv <- dba.normalize(pv, method = DBA_EDGER, 
+   #                        normalize = DBA_NORM_TMM,
+   #                        library = DBA_LIBSIZE_FULL, 
+   #                        bSubControl = bSubControlE, 
+   #                        filter = filtval,filterFun = filtFun)
+   # } else {
+   #    pv <- dba.normalize(pv, method = DBA_EDGER,
+   #                        normalize = DBA_NORM_TMM,
+   #                        library = DBA_LIBSIZE_PEAKREADS, 
+   #                        bSubControl = bSubControlE,
+   #                        filter = filtval,filterFun = filtFun)      
+   # }
    
    # Turn off blacklists and greylists by default
    if(is.null(pv$config$doBlacklist)) {

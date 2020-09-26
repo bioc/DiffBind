@@ -157,7 +157,7 @@ importFrom(tools,file_ext)
 
 importFrom(Rcpp, evalCpp)
 
-importFrom(dplyr,bind_rows, mutate, filter)
+importFrom(dplyr,bind_rows, mutate, filter, "%>%")
 
 importFrom(BiocParallel, bplapply)
 

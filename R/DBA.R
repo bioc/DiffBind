@@ -818,7 +818,7 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
     message("Applying Blacklist/Greylists...")
     res <- tryCatch(
       dba.blacklist(DBA, blacklist=doblacklist, greylist=dogreylist),
-      error=function(x){NULL}
+      error=function(x){message("Blacklist error: ",x);NULL}
     )
     if(is.null(res)){
       message("Unable to apply Blacklist/Greylist.")
@@ -832,7 +832,7 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
     message("Forming consensus peakset and counting reads...")
     res <- tryCatch(
       dba.count(DBA, bParallel=bParallel),
-      error=function(x){NULL}
+      error=function(x){message("Count error: ",x);NULL}
     ) 
     if(is.null(res)){
       message("Unable to count overlapping reads.")
@@ -848,7 +848,7 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
       message("Normalize edgeR with defaults...")
       res <- tryCatch(
         dba.normalize(DBA, method=DBA_EDGER),
-        error=function(x){NULL}
+        error=function(x){message("Normalize error: ",x);NULL}
       )
       if(is.null(res)){
         message("Unable to normalize datset with edgeR.")
@@ -864,7 +864,7 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
       message("Normalize DESeq2 with defaults...")
       res <- tryCatch(
         dba.normalize(DBA, method=DBA_DESEQ2),
-        error=function(x){NULL}
+        error=function(x){message("Normalize error: ",x);NULL}
       )
       if(is.null(res)){
         message("Unable to normalize datset with DESeq2.")
@@ -879,7 +879,7 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
     message("Setting design...")
     res <- tryCatch(
       dba.contrast(DBA, design=design),
-      error=function(x){NULL}
+      error=function(x){message("Contrast error: ",x);NULL}
     )
     if(is.null(res)){
       message("Unable to set design.")
@@ -897,7 +897,7 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
     }
     res <- tryCatch(
       dba.contrast(DBA),
-      error=function(x){NULL}
+      error=function(x){message("Contrast error: ",x);NULL}
     )
     if(is.null(res)){
       message("Unable to establish model design and contrasts(s). 
@@ -919,7 +919,7 @@ and that the default model is of full rank, and call dba.contrast() explicitly."
   res <- tryCatch(
     pv.DBA(DBA, method,bTagwise=bTagwise,
            minMembers=3, bParallel=bParallel),
-    error=function(x){NULL}
+    error=function(x){message("Analyze error: ",x);NULL}
   )
   if(is.null(res)){
     message("Unable to complete analysis.")

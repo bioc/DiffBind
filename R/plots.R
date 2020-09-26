@@ -407,9 +407,11 @@ PV_OLAP  <- 7
 PV_TOTAL <- 0
 pv.plotHeatmap <-
   function(pv,numSites = 1000,attributes = pv$attributes,mask,sites,contrast,
-           overlaps, olmask, olPlot = PV_COR,divVal,RowAttributes,ColAttributes,rowSideCols,colSideCols,
-           bTop = TRUE,minval,maxval,bReorder = FALSE,ColScheme =
-             "Greens",distMeth = "pearson",...) {
+           overlaps, olmask, olPlot = PV_COR,divVal,RowAttributes,ColAttributes,
+           rowSideCols,colSideCols,
+           bTop = TRUE,minval,maxval,bReorder = FALSE,
+           ColScheme ="Greens",distMeth = "pearson", key.title,
+           ...) {
     pv <- pv.check(pv)
     
     if (missing(mask)) {
@@ -537,18 +539,24 @@ pv.plotHeatmap <-
         warning("Row color bars not permitted for peak score heatmaps.",
                 call.=FALSE)
       }
+      if(missing(key.title)) {
+        key.title <- "Score"
+      }
       heatmap.3(
         domap,labCol = collab,col = cols,trace = "none",labRow = rowlab,
-        KeyValueName = "Score",
+        KeyValueName = key.title,
         distfun = function(x) amap::Dist(x,method = distMeth),
         ColSideColors = colatts,NumColSideColors = colcols,
         ...
       )
     } else {
+      if(missing(key.title)) {
+        key.title <- "Correlation"
+      }
       res <-
         heatmap.3(
           domap,labCol = collab,col = cols,trace = "none",labRow = rowlab, 
-          KeyValueName ="Correlation",
+          KeyValueName = key.title,
           distfun = function(x) amap::Dist(x,method = distMeth),
           symm = TRUE,revC = TRUE,Colv = TRUE,
           RowSideColors = rowatts,ColSideColors = colatts,

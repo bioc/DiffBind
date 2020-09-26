@@ -80,7 +80,7 @@ pv.contrast <- function(pv,group1,group2=!group1,name1,name2,
          return(pv)
       }
       
-      if(!is.null(pv$design)) {
+      if(pv.isDesign(pv$design)) {
          varnames <- all.vars(formula(pv$design))
          categories <- pv.FactorVals[match(varnames,pv.FactorNames)]
       }
@@ -115,6 +115,9 @@ pv.contrast <- function(pv,group1,group2=!group1,name1,name2,
       } else {
          warning("No contrasts added. There must be at least two sample groups with at least three replicates.",
                  call.=FALSE)	
+      }
+      if(pv.isDesign(olddesign) || generateDesign) {
+         res <- pv.checkContrastOrder(res, pv$meta)
       }
       if(doBlock){
          problem <- NULL
@@ -865,7 +868,7 @@ pv.contrastDesign <- function(pv, design, contrast, name1, name2, bGetNames=FALS
             design <- pv$design
          }
       } 
-      if(!is.null(pv$design)) {
+      if(pv.isDesign(pv$design)) {
          if(design != pv$design) {
             if(!is.null(pv$DESeq2)) {
                newdesign <- TRUE
@@ -1204,7 +1207,7 @@ pv.getMeta <- function(pv) {
 
 pv.CheckReleveledContrasts <- function(pv) {
    
-   if(is.null(pv$contrasts) || is.null(pv$design)) {
+   if(is.null(pv$contrasts) || !pv.isDesign(pv$design)) {
       return(pv)
    }
    
@@ -1241,3 +1244,37 @@ pv.CheckReleveledContrasts <- function(pv) {
    
    return(pv)
 } 
+
+pv.isDesign <- function(design) {
+   if(is.null(design)) {
+      return(FALSE)
+   }
+   
+   if(is(design,"logical")) {
+      return(design)
+   }
+   
+   return(TRUE)
+}
+
+pv.checkContrastOrder <- function(contrasts, meta) {
+   for(i in length(contrasts)) {
+      con <- contrasts[[i]]
+      for(fac in meta) {
+         n1 <- fac %in% con$name1
+         n2 <- fac %in% con$name2
+         if(sum(n1) && sum(n2)) {
+            if(which(n2) < which(n1)) {
+               g1 <- con$group1
+               n1 <- con$name1
+               con$group1 <- con$group2
+               con$name1  <- con$name2
+               con$group2 <- g1
+               con$name2  <- n1
+               contrasts[[i]] <- con
+            }
+         }
+      }
+   }
+   return(contrasts)
+}

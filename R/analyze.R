@@ -45,7 +45,7 @@ pv.DBA <- function(pv,method='edgeR',bTagwise=TRUE,
   
   results <- NULL
   
-  if(!is.null(pv$design)) { ## establish design-based analyses
+  if(pv.isDesign(pv$design)) { ## establish design-based analyses
     
     pv <- pv.designAnalysis (pv, method, tagwise=bTagwise, setParallel)
     
