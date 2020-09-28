@@ -32,7 +32,7 @@ BiocStyle::latex()
    University of Cambridge
 }
 
-\date{Edited: 25 September 2020; Compiled: \today}
+\date{Edited: 28 September 2020; Compiled: \today}
 
 \maketitle
 
@@ -1821,11 +1821,12 @@ Library size normalization using Reads in Peaks
 \Rcode{TMM} on Background bins
 \end{enumerate}
 
-The following code chunk cycles through the seven possibilities,
+We can cycle through the seven possibilities,
 repeated for \DESeq and for \edgeR,
-and gathers the results in a report-based \Rcode{DBA} object
+and gather the results in a report-based \Rcode{DBA} object
+called \Rcode{dbs.all}
 for plotting and further analysis:
-<<normCompare,eval=TRUE,echo=TRUE,results=verbatim>>=
+<<normCompare,eval=TRUE,echo=FALSE,results=verbatim>>=
 data(tamoxifen_analysis)
 dbs.all <- NULL
 for(norm in c("lib","RLE","TMM", "loess")) {
@@ -2174,9 +2175,43 @@ able to avoid over-normalizing the data and results in analyses identifying
 the majority of ER binding sites
 as significantly losing binding affinity when treated with Fulvestrant.
 
-\subsection{What are the best normalization parameters?}
+\subsection{Normalization summary}
 
-In this section, we have shown how different normalization parameters
+There are a myriad of normalization option available in \DiffBind.
+Table~\ref{DiffBind-normtable} summarizes the allowable combinations
+of normalization methods (columns) and which sets of references reads
+they can be applied to (rows):
+  
+<<results=tex, echo=FALSE>>=
+require(xtable)
+collabs <- paste(DBA_NORM_LIB," & ",DBA_NORM_RLE," & ",
+                 DBA_NORM_TMM," & ",DBA_OFFSETS_LOESS)
+
+rowlabs <- c(DBA_LIBSIZE_FULL,DBA_LIBSIZE_PEAKREADS,
+             DBA_LIBSIZE_BACKGROUND,
+             DBA_NORM_SPIKEIN,"parallel factor")
+
+normtab <- matrix("X",5,4)
+normtab[1,2:4] <- ""
+normtab[c(1,3:5),4] <- ""
+normtab <- data.frame(normtab)
+rownames(normtab) <- rowlabs
+addtorow <- list()
+addtorow$pos <- list(0,0)
+addtorow$command <- c("& \\multicolumn{4}{c|}{Normalization} \\\\\n",
+                      paste("Reference & ",collabs,"\\\\\n"))
+
+captionStr <- paste("Table of allowable normalization schemes.",
+                    "Columns are normalization methods set by \\Rcode{normalize} or \\Rcode{offsets}.",
+                    "Rows are reference reads, set by \\Rcode{library}, \\Rcode{background}, or \\Rcode{spikein}.")
+
+print(xtable::xtable(normtab,align=c(rep("|c",5),"|"),
+             caption=captionStr, label="DiffBind-normtable"), 
+      add.to.row = addtorow,
+      include.colnames=FALSE, scalebox=1)
+@
+  
+As we have seen, different normalization parameters
 can alter the experimental data, potentially altering the
 biological conclusions an analysis might suggest.
 How then should the normalization parameters be set?
@@ -2619,7 +2654,7 @@ If a \Rcode{DBA} object was created with an earlier version of
 \DBA, and saved using the \Rcode{dba.save}
 function, and loaded using the \Rcode{dba.load} function,
 all settings should be preserved, such that running the analysis anew
-will yield the same results.
+will yield similar results.
 
 In order to re-run the analysis using the post-version 3.0 settings,
 the original script should be used to re-create the \Rcode{DBA} object.
@@ -2634,10 +2669,6 @@ a number of defaults need to be changed.
 When calling \Rcode{dba.count}, the following defaults are changed:
 \begin{enumerate}
 \item
-\Rcode{score:} 
-The previous default for this parameter was 
-\Rcode{DBA\_SCORE\_TMM\_MINUS\_FULL}.
-\item
 \Rcode{summits:} 
 This parameter is now set by default.
 Setting \Rcode{summits=FALSE} will preempt re-centering each 
@@ -2651,6 +2682,10 @@ previously it was set to \Rcode{filter=0}.
 This is a new parameter representing a minimum 
 read count value. It now default to \Rcode{0}; 
 to get the previous behavior, set \Rcode{minCount=1}.
+\item
+\Rcode{score:} 
+The previous default for this parameter was 
+\Rcode{DBA\_SCORE\_TMM\_MINUS\_FULL}.
 \end{enumerate}
 
 The easiest way to perform subsequent processing in a pre-version 3.0 
@@ -2757,25 +2792,28 @@ and the start/end points are adjusted outward to account for them.
 Secondly, peak counts may not appear to add up as you may expect due to merging.
 For example, if one peakset contains two small peaks near to each other,
 while a second peakset includes a single peak that overlaps both of these by at least one base,
-these will all be replaced in the merged matrix with a single peak. A
-s more peaksets are added, multiple peaks from multiple peaksets may be merged together
+these will all be replaced in the merged matrix with a single peak. 
+As more peaksets are added, multiple peaks from multiple peaksets may be merged together
 to form a single, wider peak.
 Use of the "summits" parameter is recommended to control for this widening effect.
-
 
 \subsection{Details of \Biocpkg{DESeq2} analysis}
 \label{subsec:technical_deseq2}
 
-When \Rfunction{dba.analyze} is invoked using the default method \Rcode{method=DBA\_DESEQ2}, 
-a standardized differential analysis is performed using the \Biocpkg{DESeq2}package (\cite{Love2014}).
-This section details the precise steps in that analysis.
+When \Rfunction{dba.analyze} is invoked using the default method 
+\Rcode{method=DBA\_DESEQ2}, 
+a standardized differential analysis is performed using the 
+\Biocpkg{DESeq2}package (\cite{Love2014}).
+This section details the  steps in that analysis.
 
-First, a matrix of counts is constructed for the contrast, with rows for each consensus intervals, 
+First, a matrix of counts is constructed using all the samples in the experiment, 
+with rows for each consensus interval, 
 and columns for each sample in the experiment.
 The raw read count is used for this matrix; 
-if the \Rcode{bSubControl} parameter is set to \Rcode{TRUE} (as it is by default), 
+if the \Rcode{bSubControl} parameter is set to \Rcode{TRUE}, 
 the raw number of reads in the control sample (if available) will be subtracted.
-And read counts that are less than zero are set to zero.
+And read counts that are less than \Rcode{minCount} are set to \Rcode{minCount} 
+(default is zero).
 If a non-zero \Rcode{filter} is supplied, the \Rcode{filterFun} is run
 across the rows (consensus peaks), and any peak interval for which the result
 of the function is less than the specified \Rcode{filter} is removed.
@@ -2783,65 +2821,74 @@ The default \Rcode{filterFun} is \Rfunction{max}, resulting in
 any peak interval without at least one sample having at least \Rcode{filter}
 counts being removed from the subsequent analysis.
 
-Next the library size is computed for each sample for use in subsequent normalization. 
-By default, this is the total number of reads in the library 
-(calculated from the source BAM/BED file). 
-Alternatively, if the \Rcode{bFullLibrarySize} parameter is set to FALSE, 
-the total number of reads in peaks (the sum of each column) is used. 
-Note that "effective" library size (\Rcode{bFullLibrarySize=FALSE}) may be more appropriate 
-for situations when the overall signal (binding rate) is expected to be directly comparable between the samples.
-The first step concludes with a call to 
-\Rfunction{DESeq2::DESeqDataSetFromMatrix}, which returns a \Rclass{DESeqDataSet} object. 
-The full set of metadata factors in the experiment is included,
-along with the design formula.
+A \Rcode{DESeqDataSet} object is then created using 
+\Rcode{DESeq2::DESeqDataSetFromMatrix} with the count matrix, 
+metadata from the \Rcode{DBA} objet, and the design formula.
 
-The next step sets the normalization factors.
-If \Rcode{bFullLibrarySize} is set to TRUE (default), then \Rfunction{DESeq2::sizeFactors}
-is set to the number of reads in the BAM/BED files for each ChIP sample, 
-divided by the minimum of these; otherwise, 
-\Rfunction{DESeq2::estimateSizeFactors} is invoked with default values
-for the parameters. 
+Next the normalization parameters are set for the analysis.
+If the normalization involves \Rcode{offsets},
+the \DESeq normalization factors are set to the offsets;
+if the \Rcode{DBA\_NORM\_OFFSETs\_ADJUST} is set, the offsets
+are assumed to be in \edgeR format and are run through the
+\Rcode{edgeR::scaleOffset} function, adjusted to be mean centered on 1,
+then normalized to library size.
+If offsets are not used, then \Rcode{DESeq::sizeFactors} is
+called with the scaling factors computed in \Rcode{dba.normalize}.
+If these were based on the native \Rcode{RLE} method,
+then the result of a previous call to \Rcode{DESeq2::estimateSizeFactors} 
+is used.
 
 \Rfunction{DESeq2::estimateDispersions} is then called with the 
 \Rclass{DESeqDataSet} object.
-By default the \Rcode{fitType} will beset to \Rcode{local};
+By default the \Rcode{fitType} will be set to \Rcode{local};
 this can be overridden by setting a configuration option 
 \Rcode{DBA\$config\$DESeq2\$fitType} to the desired value.
 
-Finally the model is fitted and tested using \Rfunction{DESeq2::nbinomWaldTest}, with defaults.
+Finally the model is fitted and tested using 
+the \Rfunction{DESeq2::nbinomWaldTest}, with defaults.
 
 The final results, as a \Rclass{DESeqDataSet} object, are accessible
-by calling \Rfunction{dba.analyze()} with \Rcode{bRetrieveAnalysis=DBA\_DESeq2} 
-(or \Rcode{bRetrieveAnalysis=TRUE}).
+by calling \Rfunction{dba.analyze()} with 
+\Rcode{bRetrieveAnalysis=DBA\_DESeq2} (or \Rcode{bRetrieveAnalysis=TRUE}).
 
-When a contrast is evaluated, the results are obtained by calling \Rcode{DESeq2::results}.
-If the contrast was specified to \Rfunction{dba.contrast()} using a single character string
-containing the name of a specific column coefficient, the call is made with 
-\Rcode{name} set to the character string.
+When a contrast is evaluated, the results are obtained 
+by calling \Rcode{DESeq2::results}.
+If the contrast was specified to \Rfunction{dba.contrast()}
+using a single character string
+containing the name of a specific column coefficient, 
+the call is made with \Rcode{name} set to the character string.
 Otherwise, the call is made with \Rcode{contrast} set appropriate
-(either as a vector of three character strings representing a design \Rcode{Factor}, and two values for that Factor,
+(either as a vector of three character strings representing a design
+\Rcode{Factor}, and two values for that Factor,
 or a list of one or two character strings representing coefficient names,
-or as a numeric vector of the same length as the number of coefficients in the design matrix.
+or as a numeric vector of the same length as the number of 
+coefficients in the design matrix.
 Note that coefficient names can be retrieved by calling
-\Rfunction{dba.contrast()} with \Rcode{bRetrieveCoefficients=TRUE}.
+\Rfunction{dba.contrast()} with \Rcode{bRetrieveCoefficients=TRUE};
+these are obtained from a call to \Rcode{DESeq2::resultsNames}.
 
-The fold changes used in subsequent reports and plots are those estimated from the \Rcode{results}.
+The fold changes used in subsequent reports and plots are the shrunk values 
+estimated from the \Rcode{results}.
 
 \subsection{Details of \Biocpkg{edgeR} analysis}
 \label{subsec:technical_edger}
 
 When \Rfunction{dba.analyze} is invoked using the 
 \Rcode{method=DBA\_EDGER}\footnote{Note that 
-\Biocpkg{edgeR} can be made the default analysis method for a DBA object by setting \Rcode{DBA\$config\$AnalysisMethod} to \Rcode{DBA\_EDGER}.}, 
-a standardized differential analysis is performed using the \Rpackage{edgeR} package (\cite{Robinson:2010p249}). 
-This section details the precise steps in that analysis.
+\Biocpkg{edgeR} can be made the default analysis method for a DBA object
+by setting \Rcode{DBA\$config\$AnalysisMethod} to \Rcode{DBA\_EDGER}.}, 
+a standardized differential analysis is performed using the
+\Rpackage{edgeR} package (\cite{Robinson:2010p249}). 
+This section details the steps in that analysis.
 
-First, a matrix of counts is constructed for the contrast, with rows for each consensus intervals, 
+First, a matrix of counts is constructed using all the samples in the experiment, 
+with rows for each consensus interval, 
 and columns for each sample in the experiment.
 The raw read count is used for this matrix; 
-if the \Rcode{bSubControl} parameter is set to \Rcode{TRUE} (as it is by default), 
+if the \Rcode{bSubControl} parameter is set to \Rcode{TRUE}, 
 the raw number of reads in the control sample (if available) will be subtracted.
-And read counts that are less than zero are set to zero.
+And read counts that are less than \Rcode{minCount} are set to \Rcode{minCount} 
+(default is zero).
 If a non-zero \Rcode{filter} is supplied, the \Rcode{filterFun} is run
 across the rows (consensus peaks), and any peak interval for which the result
 of the function is less than the specified \Rcode{filter} is removed.
@@ -2849,22 +2896,23 @@ The default \Rcode{filterFun} is \Rfunction{max}, resulting in
 any peak interval without at least one sample having at least \Rcode{filter}
 counts being removed from the subsequent analysis.
 
-Next the library size is computed for each sample for use in subsequent normalization. 
-By default, this is the total number of reads in the library (calculated from the source BAM//BED file).
-Alternatively, if the \Rcode{bFullLibrarySize} parameter is set to \Rcode{FALSE},
-the total number of reads in peaks (the sum of each column) is used. 
-Note that "effective" library size (\Rcode{bFullLibrarySize=FALSE}) may be more appropriate 
-for situations when the overall signal (binding rate) is expected to be directly comparable between the samples.
-Next comes a call to \Rfunction{edgeR::DGEList}, with the count matrix, 
-all possible group factors derived from the experimental metadata, 
-and calculated library sizes as parameters.
-The \Rclass{DGEList} object that results is next passed to \Rcode{calcNormFactors}
-with \Rcode{method="TMM"} and \Rcode{doWeighting=FALSE}, 
-returning an updated \Rcode{DGEList} object.
+Next an \edgeR \Rcode{DGEList} is created by calling
+\Rcode{edgeR::DGEList} with the count matrix, the pre-computed library
+sizes and normalization factors (from \Rcode{dba.normalize)}),
+and meta-data derived from the \Rcode{DBA} object.
+If these were based on the \Rcode{TMM} or \Rcode{RLE} methods,
+then the result of a previous call to \Rcode{edgeR::calcNormFactors} 
+(with \Rcode{doWeighting=FALSE})
+is used as the normalization factors.
 
-Before having \Rpackage{edgeR} estimate dispersion, a design matrix is created from the 
-specified design formula.
-This is passed to \Rfunction{edgeR::estimateGLMTrendedDisp} along with the \Rcode{DGEList}.
+If the normalization involves \Rcode{offsets}, the offsets
+are retrieved.
+If the \Rcode{DBA\_NORM\_OFFSETs\_ADJUST} is set, the offsets
+\Rcode{edgeR::scaleOffset} function before being set as
+the offsets in the \Rcode{DGEList}.
+
+Next \Rfunction{edgeR::estimateGLMTrendedDisp} is called with the 
+\Rcode{DGEList} and a design matrix derived form the design formula.
 By default, \Rfunction{edgeR::estimateGLMTagwiseDisp} is called next;
 this can be bypassed by setting 
 \Rcode{DBA\$config\$edgeR\$bTagwise=FALSE}.\footnote{In versions prior to 3.0,
@@ -2876,10 +2924,11 @@ by calling \Rfunction{dba.analyze()} with \Rcode{bRetrieveAnalysis=DBA\_EDGER}.
 
 Each specified contrast is evaluated in two steps.
 First the main test is performed by a call to 
-First is a call to\Rcode{edgeR::glmQLFTest} with the fitted model and the values for each
-coefficient in the design matrix.
+First is a call to\Rcode{edgeR::glmQLFTest} with the fitted model 
+and the values for each coefficient in the design matrix.
 If the contrast was specified to \Rfunction{dba.contrast()} 
-using values for each of the coefficients in the design matrix, those values are used.
+using values for each of the coefficients in the design matrix, 
+those values are used.
 Otherwise, if the contrast was specified using a single character string
 containing a) the name of a specific column coefficient;
 b) a vector of three character strings representing a design \Rcode{Factor}, 

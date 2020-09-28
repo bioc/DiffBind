@@ -1,6 +1,6 @@
 Package: DiffBind
 Type: Package
-Version: 2.99.15
+Version: 2.99.16
 Title: Differential Binding Analysis of ChIP-Seq Peak Data
 Authors@R: c(person("Rory","Stark", email="rory.stark@cruk.cam.ac.uk",
                   role = c("aut", "cre")),
@@ -17,7 +17,7 @@ Imports: RColorBrewer, amap, gplots, grDevices, limma,
          systemPipeR, tools, Rcpp, dplyr, ggplot2, BiocParallel, parallel,
          S4Vectors, Rsamtools (>= 2.0), DESeq2, methods, graphics, ggrepel, 
          apeglm, ashr, GreyListChIP
-Suggests: BiocStyle, testthat
+Suggests: BiocStyle, testthat, xtable
 Enhances: rgl, XLConnect, edgeR, csaw, BSgenome, GenomeInfoDb
 LinkingTo: Rhtslib (>= 1.15.3), Rcpp
 SystemRequirements: GNU make

@@ -72,8 +72,6 @@ a number of defaults need to be changed.
 
 When calling \code{\link{dba.count}}, the following defaults are changed:
 \itemize{
-  \item{\code{score}:} {The previous default for this parameter was 
-                \code{DBA_SCORE_TMM_MINUS_FULL}.}
   \item{\code{summits}:} {This parameter is now set by default. Setting 
                   \code{summits=FALSE} will preempt re-centering each 
                   peak interval around its point of highest pileup.}  
@@ -82,6 +80,8 @@ When calling \code{\link{dba.count}}, the following defaults are changed:
   \item{\code{minCount}:} {This is a new parameter representing a minimum read count value.
                    It now default to \code{0}; 
                    to get the previous behavior, set \code{minCount=1}. }
+  \item{\code{score}:} {The previous default for this parameter was 
+                   \code{DBA_SCORE_TMM_MINUS_FULL}.}
   
 }
 
