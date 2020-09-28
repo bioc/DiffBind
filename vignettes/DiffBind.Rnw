@@ -2237,7 +2237,7 @@ available for "free" in the case of certain histone mark ChIPs,
 this is probably preferable to spike-ins, given the
 difficulties in initial spike-in quantification.
 
-Only in certain cases where indicated byprior knowledge is the use of the
+Only in certain cases where indicated by prior knowledge is the use of the
 main count matrix, based on consensus peaks, appropriate.
 
 \section{Example: Occupancy analysis and overlaps}
@@ -2823,7 +2823,7 @@ counts being removed from the subsequent analysis.
 
 A \Rcode{DESeqDataSet} object is then created using 
 \Rcode{DESeq2::DESeqDataSetFromMatrix} with the count matrix, 
-metadata from the \Rcode{DBA} objet, and the design formula.
+metadata from the \Rcode{DBA} object, and the design formula.
 
 Next the normalization parameters are set for the analysis.
 If the normalization involves \Rcode{offsets},
