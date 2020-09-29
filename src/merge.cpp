@@ -66,7 +66,7 @@ Rcpp::DataFrame mergePeaks(Rcpp::DataFrame data,int maxGap) {
 }
 
 // [[Rcpp::export]]
-Rcpp::List mergeScores(Rcpp::DataFrame sMerged,Rcpp::NumericVector sScore, Rcpp::DataFrame sPeaks) {
+Rcpp::List mergeScores(Rcpp::DataFrame sMerged,Rcpp::NumericVector sScore, Rcpp::DataFrame sPeaks, Rcpp::Nullable<Rcpp::LogicalVector> abs = R_NilValue) {
   PeakSet merged;
   PeakSet peaks;
   merged.chr = sMerged[0];
@@ -81,6 +81,11 @@ Rcpp::List mergeScores(Rcpp::DataFrame sMerged,Rcpp::NumericVector sScore, Rcpp:
   Rcpp::NumericVector score(vLen);
   Rcpp::NumericVector included(vLen);
   int pi = 0;
+  bool abso = false;
+  if (abs.isNotNull()) {
+    Rcpp::LogicalVector absolute(abs);
+    abso = absolute[0];
+  }
 
   for (int mi=0;mi<vLen;mi++) {
     while (pi < peakLen &&
@@ -88,7 +93,11 @@ Rcpp::List mergeScores(Rcpp::DataFrame sMerged,Rcpp::NumericVector sScore, Rcpp:
            merged.left[mi] <= peaks.left[pi] &&
            merged.right[mi] >= peaks.right[pi]) {
       // peak is contained in region
-      score[mi] = std::max(sScore[mi],std::max(score[mi],peaks.score[pi]));
+      if (abso) {
+        score[mi] = std::max(std::abs(sScore[mi]),std::max(std::abs(score[mi]),std::abs(peaks.score[pi])));
+      } else {
+        score[mi] = std::max(sScore[mi],std::max(score[mi],peaks.score[pi]));
+      }
       included[mi] = 1;
       pi++;
     }

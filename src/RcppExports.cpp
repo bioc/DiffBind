@@ -18,15 +18,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // mergeScores
-Rcpp::List mergeScores(Rcpp::DataFrame sMerged, Rcpp::NumericVector sScore, Rcpp::DataFrame sPeaks);
-RcppExport SEXP _DiffBind_mergeScores(SEXP sMergedSEXP, SEXP sScoreSEXP, SEXP sPeaksSEXP) {
+Rcpp::List mergeScores(Rcpp::DataFrame sMerged, Rcpp::NumericVector sScore, Rcpp::DataFrame sPeaks, Rcpp::Nullable<Rcpp::LogicalVector> abs);
+RcppExport SEXP _DiffBind_mergeScores(SEXP sMergedSEXP, SEXP sScoreSEXP, SEXP sPeaksSEXP, SEXP absSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::DataFrame >::type sMerged(sMergedSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type sScore(sScoreSEXP);
     Rcpp::traits::input_parameter< Rcpp::DataFrame >::type sPeaks(sPeaksSEXP);
-    rcpp_result_gen = Rcpp::wrap(mergeScores(sMerged, sScore, sPeaks));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::LogicalVector> >::type abs(absSEXP);
+    rcpp_result_gen = Rcpp::wrap(mergeScores(sMerged, sScore, sPeaks, abs));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -48,7 +49,7 @@ RcppExport SEXP croi_count_reads(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
 
 static const R_CallMethodDef CallEntries[] = {
     {"_DiffBind_mergePeaks", (DL_FUNC) &_DiffBind_mergePeaks, 2},
-    {"_DiffBind_mergeScores", (DL_FUNC) &_DiffBind_mergeScores, 3},
+    {"_DiffBind_mergeScores", (DL_FUNC) &_DiffBind_mergeScores, 4},
     {"_DiffBind_peakOrder", (DL_FUNC) &_DiffBind_peakOrder, 3},
     {"croi_count_reads", (DL_FUNC) &croi_count_reads, 14},
     {NULL, NULL, 0}

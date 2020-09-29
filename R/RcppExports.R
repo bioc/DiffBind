@@ -5,8 +5,8 @@ mergePeaks <- function(data, maxGap) {
     .Call('_DiffBind_mergePeaks', PACKAGE = 'DiffBind', data, maxGap)
 }
 
-mergeScores <- function(sMerged, sScore, sPeaks) {
-    .Call('_DiffBind_mergeScores', PACKAGE = 'DiffBind', sMerged, sScore, sPeaks)
+mergeScores <- function(sMerged, sScore, sPeaks, abs = NULL) {
+    .Call('_DiffBind_mergeScores', PACKAGE = 'DiffBind', sMerged, sScore, sPeaks, abs)
 }
 
 peakOrder <- function(schrom, sleft, sright) {
