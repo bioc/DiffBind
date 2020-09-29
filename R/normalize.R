@@ -180,7 +180,7 @@ pv.normalize <- function(pv,
   }
   
   
-  if(length(libSizes) == ncol(pv$samples)) {
+  if(length(libSizes) == ncol(pv$class)) {
     norm$lib.calc  <- "User supplied"
     norm$lib.sizes <- libSizes
     norm$lib.method <- PV_LIBSIZE_USER
@@ -216,7 +216,7 @@ pv.normalize <- function(pv,
     return(pv)
   }
   
-  if(length(normalize) == ncol(pv$samples)) {
+  if(length(normalize) == ncol(pv$class)) {
     norm$norm.calc <- "User supplied"
     norm$norm.facs <- normalize
     norm$norm.method <- PV_NORM_USER
