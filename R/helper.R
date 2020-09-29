@@ -433,7 +433,7 @@ pv.peaksort <- function(peaks,chrmap) {
       return(peaks)
    }
    
-   o <- peakOrder(peaks[,1],peaks[,2],peaks[,3])
+   o <- peakOrder(peaks[,1],as.integer(peaks[,2]),as.integer(peaks[,3]))
    peaks <- peaks[o,]
    if(chrs) {
       peaks[,1] <- chrmap[peaks[,1]]
@@ -1268,7 +1268,7 @@ pv.Signal2Noise <- function(pv) {
 }
 
 
-pv.peaksetCounts <- function(pv=NULL,peaks,counts,
+pv.peaksetCounts <- function(pv=NULL,peaks=NULL,counts,
                              sampID="",tissue="",factor="",condition="",treatment="",replicate) {
    
    
@@ -1325,7 +1325,11 @@ pv.peaksetCounts <- function(pv=NULL,peaks,counts,
    if(is.null(froms)) {
       froms <- tos <- 1:numcounts	
    }
-   peaks <- data.frame(cbind(IDs,froms,tos))
+   if(is.null(peaks)) {
+      peaks <- data.frame(cbind(IDs,froms,tos))
+   } else {
+      peaks <- data.frame(peaks[,1:3])
+   }
    
    peaks <- cbind(peaks,counts,counts,rep(0,numcounts),counts,rep(0,numcounts),rep(0,numcounts))
    colnames(peaks) <- c("Chr","Start","End", "Score", "Score","RPKM", "Reads","cRPKM","cReads")
