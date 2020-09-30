@@ -35,6 +35,10 @@ pv.normalize <- function(pv,
     return(res)
   }
   
+  if(is.null(pv$score)) {
+    pv$score <- DBA_SCORE_NORMALIZED
+  }
+  
   dospikein <- TRUE
   if(is(spikein,"logical")) {
     if(spikein[1] == FALSE) {
@@ -593,14 +597,44 @@ pv.reNormalize <- function(pv) {
       warning("Re-run dba.normalize() to add user-supplied offsets.",
               call.=FALSE)
       pv$norm$offsets$offsets <- NULL
-    }
+    } 
   }
   
   if(!is.null(pv$norm$DESeq2) || !is.null(pv$norm$edgeR)) {
     message("Re-normalizing...")
     pv$norm$DESeq2 <- pv.doRenormalize(pv,DBA_DESEQ2)$norm$DESeq2
     pv$norm$edgeR  <- pv.doRenormalize(pv,DBA_EDGER)$norm$edgeR
+    
+    if(pv$score == DBA_SCORE_NORMALIZED) {
+      pv <- pv.doResetScore(pv)
+    }
   }
+  
+  return(pv)
+}
+
+pv.doResetScore <- function(pv) {
+  
+  #message("Resetting scores...")
+  if(is.null(pv$maxFilter)) {
+    filt <- 0
+    filtFun <- max 
+  } else {
+    filt <- pv$maxFilter
+    filtFun <- max 
+  }
+  
+  # if(!is.null(pv$norm$DESeq2)) {
+  #   filt <- pv$norm$DESeq2$filter.val
+  #   filtfun <- pv$norm$DESeq2$filter.fun
+  # } else if(!is.null(pv$norm$edgeR)) {
+  #   filt <- pv$norm$edgeR$filter.val
+  #   filtfun <- pv$norm$edgeR$filter.fun
+  # }
+  
+  pv$score <- NULL
+  pv <- pv.setScore(pv,score=DBA_SCORE_NORMALIZED,bLog=FALSE,
+                    minMaxval=filt, filterFun=filtFun)
   
   return(pv)
 }

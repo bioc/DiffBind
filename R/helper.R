@@ -258,6 +258,26 @@ pv.setScore <- function(pv,score,bLog=FALSE,minMaxval,rescore=TRUE,filterFun=max
                pv$peaks[[i]]$Score <- pv$binding[,colnum]
             }
             
+         } else if(score == PV_SCORE_NORMALIZED) {
+            
+            if(missing(minMaxval)) {
+               if(!is.null(pv$maxFilter)) {
+                  minMaxval <- pv$maxFilter
+               } else {
+                  minMaxval <- 5
+               }
+            }
+            
+            pv$binding[,4:ncol(pv$binding)] <- 
+               pv.countsMA(pv, method=DBA_DESEQ2, contrast=NULL, 
+                           bNormalized=TRUE, bCountsOnly=TRUE,
+                           filter=minMaxval,filterFun=filterFun)
+            
+            for(i in 1:length(pv$peaks)) {
+               colnum <- 3+i
+               pv$peaks[[i]]$Score <- pv$binding[,colnum]
+            }
+            
          } else {
             
             for(i in 1:length(pv$peaks)) {
@@ -977,7 +997,7 @@ pv.merge <- function(allpeaks,peaks=NULL,classes,maxgap=-1,
          if(is.unsorted(unique(peakset[,1]))) {
             peakset <- pv.peaksort(peakset)
          }
-         res <- mergeScores(merged,def,peakset)
+         res <- mergeScores(merged,def,peakset,TRUE)
          result[,i+3] <- res$score
          included[,i] <- res$included
       }

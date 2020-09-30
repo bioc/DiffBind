@@ -35,12 +35,13 @@ PV_SCORE_READS_MINUS_EFFECTIVE    <- 17
 PV_SCORE_SUMMIT                   <- 101
 PV_SCORE_SUMMIT_ADJ               <- 102
 PV_SCORE_SUMMIT_POS               <- 103
+PV_SCORE_NORMALIZED               <- 104
 
 PV_READS_DEFAULT   <- 0
 PV_READS_BAM       <- 3
 PV_READS_BED       <- 1
 
-pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog=TRUE,insertLength=0,
+pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,bLog=TRUE,insertLength=0,
                       bOnlyCounts=TRUE,bCalledMasks=TRUE,minMaxval,filterFun=max,
                       bParallel=FALSE,bUseLast=FALSE,bWithoutDupes=FALSE, bScaleControl=FALSE, bSignal2Noise=TRUE,
                       bLowMem=FALSE, readFormat=PV_READS_DEFAULT, summits, minMappingQuality=0,
@@ -346,6 +347,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
       res <- pv.Recenter(pv,summits,(numpeaks-numAdded+1):numpeaks,called)
       if(redoScore>0) {
         defaultScore <- redoScore
+        redoScore <- 0
       }
       res <- pv.counts(res,peaks=res$merged,defaultScore=defaultScore,bLog=bLog,insertLength=insertLength,
                        bOnlyCounts=TRUE,bCalledMasks=TRUE,minMaxval=minMaxval,filterFun=filterFun,
@@ -372,9 +374,6 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
       if(bRecentered) {
         called <- pv$called
       } 
-      if(redoScore > 0) {
-        res <- pv.setScore(res,redoScore,bSignal2Noise=bSignal2Noise)
-      }
     }   
     if(!missing(minMaxval)) {
       data <- pv.check1(res$binding[,4:ncol(res$binding)])
@@ -393,13 +392,20 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_RPKM_FOLD,bLog
           stop('No sites have activity greater than minMaxval',call.=FALSE)
         }
       }
+    } else {
+      minMaxval <- 5
+    }
+    if(redoScore > 0) {
+      res <- pv.setScore(res,redoScore,minMaxval=minMaxval,filterFun=filterFun,
+                         bSignal2Noise=bSignal2Noise)
     }
     if(is.null(res$called)) {
       res$called <- called
     }
   } else {
     if(redoScore > 0) {
-      res <- pv.setScore(res,redoScore,minMaxval=minMaxval,filterFun=filterFun,bSignal2Noise=bSignal2Noise)	
+      res <- pv.setScore(res,redoScore,minMaxval=minMaxval,filterFun=filterFun,
+                         bSignal2Noise=bSignal2Noise)	
     } 
     res <- pv.vectors(pv,bAllSame=pv.allSame(pv))   
   }

@@ -80,9 +80,6 @@ When calling \code{\link{dba.count}}, the following defaults are changed:
   \item{\code{minCount}:} {This is a new parameter representing a minimum read count value.
                    It now default to \code{0}; 
                    to get the previous behavior, set \code{minCount=1}. }
-  \item{\code{score}:} {The previous default for this parameter was 
-                   \code{DBA_SCORE_TMM_MINUS_FULL}.}
-  
 }
 
 The easiest way to perform subsequent processing in a pre-version 3.0 

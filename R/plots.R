@@ -220,7 +220,17 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
   }      	
 }	
 
-pv.countsMA <- function(pv, method, contrast, bNormalized=FALSE) {
+pv.countsMA <- function(pv, method, contrast, 
+                        bNormalized=FALSE, bCountsOnly=FALSE,
+                        filter=NULL, filterFun=max) {
+  
+  #message("pv.countsMA")
+  if(is.null(contrast)) {
+   contrast<-NULL
+   contrast$group1 <- rep(FALSE,ncol(pv$class))
+   contrast$group1[1] <- TRUE
+   contrast$group2 <- !contrast$group1
+  }
   
   if(bNormalized) {
     
@@ -229,18 +239,32 @@ pv.countsMA <- function(pv, method, contrast, bNormalized=FALSE) {
       pv$design <- "~1"
     }
     
+    savescore <- pv$score
+    pv$score <- DBA_SCORE_READS
+    
+    nofilter <- FALSE
+    if(is.null(filter)) {
+      filter <- pv$maxFilter
+      nofilter <- TRUE
+    }
+    
     if(method == DBA_DESEQ2) {
       
       if(is.null(pv$norm$DESeq2)) {
-        pv <- dba.normalize(pv, method=DBA_DESEQ2, background=FALSE)
+        pv <- dba.normalize(pv, method=DBA_DESEQ2, background=FALSE,
+                            filter=filter, filterFun=filterFun)
       }
       
       if(is.null(pv$DESeq2$DEdata)) {
-        dedata <- pv.DEinitDESeq2(pv,
-                                  bSubControl=pv$norm$DESeq2$bSubControl,
+        
+        if(nofilter)  {
+          filter <- pv$norm$DESeq2$filter.val
+          filterFun <- pv$norm$DESeq2$filter.fun
+        }
+          
+        dedata <- pv.DEinitDESeq2(pv,bSubControl=pv$norm$DESeq2$bSubControl,
                                   bFullLibrarySize=pv$norm$DESeq2$lib.sizes,
-                                  filter=pv$norm$DESeq2$filter.val,
-                                  filterFun=pv$norm$DESeq2$filter.fun) 
+                                  filter=filter,filterFun=filterFun) 
       } else {
         dedata <- pv$DESeq2$DEdata
       }
@@ -249,14 +273,18 @@ pv.countsMA <- function(pv, method, contrast, bNormalized=FALSE) {
     } else if(method == DBA_EDGER) {
       
       if(is.null(pv$norm$edgeR)) {
-        pv <- dba.normalize(pv, method=DBA_EDGER, background=FALSE)
+        pv <- dba.normalize(pv, method=DBA_EDGER, background=FALSE,
+                            filter=filter, filterFun=filterFun)
+      }
+      
+      if(nofilter)  {
+        filter <- pv$norm$edgeR$filter.val
+        filterFun <- pv$norm$edgeR$filter.fun
       }
       
       if(is.null(pv$edgeR$DEdata)) {
-        dedata <- pv.DEinitedgeR(pv,
-                                 bSubControl=pv$norm$edgeR$bSubControl,
-                                 filter=pv$norm$edgeR$filter.val,
-                                 filterFun=pv$norm$edgeR$filter.fun)
+        dedata <- pv.DEinitedgeR(pv,bSubControl=pv$norm$edgeR$bSubControl,
+                                 filter=filter, filterFun=filterFun)
       } else {
         dedata <-pv$norm$edgeR 
       }
@@ -264,8 +292,13 @@ pv.countsMA <- function(pv, method, contrast, bNormalized=FALSE) {
     }
     counts <- cbind(counts[,contrast$group1], counts[,contrast$group2])
     pv$design <- design
+    pv$score <- savescore
   } else {
     counts <- pv.DEinit(pv,contrast$group1, contrast$group2, bRawCounts=TRUE)
+  }
+  
+  if(bCountsOnly) {
+    return(counts)
   }
   
   num1 <- sum(contrast$group1)

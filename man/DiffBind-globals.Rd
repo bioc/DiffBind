@@ -28,6 +28,7 @@
 \alias{DBA_SCORE_READS_MINUS_EFFECTIVE}
 \alias{DBA_SCORE_READS_FOLD}
 \alias{DBA_SCORE_RPKM}
+\alias{DBA_SCORE_NORMALIZED}
 \alias{DBA_SCORE_RPKM_FOLD}
 \alias{DBA_SCORE_TMM_READS_FULL}
 \alias{DBA_SCORE_TMM_READS_EFFECTIVE}
@@ -120,6 +121,7 @@ DBA_OLAP
 DBA_INALL
 
 DBA_SCORE_READS
+DBA_SCORE_NORMALIZED
 DBA_SCORE_CONTROL_READS
 DBA_SCORE_READS_MINUS
 DBA_SCORE_READS_FULL
@@ -283,6 +285,10 @@ dba.count score is normalized ChIP read counts, using Effective Library size
 }
 \item{DBA_SCORE_READS_MINUS_EFFECTIVE}{
 dba.count score is normalized ChIP read counts minus Control read counts, using Effective Library size
+}
+
+\item{DBA_SCORE_NORMALIZED}{
+dba.count score is normalized reads
 }
 
 \item{DBA_SCORE_RPKM}{

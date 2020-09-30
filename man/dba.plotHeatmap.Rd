@@ -91,20 +91,21 @@ Used in conjunction with \code{contrast}.
 \item{score}{
 Score to use for count data. Only used when plotting the global binding matrix (no contrast specified). One of:
 \itemize{
+\item \code{\link{DBA_SCORE_NORMALIZED}}
 \item \code{\link{DBA_SCORE_READS}}
 \item \code{\link{DBA_SCORE_CONTROL_READS}}
 \item \code{\link{DBA_SCORE_READS_MINUS}}
-\item \code{\link{DBA_SCORE_READS_FULL}}
-\item \code{\link{DBA_SCORE_READS_EFFECTIVE}}
-\item \code{\link{DBA_SCORE_READS_MINUS_FULL}}
-\item \code{\link{DBA_SCORE_READS_MINUS_EFFECTIVE}}
+%\item \code{\link{DBA_SCORE_READS_FULL}}
+%\item \code{\link{DBA_SCORE_READS_EFFECTIVE}}
+%\item \code{\link{DBA_SCORE_READS_MINUS_FULL}}
+%\item \code{\link{DBA_SCORE_READS_MINUS_EFFECTIVE}}
 \item \code{\link{DBA_SCORE_READS_FOLD}}
 \item \code{\link{DBA_SCORE_RPKM}}
 \item \code{\link{DBA_SCORE_RPKM_FOLD}}
-\item \code{\link{DBA_SCORE_TMM_READS_FULL}}
-\item \code{\link{DBA_SCORE_TMM_READS_EFFECTIVE}}
-\item \code{\link{DBA_SCORE_TMM_MINUS_FULL}}
-\item \code{\link{DBA_SCORE_TMM_MINUS_EFFECTIVE}}
+%\item \code{\link{DBA_SCORE_TMM_READS_FULL}}
+%\item \code{\link{DBA_SCORE_TMM_READS_EFFECTIVE}}
+%\item \code{\link{DBA_SCORE_TMM_MINUS_FULL}}
+%\item \code{\link{DBA_SCORE_TMM_MINUS_EFFECTIVE}}
 }
 }
 \item{bLog}{

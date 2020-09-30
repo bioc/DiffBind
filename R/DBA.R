@@ -459,6 +459,7 @@ dba.blacklist <- function(DBA, blacklist=DBA$config$doBlacklist,
 ## dba.count -- count reads in binding sites ##
 ###############################################   
 
+DBA_SCORE_NORMALIZED          <- PV_SCORE_NORMALIZED
 DBA_SCORE_RPKM                <- PV_SCORE_RPKM
 DBA_SCORE_RPKM_FOLD           <- PV_SCORE_RPKM_FOLD
 DBA_SCORE_READS               <- PV_SCORE_READS
@@ -485,7 +486,7 @@ DBA_READS_DEFAULT <- PV_READS_DEFAULT
 DBA_READS_BAM     <- PV_READS_BAM
 DBA_READS_BED     <- PV_READS_BED
 
-dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL,
+dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
                       fragmentSize=DBA$config$fragmentSize, summits=200, filter=5, 
                       bRemoveDuplicates=FALSE, bScaleControl=TRUE,
                       mapQCth=DBA$config$mapQCth, filterFun=max, minCount=0, 
@@ -709,6 +710,12 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
                       libFun=libFun,
                       background=background, spikein=spikein, offsets=offsets, 
                       bRetrieve=bRetrieve, ...)
+  
+  if(bRetrieve == FALSE) {
+    if(res$score == DBA_SCORE_NORMALIZED) {
+      res <- pv.doResetScore(res)
+    }
+  }
   
   return(res)
 }

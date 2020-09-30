@@ -10,7 +10,7 @@ bed and gzip-compressed bed.  File suffixes must be ".bam", ".bed", or ".bed.gz"
 respectively.
 }
 \usage{
-dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_READS_MINUS_FULL,
+dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
           fragmentSize=DBA$config$fragmentSize, 
           summits=200, filter=5, bRemoveDuplicates=FALSE, bScaleControl=TRUE,
           mapQCth=DBA$config$mapQCth, filterFun=max, minCount=0, 
@@ -36,24 +36,25 @@ only include peaks in at least this many peaksets when generating consensus peak
 \item{score}{
 which score to use in the binding affinity matrix. Note that all raw read counts are maintained for use by \code{\link{dba.analyze}}, regardless of how this is set. One of:
 \tabular{ll}{
+DBA_SCORE_NORMALIZED \tab normalized reads, as set by \code{\link{dba.normalize}}\cr
 DBA_SCORE_READS \tab raw read count for interval using only reads from ChIP\cr
 DBA_SCORE_CONTROL_READS \tab raw read count for interval using only reads from Control\cr
 DBA_SCORE_READS_FOLD \tab raw read count for interval from ChIP divided by read count for interval from control\cr
 DBA_SCORE_READS_MINUS \tab raw read count for interval from ChIP minus read count for interval from control\cr
-DBA_SCORE_READS_FULL \tab read count for interval from ChIP normalized based on Full Library size\cr
-DBA_SCORE_READS_MINUS_FULL \tab read count for interval from ChIP minus read count for interval from control normalized based on Full Library size\cr
-DBA_SCORE_READS_EFFECTIVE \tab read count for interval from ChIP normalized based on Effective Library size\cr
-DBA_SCORE_READS_MINUS_EFFECTIVE \tab read count for interval from ChIP minus read count for interval from control normalized based on Effective Library size\cr
+%DBA_SCORE_READS_FULL \tab read count for interval from ChIP normalized based on Full Library size\cr
+%DBA_SCORE_READS_MINUS_FULL \tab read count for interval from ChIP minus read count for interval from control normalized based on Full Library size\cr
+%DBA_SCORE_READS_EFFECTIVE \tab read count for interval from ChIP normalized based on Effective Library size\cr
+%DBA_SCORE_READS_MINUS_EFFECTIVE \tab read count for interval from ChIP minus read count for interval from control normalized based on Effective Library size\cr
 DBA_SCORE_RPKM \tab RPKM for interval using only reads from ChIP\cr
 DBA_SCORE_RPKM_FOLD \tab RPKM for interval from ChIP divided by RPKM for interval from control\cr
-DBA_SCORE_TMM_READS_FULL \tab TMM normalized (using edgeR), using ChIP read counts and Full Library size\cr
-DBA_SCORE_TMM_READS_EFFECTIVE \tab TMM normalized (using edgeR), using ChIP read counts and Effective Library size\cr
-DBA_SCORE_TMM_MINUS_FULL \tab TMM normalized (using edgeR), using ChIP read counts minus Control read counts and Full Library size\cr
-DBA_SCORE_TMM_MINUS_EFFECTIVE \tab TMM normalized (using edgeR), using ChIP read counts minus Control read counts and Effective Library size\cr
-DBA_SCORE_TMM_READS_FULL_CPM \tab same as \code{DBA_SCORE_TMM_READS_FULL}, but reported in counts-per-million.\cr
-DBA_SCORE_TMM_READS_EFFECTIVE_CPM \tab same as \code{DBA_SCORE_TMM_READS_EFFECTIVE}, but reported in counts-per-million.\cr
-DBA_SCORE_TMM_MINUS_FULL_CPM \tab same as \code{DBA_SCORE_TMM_MINUS_FULL}, but reported in counts-per-million.\cr
-DBA_SCORE_TMM_MINUS_EFFECTIVE_CPM \tab same as \code{DBA_SCORE_TMM_MINUS_EFFECTIVE}, but reported in counts-per-million.\cr
+%DBA_SCORE_TMM_READS_FULL \tab TMM normalized (using edgeR), using ChIP read counts and Full Library size\cr
+%DBA_SCORE_TMM_READS_EFFECTIVE \tab TMM normalized (using edgeR), using ChIP read counts and Effective Library size\cr
+%DBA_SCORE_TMM_MINUS_FULL \tab TMM normalized (using edgeR), using ChIP read counts minus Control read counts and Full Library size\cr
+%DBA_SCORE_TMM_MINUS_EFFECTIVE \tab TMM normalized (using edgeR), using ChIP read counts minus Control read counts and Effective Library size\cr
+%DBA_SCORE_TMM_READS_FULL_CPM \tab same as \code{DBA_SCORE_TMM_READS_FULL}, but reported in counts-per-million.\cr
+%DBA_SCORE_TMM_READS_EFFECTIVE_CPM \tab same as \code{DBA_SCORE_TMM_READS_EFFECTIVE}, but reported in counts-per-million.\cr
+%DBA_SCORE_TMM_MINUS_FULL_CPM \tab same as \code{DBA_SCORE_TMM_MINUS_FULL}, but reported in counts-per-million.\cr
+%DBA_SCORE_TMM_MINUS_EFFECTIVE_CPM \tab same as \code{DBA_SCORE_TMM_MINUS_EFFECTIVE}, but reported in counts-per-million.\cr
 DBA_SCORE_SUMMIT \tab summit height (maximum read pileup value)\cr
 DBA_SCORE_SUMMIT_ADJ \tab summit height (maximum read pileup value), normalized to relative library size\cr
 DBA_SCORE_SUMMIT_POS \tab summit position (location of maximum read pileup)\cr
@@ -208,11 +209,10 @@ tamoxifen
 
 # Change binding affinity scores
 data(tamoxifen_counts)
+dba.peakset(tamoxifen, bRetrieve=TRUE) # default: DBA_SCORE_NORMALIZED
 tamoxifen <- dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_READS)
 dba.peakset(tamoxifen, bRetrieve=TRUE)
 tamoxifen <- dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_RPKM_FOLD)
-dba.peakset(tamoxifen, bRetrieve=TRUE)
-tamoxifen <- dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_TMM_MINUS_FULL)
 dba.peakset(tamoxifen, bRetrieve=TRUE)
 
 # Plot effect of a range of filter values and then apply filter 

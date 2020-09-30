@@ -109,8 +109,10 @@ Any non-default normalization options must be specified using dba.normalize().
           \item{DBA_SCORE_READS_MINUS_FULL}
           \item{DBA_SCORE_READS_MINUS_EFFECTIVE}
          }   
-       \item{Changed default dba.count() score to DBA_SCORE_READS_MINUS_FULL (from DBA_SCORE_TMM_MINUS_FULL)}
-       \item{change default to summits=250; to avoid recentering around summits, must set summits=FALSE}
+       \item{Changed default dba.count() score to DBA_SCORE_READS_MINUS_FULL 
+       (from DBA_SCORE_TMM_MINUS_FULL)}
+       \item{change default to summits=250; to avoid recentering around summits, 
+       must set summits=FALSE}
       }
       \item{dba.show() changes:}
        \itemize{
