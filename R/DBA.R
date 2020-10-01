@@ -652,8 +652,7 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
                           library     = DBA_LIBSIZE_DEFAULT, 
                           background=FALSE, spikein=FALSE, offsets=FALSE, 
                           bSubControl = is.null(DBA$greylist),
-                          filter=5, filterFun=max, libFun=mean,
-                          bRetrieve=FALSE, ...) {
+                          libFun=mean, bRetrieve=FALSE, ...) {
   
   DBA <- pv.check(DBA,TRUE)
   
@@ -673,7 +672,6 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
     deflib  <- DBA_LIBSIZE_FULL
     defnorm <- DBA_NORM_DEFAULT
     defback <- FALSE   
-    filtval <- 0
   } else {
     # defaults are 3.0+    
     deflib  <-  DBA_LIBSIZE_BACKGROUND
@@ -684,7 +682,6 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
     } 
     defnorm <- DBA_NORM_LIB
     defback <- FALSE    
-    filtval <- 5
   }
   
   if(length(library)==1 && library[1]==DBA_LIBSIZE_DEFAULT) {
@@ -699,17 +696,12 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
     background <- defback
   }
   
-  if(missing(filter)) {
-    filter <- filtval
-  }
-  
   res <- pv.normalize(DBA, method=method, 
                       libSizes=library, normalize=normalize,
                       bSubControl=bSubControl,
-                      filter=filter, filterFun=filterFun,
                       libFun=libFun,
                       background=background, spikein=spikein, offsets=offsets, 
-                      bRetrieve=bRetrieve, ...)
+                      bRetrieve=bRetrieve, filter=0, ...)
   
   if(bRetrieve == FALSE) {
     if(res$score == DBA_SCORE_NORMALIZED) {

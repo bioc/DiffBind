@@ -41,10 +41,14 @@ PV_READS_DEFAULT   <- 0
 PV_READS_BAM       <- 3
 PV_READS_BED       <- 1
 
-pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,bLog=TRUE,insertLength=0,
-                      bOnlyCounts=TRUE,bCalledMasks=TRUE,minMaxval,filterFun=max,
-                      bParallel=FALSE,bUseLast=FALSE,bWithoutDupes=FALSE, bScaleControl=FALSE, bSignal2Noise=TRUE,
-                      bLowMem=FALSE, readFormat=PV_READS_DEFAULT, summits, minMappingQuality=0,
+pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
+                      bLog=TRUE,insertLength=0,
+                      bOnlyCounts=TRUE,bCalledMasks=TRUE,
+                      minMaxval,filterFun=max,
+                      bParallel=FALSE,bUseLast=FALSE,bWithoutDupes=FALSE, 
+                      bScaleControl=FALSE, bSignal2Noise=TRUE,
+                      bLowMem=FALSE, readFormat=PV_READS_DEFAULT, 
+                      summits, minMappingQuality=0,
                       maxGap=-1, bRecentered=FALSE, minCount=0) {
   
   pv <- pv.check(pv)
@@ -711,4 +715,322 @@ pv.get_reads <- function(pv,peaksets,bSubControl=TRUE,numReads){
   return(reads)
 }
 
+pv.setScore <- function(pv,score,bLog=FALSE,minMaxval=0,rescore=FALSE,
+                        filterFun=max,bSignal2Noise=TRUE) {
+  
+  doscore <- TRUE
+  
+  if(rescore == TRUE) {
+    if(!is.null(pv$score)) {
+      if(pv$score == score) {
+        if(!is.null(pv$maxFilter)) {
+          if(pv$maxFilter == minMaxval) {
+            return(pv)	
+          }	
+        } 
+        doscore <- FALSE
+      }	
+    }
+  }
+  
+  if(doscore) {
+    
+    pv <- pv.doSetScore(pv, score)
+    
+    if(minMaxval > 0) {
+      pv <- pv.doFilter(pv, minMaxval, filterFun, bSignal2Noise)
+      pv$score <- NULL
+      pv <- pv.doSetScore(pv, score)
+    }
+    
+  }
+  
+  pv$score <- score
+  pv$maxFilter <- minMaxval
+  
+  return(pv)
+  
+}
+
+pv.doSetScore <- function(pv,score,bLog=FALSE,rescore=TRUE,
+                          bSignal2Noise=TRUE) {  
+  
+  if ((score >= DBA_SCORE_TMM_MINUS_FULL) && (score <= DBA_SCORE_TMM_READS_EFFECTIVE_CPM) ) {
+    bCPM=FALSE
+    if(score == DBA_SCORE_TMM_MINUS_FULL || score == DBA_SCORE_TMM_MINUS_FULL_CPM) {
+      bMinus   <- TRUE
+      bFullLib <- TRUE
+      if(score == DBA_SCORE_TMM_MINUS_FULL_CPM) {
+        bCPM=TRUE
+      }
+    }
+    if(score == DBA_SCORE_TMM_MINUS_EFFECTIVE || score == DBA_SCORE_TMM_MINUS_EFFECTIVE_CPM) {
+      bMinus   <- TRUE
+      bFullLib <- FALSE
+      if(score == DBA_SCORE_TMM_MINUS_EFFECTIVE_CPM) {
+        bCPM=TRUE
+      }
+    }
+    if(score == DBA_SCORE_TMM_READS_FULL || score == DBA_SCORE_TMM_READS_FULL_CPM) {
+      bMinus   <- FALSE
+      bFullLib <- TRUE	
+      if(score == DBA_SCORE_TMM_READS_FULL_CPM) {
+        bCPM=TRUE
+      }
+    }
+    if(score == DBA_SCORE_TMM_READS_EFFECTIVE || score == DBA_SCORE_TMM_READS_EFFECTIVE_CPM) {
+      bMinus   <- FALSE
+      bFullLib <- FALSE	
+      if(score == DBA_SCORE_TMM_READS_EFFECTIVE_CPM) {
+        bCPM=TRUE
+      }
+    }
+    
+    pv$binding[,4:ncol(pv$binding)] <- pv.normTMM(pv,bMinus=bMinus,bFullLib=bFullLib,bCPM=bCPM)
+    
+    for(i in 1:length(pv$peaks)) {
+      colnum <- 3+i
+      pv$peaks[[i]]$Score <- pv$binding[,colnum]
+    }
+    
+  } else {
+    
+    if(score %in% c(PV_SCORE_READS_FULL,PV_SCORE_READS_MINUS_FULL, 
+                    PV_SCORE_READS_EFFECTIVE, PV_SCORE_READS_MINUS_EFFECTIVE)) {
+      
+      pv$binding[,4:ncol(pv$binding)] <- pv.normLibsize(pv,score)
+      
+      for(i in 1:length(pv$peaks)) {
+        colnum <- 3+i
+        pv$peaks[[i]]$Score <- pv$binding[,colnum]
+      }
+      
+    } else if(score == PV_SCORE_NORMALIZED) {
+      
+      pv$binding[,4:ncol(pv$binding)] <- 
+        pv.countsMA(pv, method=DBA_DESEQ2, contrast=NULL, 
+                    bNormalized=TRUE, bCountsOnly=TRUE, filter=0)
+      
+      for(i in 1:length(pv$peaks)) {
+        colnum <- 3+i
+        pv$peaks[[i]]$Score <- pv$binding[,colnum]
+      }
+      
+    } else {
+      
+      for(i in 1:length(pv$peaks)) {
+        colnum <- 3+i
+        if(score == PV_SCORE_RPKM) {
+          pv$binding[,colnum] <- pv$peaks[[i]]$RPKM	
+        }   		
+        if(score == PV_SCORE_RPKM) {
+          pv$binding[,colnum] <- pv$peaks[[i]]$RPKM	
+        } else if(score == PV_SCORE_RPKM_FOLD) {
+          numer <- pv$peaks[[i]]$RPKM
+          numer[numer==0] <- 1
+          denom <- pv$peaks[[i]]$cRPKM
+          denom[denom==0] <- 1
+          pv$binding[,colnum] <- numer/denom
+          if(bLog) {
+            pv$binding[,colnum] <- log2(pv$binding[,colnum])	
+          }
+        } else if(score == PV_SCORE_READS) {
+          pv$binding[,colnum] <- pv$peaks[[i]]$Reads	
+        }  else if(score == PV_SCORE_CONTROL_READS) {
+          pv$binding[,colnum] <- pv$peaks[[i]]$cReads	
+        } else if(score == PV_SCORE_READS_FOLD) {
+          numer <- pv$peaks[[i]]$Reads
+          numer[numer==0] <- 1
+          denom <- pv$peaks[[i]]$cReads
+          denom[denom==0] <- 1
+          pv$binding[,colnum] <- numer/denom
+          if(bLog) {
+            pv$binding[,colnum] <- log2(pv$binding[,colnum])	
+          }
+        } else if(score == PV_SCORE_READS_MINUS) {
+          pv$binding[,colnum] <- pv$peaks[[i]]$Reads-pv$peaks[[i]]$cReads	
+        } else if(score == PV_SCORE_SUMMIT || score == PV_SCORE_SUMMIT_ADJ) {
+          if(is.null(pv$peaks[[i]]$Heights)) {
+            warning('DBA_SCORE_SUMMIT not available; re-run dba.count with summits=TRUE',call.=FALSE)   
+          } else {
+            pv$binding[,colnum] <- pv$peaks[[i]]$Heights
+            if (score == PV_SCORE_SUMMIT_ADJ) {
+              pv$binding[,colnum] <- pv$binding[,colnum] * pv.normFactors(pv)[i]   
+            }
+          }
+        } else if(score == PV_SCORE_SUMMIT_POS) {
+          if(is.null(pv$peaks[[i]]$Summits)) {
+            warning('DBA_SCORE_SUMMIT_POS not available; re-run dba.count with summits=TRUE',call.=FALSE)   
+          } else {
+            pv$binding[,colnum] <- pv$peaks[[i]]$Summits
+          }
+        }
+        checkscores <- pv$binding[,colnum]
+        if(is.null(pv$minCount)) {
+          minRead <- 0
+        } else {
+          minRead <- pv$minCount
+        }
+        pv$binding[checkscores<minRead,colnum] <- minRead
+        pv$peaks[[i]]$Score <- pv$binding[,colnum]
+      }
+    }
+  }
+  pv$score <- score
+  
+  if(bSignal2Noise) {
+    pv$SN <- pv.Signal2Noise(pv)
+  }
+  
+  return(pv)
+}
+
+pv.doFilter <- function(pv,minMaxval, filterFun, bSignal2Noise=TRUE) {
+  
+  if(!missing(minMaxval)) {
+    maxs <- apply(pv$binding[,4:ncol(pv$binding)],1,filterFun)
+    maxs[is.na(maxs)] <- 0
+    tokeep <- maxs>=minMaxval
+    if(sum(tokeep)>1 && (sum(tokeep) < length(tokeep)) ) {
+      pv$binding <- pv$binding[tokeep,]
+      rownames(pv$binding) <- 1:sum(tokeep)
+      for(i in 1:length(pv$peaks)) {
+        pv$peaks[[i]] <- pv$peaks[[i]][tokeep,]
+        rownames(pv$peaks[[i]]) <- 1:sum(tokeep)
+      }
+      
+      pv <- pv.vectors(pv,minOverlap=1,bAllSame=TRUE)
+      
+      if(!is.null(pv$contrasts)) {
+        for(i in 1:length(pv$contrasts)) {
+          pv$contrasts[[i]]$edgeR=NULL
+          pv$contrasts[[i]]$DESeq=NULL
+        }
+      }
+    } else {
+      if(sum(tokeep)<2) {
+        stop('No sites have activity greater than filter value',call.=FALSE)
+      }
+    }
+    pv$maxFilter <- minMaxval
+  }
+  
+  if(bSignal2Noise) {
+    pv$SN <- pv.Signal2Noise(pv)
+  }
+  
+  return(pv)
+}
+
+pv.countsMA <- function(pv, method, contrast, 
+                        bNormalized=FALSE, bCountsOnly=FALSE,
+                        filter=0, filterFun=max) {
+  
+  #message("pv.countsMA")
+  if(is.null(contrast)) {
+    contrast<-NULL
+    contrast$group1 <- rep(FALSE,ncol(pv$class))
+    contrast$group1[1] <- TRUE
+    contrast$group2 <- !contrast$group1
+  }
+  
+  if(bNormalized) {
+    
+    design <- pv$design
+    if(is.null(design)) {
+      pv$design <- "~1"
+    }
+    
+    savescore <- pv$score
+    pv$score <- DBA_SCORE_READS
+    
+    nofilter <- FALSE
+    if(is.null(filter)) {
+      filter <- pv$maxFilter
+      nofilter <- TRUE
+    }
+    
+    if(method == DBA_DESEQ2) {
+      
+      if(is.null(pv$norm$DESeq2)) {
+        pv <- dba.normalize(pv, method=DBA_DESEQ2, background=FALSE)
+      }
+      
+      if(is.null(pv$DESeq2$DEdata)) {
+        
+        if(nofilter)  {
+          filter <- pv$norm$DESeq2$filter.val
+          filterFun <- pv$norm$DESeq2$filter.fun
+        }
+        
+        dedata <- pv.DEinitDESeq2(pv,bSubControl=pv$norm$DESeq2$bSubControl,
+                                  bFullLibrarySize=pv$norm$DESeq2$lib.sizes,
+                                  filter=filter,filterFun=filterFun) 
+      } else {
+        dedata <- pv$DESeq2$DEdata
+      }
+      counts <- DESeq2::counts(dedata, normalized = bNormalized)
+      
+    } else if(method == DBA_EDGER) {
+      
+      if(is.null(pv$norm$edgeR)) {
+        pv <- dba.normalize(pv, method=DBA_EDGER, background=FALSE)
+      }
+      
+      if(nofilter)  {
+        filter <- pv$norm$edgeR$filter.val
+        filterFun <- pv$norm$edgeR$filter.fun
+      }
+      
+      if(is.null(pv$edgeR$DEdata)) {
+        dedata <- pv.DEinitedgeR(pv,bSubControl=pv$norm$edgeR$bSubControl,
+                                 filter=filter, filterFun=filterFun)
+      } else {
+        dedata <-pv$norm$edgeR 
+      }
+      counts <- pv.edgeRCounts(pv,method,bNormalized)
+    }
+    counts <- cbind(counts[,contrast$group1], counts[,contrast$group2])
+    pv$design <- design
+    pv$score <- savescore
+  } else {
+    counts <- pv.DEinit(pv,contrast$group1, contrast$group2, bRawCounts=TRUE)
+  }
+  
+  if(bCountsOnly) {
+    return(counts)
+  }
+  
+  num1 <- sum(contrast$group1)
+  num2 <- sum(contrast$group2)
+  samps <- num1 + num2
+  
+  conc <- log2(apply(counts,1,mean))
+  
+  if(num1>1) {
+    con1 <- log2(apply(counts[,1:num1],1,mean))
+  } else {
+    con1 <- log2(counts[,1])
+  }
+  
+  if(num2>1) {
+    con2 <- log2(apply(counts[,(num1+1):ncol(counts)],1,mean))
+  } else {
+    con2 <- log2(counts[,num1+1])
+  }
+  
+  con1[con1<0] <- 0
+  con2[con2<0] <- 0
+  conc[conc<0] <- 0
+  
+  fold <- con1 - con2
+  
+  res <- NULL
+  res$Conc <- conc
+  res$Fold <- con1 - con2
+  res$Con1 <- con1
+  res$Con2 <- con2
+  
+  return(res)
+}
 

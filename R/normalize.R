@@ -614,27 +614,9 @@ pv.reNormalize <- function(pv) {
 }
 
 pv.doResetScore <- function(pv) {
-  
-  #message("Resetting scores...")
-  if(is.null(pv$maxFilter)) {
-    filt <- 0
-    filtFun <- max 
-  } else {
-    filt <- pv$maxFilter
-    filtFun <- max 
-  }
-  
-  # if(!is.null(pv$norm$DESeq2)) {
-  #   filt <- pv$norm$DESeq2$filter.val
-  #   filtfun <- pv$norm$DESeq2$filter.fun
-  # } else if(!is.null(pv$norm$edgeR)) {
-  #   filt <- pv$norm$edgeR$filter.val
-  #   filtfun <- pv$norm$edgeR$filter.fun
-  # }
-  
+
   pv$score <- NULL
-  pv <- pv.setScore(pv,score=DBA_SCORE_NORMALIZED,bLog=FALSE,
-                    minMaxval=filt, filterFun=filtFun)
+  pv <- pv.setScore(pv,score=DBA_SCORE_NORMALIZED,bLog=FALSE)
   
   return(pv)
 }
@@ -665,11 +647,11 @@ pv.doRenormalize <- function(pv, method) {
     normfacs <- norm$norm.method
   }
   
-  if(is.null(norm$filter.fun)) {
-    filterfun <- max
-  } else {
-    filterfun <- norm$filter.fun
-  }
+  # if(is.null(norm$filter.fun)) {
+  #   filterfun <- max
+  # } else {
+  #   filterfun <- norm$filter.fun
+  # }
   
   if(is.null(norm$lib.fun)) {
     libfun <- PV_NORM_LIBFUN
@@ -694,7 +676,7 @@ pv.doRenormalize <- function(pv, method) {
                      libSizes  = libsizes,
                      normalize = normfacs,
                      bSubControl = norm$bSubControl,
-                     filter=norm$filter.val, filterFun=filterfun, libFun=libfun, 
+                     libFun=libfun, 
                      background=norm$background, offsets=offsets)
   return(pv)
 }

@@ -16,8 +16,7 @@ dba.normalize(DBA, method = DBA$config$AnalysisMethod,
               normalize = DBA_NORM_DEFAULT, library = DBA_LIBSIZE_DEFAULT, 
               background = FALSE, spikein = FALSE, offsets = FALSE,
               bSubControl = is.null(DBA$greylist),
-              filter=5, filterFun=max, libFun=mean,
-              bRetrieve=FALSE, ...)
+              libFun=mean, bRetrieve=FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -190,25 +189,6 @@ it will be set to \code{TRUE} unless a greylist has been applied
 (see \code{\link{dba.blacklist}}).
 }
 
-\item{filter}{
-value to use for filtering intervals with low read counts. 
-The \code{filterFun} will be applied to the vector of 
-read counts for each interval, and any scores below the \code{filter}
-value will be removed prior to analysis.
-}
-
-\item{filterFun}{
-function that will be invoked for each interval with a vector of scores for each sample. 
-Returns a score that will be evaluated against the \code{filter} value
-(only intervals with a score at least as high as \code{filter} will be kept). 
-Default is \code{max}, indicating that at least one sample 
-should have a score of at least \code{filter}; 
-other useful values include \code{sum} (indicating that 
-all the scores added together should be at least 
-\code{filter}), and \code{mean} (setting a minimum mean normalized count level). 
-Users can supply their own function as well.
-}
-
 \item{libFun}{
 When \code{normalize=DBA_NORM_LIB}, normalization factors are
 calculated by dividing the library sizes for each sample by
@@ -242,9 +222,9 @@ consists of the following elements:
    \code{library}.}
    \item{$lib.sizes}
    {A vector containing the computed library sizes.}
-   \item{$filter.value}
-   {A numeric value indicating the minimum values used to 
-   filter consensus peaks.} 
+%   \item{$filter.value}
+%   {A numeric value indicating the minimum values used to 
+%   filter consensus peaks.} 
    \item{$background}
    {If the normalization if based on binned background reads,
    this field will be \code{TRUE}.}
@@ -309,7 +289,6 @@ then the defaults are:
   \item{\code{normalize=DBA_NORM_DEFAULT}}
   \item{\code{library=DBA_LIBSIZE_FULL}}
   \item{\code{background=FALSE}}
-  \item{\code{filter=0}}
 }
 In this case, \code{normalize=DBA_NORM_LIB} will be set for 
 \code{method=DBA_DESEQ2} for backwards compatibility.

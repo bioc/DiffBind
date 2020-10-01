@@ -96,7 +96,6 @@ are as follows:
   \item{\code{normalize}:} {\code{DBA_NORM_DEFAULT}}
   \item{\code{library}:} {\code{DBA_LIBSIZE_FULL}}
   \item{\code{background}:} {\code{FALSE}}
-  \item{\code{filter}:} {\code{0}}
 }
 Note that two parameters that used to be available when calling 
 \code{\link{dba.analyze}} are now integrated into the

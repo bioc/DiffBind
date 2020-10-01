@@ -463,9 +463,7 @@ normlibs
 Other values show that the
 that control reads were subtracted from the ChIP reads
 (this is done by default because no blacklists/greylists were applied,
-see Section ~\ref{sec:blacklists} for more details),
-and that any consensus peak intervals without at least one sample with
-at least five reads for that interval were filtered from further analysis.
+see Section ~\ref{sec:blacklists} for more details).
 
 Normalization of ChIP (and related assays such as ATAC) data is a crucial,
 if somewhat complex, area. 
@@ -2705,9 +2703,6 @@ are as follows:
 \item
 \Rcode{background:} 
 \Rcode{FALSE}
-\item
-\Rcode{filter:} 
-\Rcode{0}
 \end{enumerate}
 
 Note that two parameters that used to be available when calling 
@@ -2809,12 +2804,12 @@ if the \Rcode{bSubControl} parameter is set to \Rcode{TRUE},
 the raw number of reads in the control sample (if available) will be subtracted.
 And read counts that are less than \Rcode{minCount} are set to \Rcode{minCount} 
 (default is zero).
-If a non-zero \Rcode{filter} is supplied, the \Rcode{filterFun} is run
-across the rows (consensus peaks), and any peak interval for which the result
-of the function is less than the specified \Rcode{filter} is removed.
-The default \Rcode{filterFun} is \Rfunction{max}, resulting in
-any peak interval without at least one sample having at least \Rcode{filter}
-counts being removed from the subsequent analysis.
+% If a non-zero \Rcode{filter} is supplied, the \Rcode{filterFun} is run
+% across the rows (consensus peaks), and any peak interval for which the result
+% of the function is less than the specified \Rcode{filter} is removed.
+% The default \Rcode{filterFun} is \Rfunction{max}, resulting in
+% any peak interval without at least one sample having at least \Rcode{filter}
+% counts being removed from the subsequent analysis.
 
 A \Rcode{DESeqDataSet} object is then created using 
 \Rcode{DESeq2::DESeqDataSetFromMatrix} with the count matrix, 
@@ -2884,12 +2879,12 @@ if the \Rcode{bSubControl} parameter is set to \Rcode{TRUE},
 the raw number of reads in the control sample (if available) will be subtracted.
 And read counts that are less than \Rcode{minCount} are set to \Rcode{minCount} 
 (default is zero).
-If a non-zero \Rcode{filter} is supplied, the \Rcode{filterFun} is run
-across the rows (consensus peaks), and any peak interval for which the result
-of the function is less than the specified \Rcode{filter} is removed.
-The default \Rcode{filterFun} is \Rfunction{max}, resulting in
-any peak interval without at least one sample having at least \Rcode{filter}
-counts being removed from the subsequent analysis.
+% If a non-zero \Rcode{filter} is supplied, the \Rcode{filterFun} is run
+% across the rows (consensus peaks), and any peak interval for which the result
+% of the function is less than the specified \Rcode{filter} is removed.
+% The default \Rcode{filterFun} is \Rfunction{max}, resulting in
+% any peak interval without at least one sample having at least \Rcode{filter}
+% counts being removed from the subsequent analysis.
 
 Next an \edgeR \Rcode{DGEList} is created by calling
 \Rcode{edgeR::DGEList} with the count matrix, the pre-computed library

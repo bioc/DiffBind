@@ -2,7 +2,7 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.99.10}{
+\section{Version 2.99.20}{
 \itemize{
 \item{
 This is a major release of DiffBind and the new version will be 3.0.
@@ -31,10 +31,18 @@ Any non-default normalization options must be specified using dba.normalize().
 }
  \item{Changes in this point release:}
    \itemize{
+     \item{Default score is now DBA_SCORE_NORMALIZED}
+     \item{Removed count filters from dba.normalize}
+    }
+ }
+}
+
+\section{Version 2.99.10}{
+ Changes in this point release:
+   \itemize{
      \item{spike-in and parallel normalization examples}
      \item{updated vignette}
     }
-}
 }
 
 \section{Version 2.99.9}{

@@ -142,7 +142,7 @@ pv.list <- function(pv,mask,bContrasts = FALSE, bDesign=FALSE,
   
   if (bSN) {
     if (!is.null(pv$SN)) {
-      res <- cbind(res,pv$SN)
+      res <- cbind(res,pv$SN[mask])
       colnames(res)[ncol(res)] <- 'FRiP'
     }
   }
