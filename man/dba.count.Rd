@@ -14,7 +14,7 @@ dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
           fragmentSize=DBA$config$fragmentSize, 
           summits=200, filter=5, bRemoveDuplicates=FALSE, bScaleControl=TRUE,
           mapQCth=DBA$config$mapQCth, filterFun=max, minCount=0, 
-          bLog=FALSE, bUseSummarizeOverlaps=FALSE, 
+          bLog=FALSE, bUseSummarizeOverlaps=TRUE, 
           readFormat=DBA_READS_DEFAULT, bParallel=DBA$config$RunParallel) 
 }
 
@@ -155,7 +155,8 @@ Five additional parameters for \code{\link{summarizeOverlaps}} may be specified 
 The lower this value, the less memory will be used, but the more time it will take to 
 complete the count operation.\cr
 \code{DBA$config$intersectMode} \tab mode indicating which overlap algorithm to use; default is \code{"IntersectionNotEmpty"}\cr 
-\code{DBA$config$singleEnd} \tab logical indicating if reads are single end; default is \code{TRUE}\cr 
+\code{DBA$config$singleEnd} \tab logical indicating if reads are single end; 
+if NULL, status will be automatically detected.\cr 
 \code{DBA$config$fragments} \tab logical indicating how unmatched reads are counted; default is \code{FALSE}\cr 
 \code{DBA$config$scanbamparam} \tab \code{ScanBamParam} object to pass to \code{\link{summarizeOverlaps}}. 
 If present, \code{bRemoveDuplicates} is ignored.\cr 

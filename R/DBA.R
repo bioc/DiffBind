@@ -490,7 +490,7 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
                       fragmentSize=DBA$config$fragmentSize, summits=200, filter=5, 
                       bRemoveDuplicates=FALSE, bScaleControl=TRUE,
                       mapQCth=DBA$config$mapQCth, filterFun=max, minCount=0, 
-                      bLog=FALSE, bUseSummarizeOverlaps=FALSE,  
+                      bLog=FALSE, bUseSummarizeOverlaps=TRUE,  
                       readFormat=DBA_READS_DEFAULT,bParallel=DBA$config$RunParallel) 
 {
   DBA <- pv.check(DBA,missing(peaks))

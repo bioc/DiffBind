@@ -459,10 +459,13 @@ pv.readParams <- function(pv, restrict) {
   
   pe <- "none"
   if(!is.null(pv$config$singleEnd)) {
+    bfile <- pv.BamFile(pv$class[PV_BAMREADS,1], bIndex=TRUE)
+    pv$config$singleEnd <- !suppressMessages(
+      Rsamtools::testPairedEndBam(bfile))
     if(!pv$config$singleEnd) {
       pe <- "both"
     }
-  }
+  } 
   
   minq <- 15
   if(!is.null(pv$config$minQCth)) {
@@ -614,7 +617,7 @@ pv.reNormalize <- function(pv) {
 }
 
 pv.doResetScore <- function(pv) {
-
+  
   pv$score <- NULL
   pv <- pv.setScore(pv,score=DBA_SCORE_NORMALIZED,bLog=FALSE)
   

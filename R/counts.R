@@ -70,8 +70,13 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   } 
   if(summits != -1) {
     if(bLowMem==TRUE) {
-      stop("Can not compute summits when bUseSummarizeOverlaps is TRUE in dba.count",call.=FALSE)
-      bLowMem <- FALSE
+      bLowMem <- bRecentered
+      if(bRecentered == TRUE) {
+        #message("Summit info will be lost when using summarizeOverlaps.")
+        summits <- -1
+      } else {
+        message("Computing summits...")
+      }
     }
     if(is.logical(summits) && summits==TRUE) {
       summits=0
@@ -177,30 +182,40 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
     
     addfuns <- c("BamFileList","summarizeOverlaps","ScanBamParam","scanBamFlag","countBam","SummarizedExperiment")   
     if (insertLength[1] !=0) {
-      warning("fragmentSize ignored when bUseSummarizeOverlaps is TRUE in dba.count",call.=FALSE)
+      #warning("fragmentSize ignored when bUseSummarizeOverlaps is TRUE in dba.count",call.=FALSE)
     }
     bAllBam <- TRUE
-    for(st in todo) {
-      if(substr(st,nchar(st)-3,nchar(st)) != ".bam")	{
-        bAllBam <- FALSE
-        warning(st,": not a .bam",call.=FALSE)	
-      } else if(file.access(paste(st,".bai",sep=""))==-1) {
-        bAllBam <- FALSE
-        warning(st,": no associated .bam.bai index",call.=FALSE)	
-      }
-    }
-    if(!bAllBam) {
-      stop('All files must be BAM (.bam) with associated .bam.bai index when UseSummarizeOverlaps is TRUE in dba.count',call.=FALSE)	
-    }
+    # for(st in todo) {
+    #   if(substr(st,nchar(st)-3,nchar(st)) != ".bam")	{
+    #     bAllBam <- FALSE
+    #     warning(st,": not a .bam",call.=FALSE)	
+    #   } else if(file.access(paste(st,".bai",sep=""))==-1) {
+    #     bAllBam <- FALSE
+    #     warning(st,": no associated .bam.bai index",call.=FALSE)	
+    #   }
+    # }
+    # if(!bAllBam) {
+    #   stop('All files must be BAM (.bam) with associated .bam.bai index when UseSummarizeOverlaps is TRUE in dba.count',call.=FALSE)	
+    # }
     if(!is.null(pv$config$yieldSize)) {
       yieldSize <- pv$config$yieldSize	
     }
     if(!is.null(pv$config$intersectMode)) {
       mode <- pv$config$intersectMode	
     }
-    if(!is.null(pv$config$singleEnd)) {
-      singleEnd <- pv$config$singleEnd	
+    
+    if(is.null(pv$config$singleEnd)) {
+      bfile <- pv.BamFile(todo[1], bIndex=TRUE)
+      pv$config$singleEnd	<- !suppressMessages(
+        Rsamtools::testPairedEndBam(bfile))
+    } 
+    singleEnd <-  pv$config$singleEnd
+    if(singleEnd) {
+      message("Reads will be counted as Single-end.")
+    } else {
+      message("Reads will be counted as Paired-end.")        
     }
+    
     if(!is.null(pv$config$fragments)) {
       fragments <- pv$config$fragments   
     } else fragments <- FALSE
@@ -487,7 +502,7 @@ pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=FALSE,
   
   if(bLowMem) {
     if(minMappingQuality>0) {
-      warning('minMappingQuality ignored for summarizeOverlaps, set in ScanBamParam.',call.=FALSE)
+      #warning('minMappingQuality ignored for summarizeOverlaps, set in ScanBamParam.',call.=FALSE)
     }
     res <- pv.getCountsLowMem(bamfile,intervals,bWithoutDupes,mode,yieldSize,
                               singleEnd,fragments,
@@ -524,7 +539,8 @@ pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=FALSE,
   
   intervals <- pv.peaks2DataType(intervals,DBA_DATA_GRANGES)
   
-  bfl       <- BamFileList(bamfile,yieldSize=yieldSize)
+  bf  <- pv.BamFile(bamfile)
+  bfl <- Rsamtools::BamFileList(bf,yieldSize=yieldSize)
   
   if(is.null(params)) {
     if(bWithoutDups==FALSE) {
@@ -532,17 +548,41 @@ pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=FALSE,
     } else {
       Dups <- FALSE   
     }
-    params  <- ScanBamParam(flag=scanBamFlag(isDuplicate=Dups))
+    params  <- Rsamtools::ScanBamParam(flag=scanBamFlag(isDuplicate=Dups))
   }
   
-  counts  <- assay(summarizeOverlaps(features=intervals,reads=bfl,
-                                     ignore.strand=TRUE,singleEnd=singleEnd,
-                                     fragments=fragments,param=params))
+  counts  <- assay(GenomicAlignments::summarizeOverlaps(features=intervals,reads=bfl,
+                                                        ignore.strand=TRUE,singleEnd=singleEnd,
+                                                        fragments=fragments,param=params))
   counts[counts<minCount] <- minCount
-  libsize <- countBam(bfl)$records
+  libsize <- Rsamtools::countBam(bfl)$records
   rpkm    <- (counts/(width(intervals)/1000))/(libsize/1e+06)
   
   return(list(counts=counts,rpkm=rpkm,libsize=libsize))
+}
+
+pv.BamFile <- function(bamfile,bIndex=TRUE) {
+  bai <- NULL
+  trybai <- paste(substr(bamfile, 1,nchar(bamfile)-4),".bai", sep="")
+  if(file.access(trybai,mode=4) > -1) {
+    bai <- trybai
+  } else {
+    trybai <- paste(bamfile,".bai",sep="") 
+    if(file.access(trybai,mode=4) > -1) {
+      bai <- trybai
+    } 
+  }
+  if(is.null(bai)) {
+    if(!bIndex) {
+      stop(bamfile, " has no associated .bai.", call.=FALSE)
+    } else {
+      message("Indexing ",bamfile)
+      bai <- Rsamtools::indexBam(bamfile)
+    }
+  }
+  bamfileobj <- Rsamtools::BamFile(bamfile, index=bai)
+  
+  return(bamfileobj)
 }
 
 pv.Recenter <- function(pv,summits,peakrange,called=NULL) {
