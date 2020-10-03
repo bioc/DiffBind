@@ -478,7 +478,8 @@ including which comparison(s) we are interested in.
 This is done using the \Rcode{dba.contrast} function, as follows:
 
 <<eval=TRUE,echo=TRUE,results=verbatim>>=
-tamoxifen <- dba.contrast(tamoxifen)
+tamoxifen <- dba.contrast(tamoxifen, 
+                          reorderMeta=list(Condition="Responsive"))
 tamoxifen
 @
 
@@ -488,6 +489,8 @@ look at the differences between any two sample groups
 with at least three replicates in each side of the comparison
 (that is, any factor that has two different values where there
 are at least three samples that share each value.)
+It also establishes the Responsive condition as the baseline, so
+it will be in the denominator of the default contrast.
 In the current case, there is only once such comparison:
 The \Rcode{Condition} metadata factor has two values,
 \Rcode{Resistant} and \Rcode{Responsive}, that 
@@ -1474,7 +1477,7 @@ In Figure~\ref{DiffBind-normDESeq2Comparison}, the top plot
 shows there are \Sexpr{length(dba.overlap(dbs,c(1,4))$inAll)}
 sites identified in both analyses, with another
 \Sexpr{length(dba.overlap(dbs,c(1,4))$onlyA)+length(dba.overlap(dbs,c(1,4))$onlyB)}
-unique to on analysis or the other.
+unique to one analysis or the other.
 The remaining diagrams show how the \Rcode{RLE}-based analysis
 identifies many additional sites that gain binding affinity in the 
 Resistant condition, while "missing" sites identified in the

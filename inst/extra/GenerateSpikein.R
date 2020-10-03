@@ -11,6 +11,8 @@ samples$Spikein <- dmsamples$bamReads
 spikes <- dba(sampleSheet = samples)
 spikes$config$doBlacklist <- spikes$config$doGreylist <- FALSE
 spikes <- dba.count(spikes)
+spike.meta <- dba.contrast(spikes,reorderMeta = list(Condition="none"))
+spikes$meta <- spike.meta$meta
 spikes <- dba.normalize(spikes, spikein = TRUE)
 spikes.spikeins <- spikes$norm$background
 spikes$norm <- NULL
@@ -33,7 +35,7 @@ parallelFactor.background <- pfac$norm$background
 pfac$norm <- NULL
 pfac <- dba.normalize(pfac,spikein = ctcf)
 parallelFactor.ctcf <- pfac$norm$background
-pfac <- dba.contrast(pfac,reorderMeta = list(Condition="Fulvestrant"))
+pfac <- dba.contrast(pfac,reorderMeta = list(Condition="none"))
 pfac$design <- NULL
 pfac$contrasts <- NULL
 pfac$config <- tamoxifen$config

@@ -89,6 +89,8 @@ if(GENERATE_ANALYSIS) {
   tamoxifen <- dba.count(tamoxifen)
   tam <- dba.normalize(tamoxifen, background=TRUE)
   tamoxifen$norm$background <- tam$norm$background
+  tam  <- dba.contrast(tamoxifen, reorderMeta = list(Condition="Responsive"))
+  tamoxifen$meta <- tam$meta
   tamoxifen$config <- config
   save(tamoxifen,file="tamoxifen_counts.rda")
   
@@ -98,7 +100,8 @@ if(GENERATE_ANALYSIS) {
   tamoxifen$config$cores <- NUMCORES
   tamoxifen <- dba.count(tamoxifen)
   tamoxifen$norm$background <- tam$norm$background
-  tamoxifen <- dba.contrast(tamoxifen,design="~Tissue + Condition")
+  tamoxifen <- dba.contrast(tamoxifen,design="~Tissue + Condition",
+                            reorderMeta = list(Condition="Responsive"))
   tamoxifen <- dba.contrast(tamoxifen)
   tamoxifen <- dba.analyze(tamoxifen)
   tamoxifen$config <- config

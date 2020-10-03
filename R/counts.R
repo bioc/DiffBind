@@ -506,7 +506,7 @@ pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=FALSE,
     }
     res <- pv.getCountsLowMem(bamfile,intervals,bWithoutDupes,mode,yieldSize,
                               singleEnd,fragments,
-                              scanbamparam,minCount=minCount)
+                              scanbamparam,minCount=minCount,minQC=minMappingQuality)
     return(res)
   }
   
@@ -535,7 +535,7 @@ pv.filterRate <- function(pv,vFilter,filterFun=max) {
 pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=FALSE,
                                mode="IntersectionNotEmpty",yieldSize=5000000,
                                singleEnd=TRUE,fragments=FALSE,params=NULL,
-                               minCount=0) {
+                               minCount=0, minQC=0) {
   
   intervals <- pv.peaks2DataType(intervals,DBA_DATA_GRANGES)
   
@@ -548,14 +548,17 @@ pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=FALSE,
     } else {
       Dups <- FALSE   
     }
-    params  <- Rsamtools::ScanBamParam(flag=scanBamFlag(isDuplicate=Dups))
+    params  <- Rsamtools::ScanBamParam(flag=Rsamtools::scanBamFlag(isDuplicate=Dups),
+                                       mapqFilter=minQC)
   }
   
   counts  <- assay(GenomicAlignments::summarizeOverlaps(features=intervals,reads=bfl,
                                                         ignore.strand=TRUE,singleEnd=singleEnd,
                                                         fragments=fragments,param=params))
   counts[counts<minCount] <- minCount
-  libsize <- Rsamtools::countBam(bfl)$records
+  libsize <-
+    Rsamtools::countBam(bfl,
+                        param=Rsamtools::ScanBamParam(mapqFilter=minQC))$records
   rpkm    <- (counts/(width(intervals)/1000))/(libsize/1e+06)
   
   return(list(counts=counts,rpkm=rpkm,libsize=libsize))

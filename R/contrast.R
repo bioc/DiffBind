@@ -1264,7 +1264,7 @@ pv.checkContrastOrder <- function(contrasts, meta) {
          n1 <- fac %in% con$name1
          n2 <- fac %in% con$name2
          if(sum(n1) && sum(n2)) {
-            if(which(n2) < which(n1)) {
+            if(which(n2) > which(n1)) {
                g1 <- con$group1
                n1 <- con$name1
                con$group1 <- con$group2
