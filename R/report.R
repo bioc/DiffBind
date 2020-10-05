@@ -791,6 +791,9 @@ pv.ResetScores <- function(pv, ones=FALSE){
     peaks <- GRanges(data.frame(pv$peaks[[i]]))
     matches <- which(binding %over% peaks)
     keep <- which(peaks %over% binding)
+    if(length(matches) != length(keep)) {
+      return(pv)
+    }
     scores <- pv$peaks[[i]]$Score
     if(ones==TRUE) {
       scores[scores<1] <- -1

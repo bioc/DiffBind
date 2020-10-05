@@ -548,17 +548,21 @@ pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=FALSE,
     } else {
       Dups <- FALSE   
     }
-    params  <- Rsamtools::ScanBamParam(flag=Rsamtools::scanBamFlag(isDuplicate=Dups),
-                                       mapqFilter=minQC)
+    params  <- 
+      Rsamtools::ScanBamParam(flag=Rsamtools::scanBamFlag(isDuplicate=Dups),
+                              mapqFilter=minQC)
   }
   
-  counts  <- assay(GenomicAlignments::summarizeOverlaps(features=intervals,reads=bfl,
-                                                        ignore.strand=TRUE,singleEnd=singleEnd,
-                                                        fragments=fragments,param=params))
+  counts  <- assay(
+    GenomicAlignments::summarizeOverlaps(features=intervals,reads=bfl,
+                                         ignore.strand=TRUE,singleEnd=singleEnd,
+                                         fragments=fragments,param=params))
   counts[counts<minCount] <- minCount
   libsize <-
-    Rsamtools::countBam(bfl,
-                        param=Rsamtools::ScanBamParam(mapqFilter=minQC))$records
+    Rsamtools::countBam(bfl,param=params)$records
+  if(singleEnd == FALSE) {
+    libsize <- libsize/2
+  }
   rpkm    <- (counts/(width(intervals)/1000))/(libsize/1e+06)
   
   return(list(counts=counts,rpkm=rpkm,libsize=libsize))
