@@ -80,6 +80,7 @@ Rcpp::List mergeScores(Rcpp::DataFrame sMerged,Rcpp::NumericVector sScore, Rcpp:
   int peakLen = peaks.chr.size();
   Rcpp::NumericVector score(vLen);
   Rcpp::NumericVector included(vLen);
+  Rcpp::NumericVector absScore(vLen);
   int pi = 0;
   bool abso = false;
   if (abs.isNotNull()) {
@@ -94,7 +95,27 @@ Rcpp::List mergeScores(Rcpp::DataFrame sMerged,Rcpp::NumericVector sScore, Rcpp:
            merged.right[mi] >= peaks.right[pi]) {
       // peak is contained in region
       if (abso) {
-        score[mi] = std::max(std::abs(sScore[mi]),std::max(std::abs(score[mi]),std::abs(peaks.score[pi])));
+        // have to retain which of the 3 scores is max(abs(...)), but also the original (signed) score.
+        double intermediate;
+        if (std::abs(score[mi]) > std::abs(peaks.score[pi])) {
+          intermediate = score[mi];
+        } else if (std::abs(score[mi]) < std::abs(peaks.score[pi])) {
+          intermediate = peaks.score[pi];
+        } else if (score[mi] > 0 || peaks.score[pi] > 0) {
+          intermediate = std::abs(score[mi]); // they're equal in magnitude, and at least one is positive
+        } else {
+          intermediate = score[mi]; // they're equal in magnitude, and both are negative
+        }
+        if (std::abs(intermediate) > std::abs(sScore[mi])) {
+          score[mi] = intermediate;
+        } else if (std::abs(intermediate) < std::abs(sScore[mi])) {
+          score[mi] = sScore[mi];
+        } else if (intermediate > 0 || sScore[mi] > 0) {
+          score[mi] = std::abs(intermediate);
+        } else {
+          score[mi] = intermediate;
+        }
+        //score[mi] = std::max(std::abs(sScore[mi]),std::max(std::abs(score[mi]),std::abs(peaks.score[pi])));
       } else {
         score[mi] = std::max(sScore[mi],std::max(score[mi],peaks.score[pi]));
       }
