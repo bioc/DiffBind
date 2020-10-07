@@ -782,6 +782,8 @@ pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
 
 pv.ResetScores <- function(pv, ones=FALSE){
   
+  return(pv)
+  
   binding <- pv$binding[,1:3]
   binding[,1] <- pv$chrmap[binding[,1]]
   binding <- GRanges(data.frame(binding))
