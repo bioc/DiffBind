@@ -158,6 +158,9 @@ pv.DEinit <- function(pv,mask1,mask2,group1=1,group2=2,method='edgeR',
   
   counts <- cbind(s1,s2)
   
+  if(is.null(filter)) {
+    filter <- 0
+  }
   if(filter > 0){
     scores <- apply(counts,1,filterFun)
     keep   <- scores > filter

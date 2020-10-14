@@ -145,6 +145,9 @@ pv.DEinitDESeq2 <- function(pv,
   }
   counts  <- pv.get_reads(pv, srcmask,bSubControl=bSubControl,numReads=numReads)
   
+  if(is.null(filter)) {
+    filter <- 0
+  }
   if(filter > 0){
     scores <- apply(counts,1,filterFun)
     keep   <- scores > filter
