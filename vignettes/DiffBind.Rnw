@@ -32,7 +32,7 @@ Cancer Research UK - Cambridge Institute\\
 University of Cambridge
 }
 
-\date{Edited: 30 September 2020; Compiled: \today}
+\date{Edited: 16 October 2020; Compiled: \today}
 
 \maketitle
 
@@ -201,10 +201,10 @@ There are at least two replicates for each of the cell lines,
 with one cell line having three replicates,
 for a total of eleven sequenced libraries. 
 Of the five cell lines, two are based on MCF7 cells: 
-the regular tamoxifen responsive line, 
-as well as MCF7 cells specially treated with tamoxifen 
-until a tamoxifen resistant cell line is obtained.
-For each sample has an associated  peakset originally derived 
+the standard MCF7 tamoxifen responsive line, 
+and MCF7 cells specially treated with tamoxifen 
+until a tamoxifen resistant version of the cell line is obtained.
+For each sample, there is  an associated  peakset derived 
 using the MACS peak caller\cite{zhang2008model}, 
 for a total of eleven peaksets. 
 Note that to save space in the package, 
@@ -460,8 +460,7 @@ rownames(normlibs) <- info$ID
 normlibs
 @
 
-Other values show that the
-that control reads were subtracted from the ChIP reads
+Other values show that the control reads were subtracted from the ChIP reads
 (this is done by default because no blacklists/greylists were applied,
 see Section ~\ref{sec:blacklists} for more details).
 
@@ -1956,7 +1955,7 @@ dba.plotHeatmap(dbs.all, cexCol=1.3, main="Correlations of DB Sites",
                 ColAttributes = c(DBA_CONDITION, DBA_TREATMENT, DBA_FACTOR))
 @
 \incfig{DiffBind-normCluster2}{1\textwidth}
-{Correlation heatmap of fold changes indifferentially bound sites from
+{Correlation heatmap of fold changes in differentially bound sites from
 \DESeq and  \edgeR analyses using various normalization and 
 reference read methods}
 
@@ -2048,9 +2047,7 @@ Figure~\ref{DiffBind-spikeMAnone} shows the non-normalized data.
 
 Next we use the normalization methods already discussed:
 full library sizes, as well as \Rcode{RLE} normalization
-using Reads-in-Peaks and background reads.\footnote{Note that
-the calculated background reads are included for the example so
-we do not need to re-count them for the vignette.}
+using Reads-in-Peaks and background reads.
 
 <<spikeMAstraight,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=10,height=18>>=
 par(mfrow=c(3,1))
@@ -2088,11 +2085,13 @@ Using a background normalization performs best.
 
 Now we can compare to an alternative background derived form counting
 the \emph{Drosophila} reads\footnote{Note that
-the calculated spike-in reads are included for the example so
-we do not need to re-count them for the vignette; we can pass the
-pre-calculated ones in instead. Normally, with access to the spike-in reads, 
+pre-calculated background reads are included for the example in
+an object named \Rcode{spikes.spikeins},
+so we do not need to re-count them for the vignette;
+we can pass the pre-calculated ones in instead. 
+Normally, with access to the spike-in reads, 
 setting \Rcode{spikein=TRUE} will result
-in the spike-in reads being counted.}:
+in the spike-in reads being counted.}
 
 <<spikeMAspikein,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=10,height=14>>=
 par(mfrow=c(2,1))

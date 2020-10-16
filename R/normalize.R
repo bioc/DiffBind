@@ -735,22 +735,28 @@ pv.normalizeRetrieve <- function(pv, method) {
 }
 
 pv.formatNorm <- function(norm) {
+  
   res <- NULL
   
-  if(norm$background) {
-    res$background <- norm$background
-  }
-  
-  res$norm.method    <- norm$norm.method
-  res$norm.factors   <- norm$norm.facs
-  res$lib.method     <- norm$lib.method
-  res$lib.sizes      <- norm$lib.sizes
-  
-  if(norm$bSubControl) {
-    res$control.subtract <- norm$bSubControl
-  }
-  if(norm$filter.val > 0) {
-    res$filter.value <- norm$filter.val
+  if(!is.null(norm)) {
+    
+    if(norm$background) {
+      res$background <- norm$background
+    }
+    
+    res$norm.method    <- norm$norm.method
+    res$norm.factors   <- norm$norm.facs
+    res$lib.method     <- norm$lib.method
+    res$lib.sizes      <- norm$lib.sizes
+    
+    if(norm$bSubControl) {
+      res$control.subtract <- norm$bSubControl
+    }
+    
+    if(norm$filter.val > 0) {
+      res$filter.value <- norm$filter.val
+    }
+    
   }
   
   return(res)

@@ -106,15 +106,23 @@ When enabled, the chromosomes for which there are peaks
 in the consensus peakset are tiled into large bins and reads
 overlapping these bins are counted.
 
-If present, \code{background} can either be a logical or a numeric value.
-If logical and set to \code{TRUE}, background bins will be
+If present, \code{background} can either be a logical value, a numeric value,
+or a previously computed \code{$background} object.
+
+If \code{background} is a logical value and set to \code{TRUE}, background bins will be
 computed using the default bin size of 15000bp.
 Setting this value to \code{FALSE} will prevent background mode
 from being used in any default settings.
-\code{background} can also be set to a numeric value 
-indicating the bin size to use.
 
-After counting background bins,
+If \code{background} is a numeric value, it will be used as the bin size.
+
+If \code{background} is a previously  computed
+\code{$background} object, these counts will be used as the background.
+A \code{$background} object can be obtained by calling 
+\code{\link{dba.normalize}} with \code{bRetrieve=TRUE}
+and \code{method=DBA_ALL_METHODS}.
+
+After counting (or setting) background bins,
 both the \code{normalize} and \code{library} parameters
 will be used to determine how the
 final normalization factors are calculated.
@@ -129,12 +137,16 @@ the library size will be set to \code{library=DBA_LIBSIZE_BACKGROUND}
 }
 
 \item{spikein}{
-Either a logical value, a character vector of chromosome names, or 
-a \code{\link{GRanges}} object containing peaks for a parallel factor.
+Either a logical value, a character vector of chromosome names,
+a \code{\link{GRanges}} object containing peaks for a parallel factor,
+or a \code{$background} object containing previously computed 
+spike-in read counts.
 
-If \code{FALSE}, no spike-in normalization is performed.
+If \code{spikein} is a logical value set to \code{FALSE}, 
+no spike-in normalization is performed.
 
-If \code{TRUE}, background normalization is performed using spike-in tracks.
+If \code{spikein} is a logical value set to  \code{TRUE},
+background normalization is performed using spike-in tracks.
 There must be a spike-in track for each sample.
 see \code{\link{dba}} and/or \code{\link{dba.peakset}} for
 details on how to include a spike-in track with a sample
@@ -151,6 +163,12 @@ in the main \code{bamReads} bam files will be counted.
 If \code{spikein} is a \code{\link{GRanges}} object containing peaks
 for a parallel factor, then background normalization is performed counting reads
 in the spike-in tracks overlapping peaks in this object.
+
+If \code{spikein} is a previously  computed
+\code{$background} object, these counts will be used as the spikein background.
+A \code{$background} object can be obtained by calling 
+\code{\link{dba.normalize}} with \code{bRetrieve=TRUE}
+and \code{method=DBA_ALL_METHODS}.
 
 Note that if \code{spikein} is not \code{FALSE}, then
 the library size will be set to \code{library=DBA_LIBSIZE_BACKGROUND}
@@ -240,8 +258,10 @@ consists of the following elements:
  
 
  If \code{background} bins have been calculated,
- this will include an element called \code{$background} with two
- subfields:
+ this will include an element called \code{$background}.
+  This element can be passed in as the value to \code{background} or 
+ \code{spikein} to re-use a previously computed set of reads.
+ It contains three subfields:
  \itemize{
    \item{$background$binned}
    {a \code{SummarizedExperiment} object containing the binned counts.}
@@ -251,6 +271,7 @@ consists of the following elements:
    {character string indicating how the background was calculated 
    (bins, spike-ins, or parallel factor).}
  }
+
  
  If \code{offsets} are available,
  this will include an element called \code{$offsets} with two
@@ -322,8 +343,7 @@ different biases in ChIP-seq data.
 }
 
 \examples{
-
-# load DBB object with counts and background pre-computed
+# load DBA object with counts 
 data(tamoxifen_counts)
 tamoxifen <- dba.contrast(tamoxifen,design="~Tissue + Condition")
 
@@ -341,6 +361,14 @@ dba.normalize(tamoxifen, method=DBA_EDGER, bRetrieve=TRUE)
 tamoxifen <- dba.analyze(tamoxifen, method=DBA_ALL_METHODS)
 dba.show(tamoxifen,bContrasts=TRUE)
 dba.plotVenn(tamoxifen,contrast=1,method=DBA_ALL_METHODS,bDB=TRUE)
+
+# TMM in Background using precomputed background
+norm <- dba.normalize(tamoxifen,method=DBA_ALL_METHODS,bRetrieve=TRUE)
+tamoxifen <- dba.normalize(tamoxifen, background=norm$background,
+                           normalize="TMM", method=DBA_ALL_METHODS)
+tamoxifen <- dba.analyze(tamoxifen)
+dba.show(tamoxifen,bContrasts=TRUE)
+dba.plotMA(tamoxifen)
 
 # LOESS offsets
 tamoxifen <- dba.normalize(tamoxifen, method=DBA_ALL_METHODS, offsets=TRUE)
