@@ -2,7 +2,7 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 2.99.21}{
+\section{Version 3.0}{
 \itemize{
 \item{
 This is a major release of DiffBind and the new version will be 3.0.
@@ -29,125 +29,109 @@ Normalization options have been moved from dba.analyze()
 to the new interface function dba.normalize().
 Any non-default normalization options must be specified using dba.normalize().
 }
- \item{Changes in this point release:}
+ \item{Summary of Changes:}
    \itemize{
-     \item{default for bUseSummarizeOverlaps in dba.count is now TRUE}
-     \item{automatically detect single-end/paired-end in dba.count}
-     \item{automatically index uindexed bams in dba.count and dba.normalize}
+       \item{dba.analyze():}
+          \itemize{
+             \item{Automatic mode can start at any point, including from a 
+                   sample sheet, and continue default analysis}
+              \item{Remove normalization options bSubControl, bFullLibrarySize,
+                    filter, and filterFun from dba.analyze(), 
+                    now set in dba.normalize().}
+              \item{Add support to analyze using full model design formula.}
+              \item{Update DESeq2 analysis method.}
+              \item{Update edgeR analysis method.}
+              \item{Moved edgeR bTagwise parameter to $config option}
+              \item{Remove support for DESeq analysis method.}
+              \item{Add ability to retrieve DESeq2 or edgeR object}
+          }
+          
+        \item{dba.contrast():} {
+           \itemize{
+              \item{Add design parameter to set design formula}
+              \item{Add contrast parameter to specify contrast using 
+                    variety of methods}
+              \item{Add reorderMeta parameter to set factor value order}
+              \item{Add bGetCoefficients parameter to get design coefficient
+                   names to use in contrasts}
+           }
+        }
+        
+        \item{NEW: dba.normalize():}
+           \itemize{
+              \item{Support TMM, RLE, and Library size noramlization for 
+                    both DESeq2 and edgeR}
+              \item{Support background bin normalization using csaw}
+              \item{Support offsets and loess fit normalization}
+              \item{Support spike-in normalization with combined or separate reference genomes}
+              \item{Support parallel factor normalization}
+              \item{bSubControl default depend on presence of Greylist}
+           }
+           
+        \item{dba.count():}
+           \itemize{
+             \item{Change default to summits=250; 
+                   to avoid recentering around summits,must set summits=FALSE}
+             \item{Default for bUseSummarizeOverlaps in dba.count is now TRUE}
+             \item{Automatically detect single-end/paired-end in dba.count}
+             \item{Automatically index unindexed bams in dba.count and dba.normalize}
+             \item{move bSubControl parameter}
+             \item{Default score is now new score DBA_SCORE_NORMALIZED}
+             \item{Add minCount parameter to dba.count(), default now 0 instead of 1}
+             \item{Filtering peak by read count thresholds only available in dba.count()}
+             \item{Fix bug in dba.count() with user-supplied peakset and summits=n}
+           }
+          
+        \item{NEW: dba.blacklist():}
+           \itemize{
+             \item{Apply ENCODE blacklist}
+             \item{Automatically detect reference genome for blacklist}
+             \item{Apply Greylists}
+             \item{Generate Greylists from controls using GreyListChIP package}
+           }
+
+        \item{Plotting changes:}
+          \itemize{
+            \item{Add loess fit line to dba.plotMA()}
+            \item{Add ability in dba.plotMA() to plot aribitrary samples 
+                  (without contrast).}
+            \item{Add mask parameter to dba.plotBox() } 
+            \item{Support negative scores, eg Fold changes in report-based objects,
+                  to enable fold-change heatmaps.}
+            \item{Removed bCorPlot as a parameter to dba(), dba.count(), 
+                  and dba.analyze(). Use config.}
+          }
+          
+        \item{dba.show() / print changes:}
+           \itemize{
+             \item{Updated dba.show() and print() to deal with designs and 
+                   different contrast types}
+             \item{Add ability to retrieve design formula in dba.show()}
+             \item{Removed bUsePval parameter in dba.show()}
+             \item{Added constant variable DBA_READS to access library sizes}
+           }
+        
+        \item{Vignette and help pages:} 
+           \itemize{
+              \item{Replace multi-factor analysis section}
+              \item{Add extensive normalization section}
+              \item{Add blacklist/greylist section.}
+              \item{Add pike-in and parallel normalization examples}
+              \item{Add DiffBind3 help page and vignette section with 
+                    information on backward compatibility.}
+              \item{Update technical details sections}
+              \item{General updates to all sections}
+              \item{Add GenerateDataFiles.R to package}
+           }
+        \item{Various bugfixes and cosmetic changes.}
     }
  }
 }
 
-\section{Version 2.99.20}{
- Changes in this point release:
-   \itemize{
-     \item{Default score is now DBA_SCORE_NORMALIZED}
-     \item{Removed count filters from dba.normalize}
-    }
-}
-
-\section{Version 2.99.10}{
- Changes in this point release:
-   \itemize{
-     \item{spike-in and parallel normalization examples}
-     \item{updated vignette}
-    }
-}
-
-\section{Version 2.99.9}{
-  Changes in this point release:
-   \itemize{
-     \item{dba.analyze() now performs a complete default analysis from a sample sheet}
-     \item{updated vignette}
-     \item{removed option for full library size for TMM, RLE, and loess normalization}
-    }
-}
-
-\section{Version 2.99.8}{
- Changes in this point release:
-   \itemize{
-     \item{Update vignette to include sections on blacklists and normalization.}
-     \item{Add DiffBind3 help page with information on backward compatibility.}
-     \item{Add ability in dba.plotMA() to plot aribitrary samples.}
-     \item{Add GenerateDataFiles.R to package}
-     \item{Fix bug in dba.count() with user-supplied peakset and summits=n}
-    }
-}
-
-
-\section{Version 2.99.5}{
- Changes in this point release:
-    \itemize{
-     \item{Add new interface function: dba.normalize() for greater control of normalization.}
-     \item{add bLoess parameter to dba.plotMA, default is TRUE}
-     \item{Remove normalization options from dba.analyze().}
-     \item{Add minCount parameter to dba.count().}
-     \item{Update vignette.}
-     \item{Add tests for normalization.}
-    }
-}
-
-\section{Version 2.99.3}{
- Changes in this point release:
-   \itemize{
-     \item{Change minimum count value from 1 to 0}.
-     \item{Add new interface function: dba.blacklist() to support  
-     blacklists and greylists}
-     \item{Change default for bSubControl in dba.analyze() to be FALSE if a greylist has been used to filter peaks.}
-     \item{Add reorderMeta parameter to dba.contrast()}
-
-    }
-}
-
-\section{Version 2.99.1}{
-
-   \itemize{
-
-    \item{Add full model designs.}
-
-    \item{dba.contrast() changes:}
-      \itemize{
-         \item{Add ability to provide arbitrary design formula to dba.contrast() and made default}
-         \item{Add ability to specify contrasts in a number of formats}
-         \item{Add ability to retrieve names of design coefficients}
-      }
-     \item{dba.analyze() changes:}
-      \itemize{
-        \item{Removed support for original DESeq (keeping edgeR and DESeq2)}
-        \item{Add ability to retrieve DESeq2 or edgeR object}
-        \item{Moved bTagwise parameter to $config option}
-      }
-     \item{dba.count() changes:}
-      \itemize{
-        \item{Add new library size normalization scores:}
-         \itemize{
-          \item{DBA_SCORE_READS_FULL}
-          \item{DBA_SCORE_READS_EFFECTIVE}
-          \item{DBA_SCORE_READS_MINUS_FULL}
-          \item{DBA_SCORE_READS_MINUS_EFFECTIVE}
-         }   
-       \item{Changed default dba.count() score to DBA_SCORE_READS_MINUS_FULL 
-       (from DBA_SCORE_TMM_MINUS_FULL)}
-       \item{change default to summits=250; to avoid recentering around summits, 
-       must set summits=FALSE}
-      }
-      \item{dba.show() changes:}
-       \itemize{
-        \item{Updated dba.show() and print() to deal with designs and different contrast types}
-        \item{Add ability to retrieve design formula in dba.show()}
-        \item{Removed bUsePval parameter in dba.show()}
-        \item{Added constant variable DBA_READS to access library sizes}
-      }
-    \item{Add mask parameter to dba.plotBox() }
-    \item{removed bCorPlot as a parameter to dba(), dba.count(), and dba.analyze(). Use config.}
-    \item{Major update of Vignette and man pages to reflect new modelling methods.}
-    \item{Various bugfixes and cosmetic changes.}
-    }
-}
 
 \section{Version 2.15.1}{
    \itemize{
-      \item{Fix issue when extracing SummarizedExperiment from DBA}
+      \item{Fix issue when extracting SummarizedExperiment from DBA}
     }
 }
 
