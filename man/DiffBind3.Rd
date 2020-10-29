@@ -44,6 +44,27 @@ processing and analyzing ChIP-seq (and ATAC-seq) experiments.
 
 }
 
+\section{Changes to Defaults}{
+\itemize{
+ \item{\bold{blacklist} is applied by default, if available, using automatic 
+detection of reference genome.}
+ \item{\bold{greylists} are generated from controls and applied by default.}
+ \item{\bold{minimum read counts} are now 0 instead of being rounded up to 1
+ (this is now controllable).}
+ \item{\bold{centering peaks around summits} is now done by default using 401-bp 
+ wide peaks (recommend to use `summits=100` for ATAC-seq).}
+ \item{\bold{read counting} is now performed by `summarizeOverlaps()` by default, 
+ with single-end/paired-end counting automatically detected.}
+ \item{\bold{filtering} is performed by default; consensus peaks where no peak has
+ more than five reads in any sample are filtered.}
+ \item{\bold{control read subtraction} is now turned off by default if a greylist 
+ is present}
+ \item{\bold{normalization} is based on full library sizes by default for both 
+ `edgeR` and `DESeq2`analyses.}
+ \item{\bold{score} is set to normalized values by default.}
+ }
+}
+
 \section{Backward compatibility}{
 
 Most existing \code{\link{DiffBind}} scripts and saved objects will

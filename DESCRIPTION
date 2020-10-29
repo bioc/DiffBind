@@ -1,6 +1,6 @@
 Package: DiffBind
 Type: Package
-Version: 3.0.0
+Version: 3.0.1
 Title: Differential Binding Analysis of ChIP-Seq Peak Data
 Authors@R: c(person("Rory","Stark", email="rory.stark@cruk.cam.ac.uk",
                   role = c("aut", "cre")),
@@ -27,4 +27,5 @@ Collate: core.R parallel.R model.R counts.R contrast.R normalize.R
          utils.R RcppExports.R cpp_wrapper.R DBA.R
 biocViews: Sequencing, ChIPSeq, DifferentialPeakCalling, 
            ATACSeq, Epigenetics, FunctionalGenomics
-URL: http://DiffBind.starkhome.com/
+URL: https://www.cruk.cam.ac.uk/core-facilities/bioinformatics-core/software/diffbind
+
