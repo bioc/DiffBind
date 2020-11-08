@@ -104,8 +104,10 @@ dba <- function(DBA,mask, minOverlap=2,
   
   res$contrasts=NULL
   
-  if(sum(res$peaks[[1]]$Score<0)>0) {
-    res <- pv.ResetScores(res,ones=FALSE)
+  if(nrow(res$peaks[[1]])>0) {
+    if(sum(res$peaks[[1]]$Score<0)>0) {
+      res <- pv.ResetScores(res,ones=FALSE)
+    }
   }
   
   if(is.null(res$config$DataType)) {
