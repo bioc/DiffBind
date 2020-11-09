@@ -100,6 +100,7 @@ One of:
 \item \code{\link{DBA_SCORE_READS_FOLD}}
 \item \code{\link{DBA_SCORE_RPKM}}
 \item \code{\link{DBA_SCORE_RPKM_FOLD}}
+\item \code{\link{DBA_SCORE_RPKM_MINUS}}
 %\item \code{\link{DBA_SCORE_TMM_READS_FULL}}
 %\item \code{\link{DBA_SCORE_TMM_READS_EFFECTIVE}}
 %\item \code{\link{DBA_SCORE_TMM_MINUS_FULL}}

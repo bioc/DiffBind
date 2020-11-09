@@ -24,7 +24,6 @@ pv.normalize <- function(pv,
                          method    = DBA_ALL_METHODS,
                          libSizes  = PV_LIBSIZE_FULL,
                          normalize = PV_NORM_DEFAULT,
-                         bSubControl = is.null(pv$greylist),
                          filter=0, filterFun=max, 
                          background=FALSE, offsets=FALSE, spikein=FALSE,
                          libFun=PV_NORM_LIBFUN,
@@ -93,7 +92,6 @@ pv.normalize <- function(pv,
     for(method in c(DBA_DESEQ2, DBA_EDGER)) {
       pv <- pv.normalize(pv, method=method,
                          libSizes=libSizes,normalize=normalize,
-                         bSubControl=bSubControl,
                          filter=filter, filterFun=filterFun, 
                          background=background, 
                          offsets=offsets, spikein=spikein,
@@ -109,11 +107,29 @@ pv.normalize <- function(pv,
   }
   
   norm <- NULL
-  norm$bSubControl <- bSubControl
-  norm$filter.val <- filter
+  if(is.null(pv$bSubControl)) {
+    norm$bSubControl <- is.null(pv$greylist)
+  } else {
+    norm$bSubControl <- pv$bSubControl 
+  }
+  bSubControl <- norm$bSubControl
+  
+  if(is.null(pv$maxFilter)) {
+    norm$filter.val <- PV_DEFAULT_FILTER
+  } else {
+    norm$filter.val <- pv$maxFilter
+  }
+  filter <- norm$filter.val
+  
   if(filter > 0) {
-    norm$filter.fun <- filterFun
+    if(is.null(pv$filterFun)) {
+      norm$filter.fun <- max
+    } else {
+      norm$filter.fun <- pv$filterFun
+    }
+    filterFun <- norm$filter.fun
   } 
+  
   norm$lib.method <- libSizes
   norm$background <- FALSE
   
@@ -286,7 +302,7 @@ pv.normfacsTMM <- function(pv,norm,method,bSubControl=FALSE,
   if(background[1] != FALSE) {
     if(!is.null(binned)) {# TMM on Background bins
       binned$totals <- norm$lib.sizes
-      norm$norm.facs <- csaw::normFactors(binned,method="TMM", se.out=FALSE)
+      norm$norm.facs <- csaw::normFactors(binned, se.out=FALSE)
     }  else {
       stop("No binned counts for background TMM",call.=FALSE)
     }
@@ -316,10 +332,18 @@ pv.normfacsRLE <- function(pv,norm,method,bSubControl=FALSE,
   if(background[1] != FALSE) {
     if(!is.null(binned)) {# RLE on Background bins
       binned$totals <- norm$lib.sizes
-      norm$norm.facs <- csaw::normFactors(binned,method="RLE", se.out=FALSE)
       if(method==DBA_DESEQ2) {
-        norm$norm.facs <- pv.edgeRtoDESeq2norm(norm, libFun=libFun)
+        mode(assay(binned)) <- "integer"
+        norm$norm.facs <- 
+          DESeq2::sizeFactors(
+            DESeq2::estimateSizeFactors(
+              DESeq2::DESeqDataSet(binned, design=formula("~ 1"))))
       }
+      if(method==DBA_EDGER) {
+        norm$norm.facs <-
+          edgeR::calcNormFactors(
+            edgeR::DGEList(assay(binned)), method="RLE")$samples$norm.factors
+      } 
     } else {
       stop("No binned counts for background RLE",call.=FALSE)
     }
@@ -487,7 +511,8 @@ pv.parallelFactor <- function(pv, spikein) {
       pv$class[PV_BAMCONTROL,] <- NA
       pv$class[PV_CONTROL,]    <- NA
       pv$chrmap <- sort(unique(as.character(seqnames(spikein))))
-      pv <- dba.count(pv, peaks=spikein,summits=FALSE,filter=0)
+      pv <- dba.count(pv, peaks=spikein,summits=FALSE,filter=0,
+                      bSubControl=FALSE, score=DBA_SCORE_READS)
       data <- pv$binding[,4:ncol(pv$binding)]
       peaks <-  pv$binding[,1:3]
       peaks[,1] <- pv$chrmap[peaks[,1]]

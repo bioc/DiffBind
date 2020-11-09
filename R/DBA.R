@@ -464,6 +464,7 @@ dba.blacklist <- function(DBA, blacklist=DBA$config$doBlacklist,
 DBA_SCORE_NORMALIZED          <- PV_SCORE_NORMALIZED
 DBA_SCORE_RPKM                <- PV_SCORE_RPKM
 DBA_SCORE_RPKM_FOLD           <- PV_SCORE_RPKM_FOLD
+DBA_SCORE_RPKM_MINUS          <- PV_SCORE_RPKM_MINUS
 DBA_SCORE_READS               <- PV_SCORE_READS
 DBA_SCORE_CONTROL_READS       <- PV_SCORE_CONTROL_READS
 DBA_SCORE_READS_FOLD          <- PV_SCORE_READS_FOLD
@@ -489,8 +490,9 @@ DBA_READS_BAM     <- PV_READS_BAM
 DBA_READS_BED     <- PV_READS_BED
 
 dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
-                      fragmentSize=DBA$config$fragmentSize, summits=200, filter=5, 
-                      bRemoveDuplicates=FALSE, bScaleControl=TRUE,
+                      fragmentSize=DBA$config$fragmentSize, summits=200, 
+                      filter=1, bRemoveDuplicates=FALSE,
+                      bScaleControl=TRUE, bSubControl = is.null(DBA$greylist), 
                       mapQCth=DBA$config$mapQCth, filterFun=max, minCount=0, 
                       bLog=FALSE, bUseSummarizeOverlaps=TRUE,  
                       readFormat=DBA_READS_DEFAULT,bParallel=DBA$config$RunParallel) 
@@ -563,7 +565,7 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
                              bLowMem=bUseSummarizeOverlaps,
                              readFormat=readFormat,summits=0,
                              minMappingQuality=mapQCth,bRecentered=TRUE,
-                             minCount=minCount)
+                             minCount=minCount, bSubControl=bSubControl)
             res$summits <- summits
             res$norm <- DBA$norm
             res <- pv.reNormalize(res)
@@ -597,7 +599,7 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
                      bLowMem=bUseSummarizeOverlaps,readFormat=readFormat,
                      summits=summits,
                      minMappingQuality=mapQCth,
-                     minCount=minCount)
+                     minCount=minCount, bSubControl=bSubControl)
     if(summits != -1) {
       res$summits <- summits
     }
@@ -653,7 +655,6 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
                           normalize   = DBA_NORM_DEFAULT,
                           library     = DBA_LIBSIZE_DEFAULT, 
                           background=FALSE, spikein=FALSE, offsets=FALSE, 
-                          bSubControl = is.null(DBA$greylist),
                           libFun=mean, bRetrieve=FALSE, ...) {
   
   DBA <- pv.check(DBA,TRUE)
@@ -700,7 +701,6 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
   
   res <- pv.normalize(DBA, method=method, 
                       libSizes=library, normalize=normalize,
-                      bSubControl=bSubControl,
                       libFun=libFun,
                       background=background, spikein=spikein, offsets=offsets, 
                       bRetrieve=bRetrieve, filter=0, ...)

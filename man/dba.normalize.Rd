@@ -15,7 +15,6 @@ and normalization factors directly, or retrieve computed ones.
 dba.normalize(DBA, method = DBA$config$AnalysisMethod,
               normalize = DBA_NORM_DEFAULT, library = DBA_LIBSIZE_DEFAULT, 
               background = FALSE, spikein = FALSE, offsets = FALSE,
-              bSubControl = is.null(DBA$greylist),
               libFun=mean, bRetrieve=FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -192,19 +191,6 @@ offsets should be applied as-is to a  \code{DESeq2} analysis
 or if they should be adjusted for library size and mean centering
 (\code{DBA_NORM_OFFSETS_ADJUST}).
 
-}
-
-\item{bSubControl}{
-logical indicating whether Control read counts are subtracted for each site in each sample 
-before performing analysis.
-If there are more overlapping control reads than ChIP reads, 
-the count will be set to the \code{minCount} value specified
-when \code{\link{dba.count}} was called, or zero if no value is specified.
-
-
-If \code{bSubControl} is not explicitly specified,
-it will be set to \code{TRUE} unless a greylist has been applied
-(see \code{\link{dba.blacklist}}).
 }
 
 \item{libFun}{

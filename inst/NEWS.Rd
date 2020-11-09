@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.0.4}{
+   \itemize{
+      \item{Move bSubControl from dba.normalize to dba.count}
+      \item{Change filtering to use RPKM or RPKM_MINUS}
+      \item{Change default filter value to 1}      
+    }
+}
+
 \section{Version 3.0}{
 \itemize{
 \item{

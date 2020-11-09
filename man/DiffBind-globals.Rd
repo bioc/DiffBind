@@ -30,6 +30,7 @@
 \alias{DBA_SCORE_RPKM}
 \alias{DBA_SCORE_NORMALIZED}
 \alias{DBA_SCORE_RPKM_FOLD}
+\alias{DBA_SCORE_RPKM_MINUS}
 \alias{DBA_SCORE_TMM_READS_FULL}
 \alias{DBA_SCORE_TMM_READS_EFFECTIVE}
 \alias{DBA_SCORE_TMM_MINUS_FULL}
@@ -131,6 +132,7 @@ DBA_SCORE_READS_MINUS_EFFECTIVE
 DBA_SCORE_READS_FOLD
 DBA_SCORE_RPKM
 DBA_SCORE_RPKM_FOLD
+DBA_SCORE_RPKM_MINUS
 DBA_SCORE_TMM_READS_FULL
 DBA_SCORE_TMM_READS_EFFECTIVE
 DBA_SCORE_TMM_MINUS_FULL
@@ -297,6 +299,10 @@ dba.count score is RPKM of ChIP
 \item{DBA_SCORE_RPKM_FOLD}{
 dba.count score is RPKM of ChIP divided by RPKM of Control
 }
+\item{DBA_SCORE_RPKM_MINUS}{
+dba.count score is RPKM of ChIP minus RPKM of Control
+}
+
 \item{DBA_SCORE_TMM_READS_FULL}{
 dba.count score is TMM normalized (using edgeR), using ChIP read counts and Full Library size
 }
