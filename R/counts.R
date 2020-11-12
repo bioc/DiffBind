@@ -113,6 +113,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
       }
     } else { # peaks provided
       pv$chrmap <- unique(as.character(peaks[,1]))
+      rownames(peaks) <- 1:nrow(peaks)
       if(is.character(peaks[1,1])){
         peaks[,1] <- factor(peaks[,1],pv$chrmap)
       }
