@@ -42,6 +42,7 @@ pv.DBA <- function(pv,method='edgeR',bTagwise=TRUE,
     numjobs <- 0
   }
   
+  pv <- pv.checkConsensusRows(pv)
   
   results <- NULL
   
@@ -385,4 +386,13 @@ pv.getMethod <- function(str) {
   } else ret <- NULL
   return(ret)
 }
+
+pv.checkConsensusRows <- function(pv){
+  for(i in 1:length(pv$peaks)) {
+    rownames(pv$peaks[[i]]) <- 1:nrow(pv$peaks[[i]])
+  }
+  rownames(pv$binding) <- 1:nrow(pv$binding)
+  return(pv)
+}
+
 
