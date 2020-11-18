@@ -21,9 +21,13 @@ pv.peakset <- function(pv = NULL,peaks, sampID, tissue, factor,condition, treatm
     peaks <- NULL
   }
   
-  if (!is.null(pv$peaks) && length(peaks) == 0) {
-    peaks <- 1:length(pv$peaks)
+  if(length(peaks) == 0) {
+    peaks <- NULL
   }
+  
+  # if (!is.null(pv$peaks) && length(peaks) == 0) {
+  #   peaks <- 1:length(pv$peaks)
+  # }
   
   if (missing(counts))
     counts <- NULL
@@ -131,7 +135,7 @@ pv.peakset <- function(pv = NULL,peaks, sampID, tissue, factor,condition, treatm
     spikein <- NA
   
   if (!is.null(peaks) && length(peaks) <= 1) {
-    if (is.na(peaks)) {
+    if (is.na(peaks) || length(peaks)==0) {
       peaks <- NULL
     } else {
       if (is.character(peaks)) {
@@ -665,6 +669,12 @@ pv.model <- function(model,mask,minOverlap=2,
       peakcaller <- 'counts'
     }
     
+    if(is.null(samples$Peaks[i])) {
+      peakid <- NULL
+    } else {
+      peakid <- as.character(samples$Peaks[i])
+    }
+    
     message(as.character(samples$SampleID[i]),' ',
             as.character(samples$Tissue[i]),' ',
             as.character(samples$Factor[i]),' ',
@@ -673,7 +683,7 @@ pv.model <- function(model,mask,minOverlap=2,
             as.integer(samples$Replicate[i]),' ',peakcaller)
     
     model <- pv.peakset(model,
-                        peaks       = as.character(samples$Peaks[i]),
+                        peaks       = peakid,
                         sampID      = as.character(samples$SampleID[i]),
                         tissue      = as.character(samples$Tissue[i]),
                         factor      = as.character(samples$Factor[i]),

@@ -39,6 +39,7 @@ export(dba,
        DBA_SCORE_NORMALIZED,
        DBA_SCORE_RPKM,
        DBA_SCORE_RPKM_FOLD,
+       DBA_SCORE_RPKM_MINUS,
        DBA_SCORE_READS,
        DBA_SCORE_CONTROL_READS,
        DBA_SCORE_READS_FOLD,
@@ -76,7 +77,7 @@ export(dba,
        DBA_DATA_SUMMARIZED_EXPERIMENT,
        DBA_DATA_DBAOBJECT,
        DBA_BLACKLIST_HG19,
-       DBA_BLACKLIST_HG19,
+       DBA_BLACKLIST_HG38,
        DBA_BLACKLIST_GRCH37, 
        DBA_BLACKLIST_GRCH38, 
        DBA_BLACKLIST_MM9,
@@ -126,7 +127,7 @@ importFrom(IRanges, IRanges, overlapsAny, "%over%")
 
 importFrom(GenomicRanges, GRanges, GRangesList, seqnames, width, union, mcols)
 
-importFrom(SummarizedExperiment, SummarizedExperiment, assay, assays)
+importFrom(SummarizedExperiment, SummarizedExperiment, assay, "assay<-", assays)
 
 importFrom(graphics, abline, boxplot, plot, points, smoothScatter,
            "axis", "hist", "image", "layout", "lines",

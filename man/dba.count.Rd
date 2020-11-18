@@ -12,7 +12,8 @@ respectively.
 \usage{
 dba.count(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
           fragmentSize=DBA$config$fragmentSize, 
-          summits=200, filter=5, bRemoveDuplicates=FALSE, bScaleControl=TRUE,
+          summits=200, filter=1, bRemoveDuplicates=FALSE, bScaleControl=TRUE,
+          bSubControl = is.null(DBA$greylist),
           mapQCth=DBA$config$mapQCth, filterFun=max, minCount=0, 
           bLog=FALSE, bUseSummarizeOverlaps=TRUE, 
           readFormat=DBA_READS_DEFAULT, bParallel=DBA$config$RunParallel) 
@@ -47,6 +48,7 @@ DBA_SCORE_READS_MINUS \tab raw read count for interval from ChIP minus read coun
 %DBA_SCORE_READS_MINUS_EFFECTIVE \tab read count for interval from ChIP minus read count for interval from control normalized based on Effective Library size\cr
 DBA_SCORE_RPKM \tab RPKM for interval using only reads from ChIP\cr
 DBA_SCORE_RPKM_FOLD \tab RPKM for interval from ChIP divided by RPKM for interval from control\cr
+DBA_SCORE_RPKM_MINUS \tab RPKM for interval from ChIP minus RPKM for interval from control\cr
 %DBA_SCORE_TMM_READS_FULL \tab TMM normalized (using edgeR), using ChIP read counts and Full Library size\cr
 %DBA_SCORE_TMM_READS_EFFECTIVE \tab TMM normalized (using edgeR), using ChIP read counts and Effective Library size\cr
 %DBA_SCORE_TMM_MINUS_FULL \tab TMM normalized (using edgeR), using ChIP read counts minus Control read counts and Full Library size\cr
@@ -84,12 +86,20 @@ Note that if \code{summits} is greater than zero, the counting procedure will ta
 
 \item{filter}{
 value to use for filtering intervals with low read counts. 
-The \code{filterFun} will be applied to the scores for each interval, 
+The \code{filterFun} will be applied to the counts for each interval, 
 and if it returns a value below the \code{filter} value, 
 the interval will be removed from further analysis.
 If \code{peaks} is \code{NULL}, will remove sites from existing DBA object without recounting. 
 If filter is a vector of values, \code{dba.count} will return a vector of the same length, 
 indicating how many intervals will be retained for each specified \code{filter} level.
+
+NB: the filtering will be based on RPKM values. 
+If \code{bSubControl} is \code{FALSE}, this is the RPKM value of the read counts
+(equivalent to \code{score=DBA_SCORE_RPKM}.
+If \code{bSubControl} is \code{TRUE}, this is the RPKM value of the 
+control counts subtracted from the RPKM of the read counts
+(equivalent to \code{score=DBA_SCORE_RPKM_MINUS}).
+
 }
 \item{bRemoveDuplicates}{
 logical indicating if duplicate reads (ones that map to exactly the same genomic position) should be removed.
@@ -111,6 +121,19 @@ If this value is not an integer, the number of Control reads for each peak
 will be the next highest integer.
 }
 
+\item{bSubControl}{
+logical indicating whether Control read counts are subtracted for 
+each site in each sample.
+If there are more overlapping control reads than ChIP reads, 
+the count will be set to the \code{minCount} value specified
+when \code{\link{dba.count}} was called, or zero if no value is specified.
+
+If \code{bSubControl} is not explicitly specified,
+it will be set to \code{TRUE} unless a greylist has been applied
+(see \code{\link{dba.blacklist}}).
+
+}
+
 \item{mapQCth}{
 for filtering by mapping quality (mapqc). 
 Only alignments with mapping scores of at least this value will be included. 
@@ -119,17 +142,22 @@ Only applicable for bam files when \code{bUseSummarizeOverlaps=FALSE}
 }
 
 \item{filterFun}{
-function that will be invoked for each interval with a vector of scores for each sample. 
-Returns a score that will be evaluated against the \code{filter} value (only intervals with a score 
+function that will be invoked for each interval with a
+vector of scores for each sample. 
+Returns a score that will be evaluated against the \code{filter} value 
+(only intervals with a score 
 at least as high as \code{filter} will be kept).
-Default is \code{max}, indicating that at least one sample should have a score of at least \code{filter}; 
-other useful values include \code{sum} (indicating that all the scores added together should be at least \code{filter}) and \code{mean} (setting a minimum mean normalized count level). 
+Default is \code{max}, indicating that at least one sample 
+should have a score of at least \code{filter}; 
+other useful values include \code{sum} (indicating that all the scores added together should be at least \code{filter}) and \code{mean}
+(setting a minimum mean normalized count level). 
 Users can supply their own function as well.
 }
 \item{minCount}{
 minimum read count value. 
 Any interval with fewer than this many overlapping reads will
 be set to have this count.
+Also applies to scores.
 }
 
 \item{bLog}{
@@ -213,7 +241,7 @@ data(tamoxifen_counts)
 dba.peakset(tamoxifen, bRetrieve=TRUE) # default: DBA_SCORE_NORMALIZED
 tamoxifen <- dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_READS)
 dba.peakset(tamoxifen, bRetrieve=TRUE)
-tamoxifen <- dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_RPKM_FOLD)
+tamoxifen <- dba.count(tamoxifen,peaks=NULL,score=DBA_SCORE_RPKM_MINUS)
 dba.peakset(tamoxifen, bRetrieve=TRUE)
 
 # Plot effect of a range of filter values and then apply filter 

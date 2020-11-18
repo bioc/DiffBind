@@ -258,9 +258,9 @@ pv.applyBlacklist <- function(pv, blacklist) {
 pv.doBlacklist <- function(peakset, blacklist, bReturnFiltered=FALSE){
   peakset <- GRanges(peakset)
   if(!bReturnFiltered) {
-    peakset <- peakset[!peakset %over% blacklist]
+    suppressWarnings(peakset <- peakset[!peakset %over% blacklist])
   } else {
-    peakset <- peakset[peakset %over% blacklist]
+    suppressWarnings(peakset <- peakset[peakset %over% blacklist])
   }
   peakset <- data.frame(peakset)
   if(nrow(peakset)==0) {

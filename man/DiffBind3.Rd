@@ -44,6 +44,27 @@ processing and analyzing ChIP-seq (and ATAC-seq) experiments.
 
 }
 
+\section{Changes to Defaults}{
+\itemize{
+ \item{\bold{blacklist} is applied by default, if available, using automatic 
+detection of reference genome.}
+ \item{\bold{greylists} are generated from controls and applied by default.}
+ \item{\bold{minimum read counts} are now 0 instead of being rounded up to 1
+ (this is now controllable).}
+ \item{\bold{centering peaks around summits} is now done by default using 401-bp 
+ wide peaks (recommend to use `summits=100` for ATAC-seq).}
+ \item{\bold{read counting} is now performed by `summarizeOverlaps()` by default, 
+ with single-end/paired-end counting automatically detected.}
+ \item{\bold{filtering} is performed by default; consensus peaks where no peak has
+ and RPKM value of at least 1 in any sample are filtered.}
+ \item{\bold{control read subtraction} is now turned off by default if a greylist 
+ is present}
+ \item{\bold{normalization} is based on full library sizes by default for both 
+ `edgeR` and `DESeq2`analyses.}
+ \item{\bold{score} is set to normalized values by default.}
+ }
+}
+
 \section{Backward compatibility}{
 
 Most existing \code{\link{DiffBind}} scripts and saved objects will
@@ -73,10 +94,11 @@ a number of defaults need to be changed.
 When calling \code{\link{dba.count}}, the following defaults are changed:
 \itemize{
   \item{\code{summits}:} {This parameter is now set by default. Setting 
-                  \code{summits=FALSE} will preempt re-centering each 
-                  peak interval around its point of highest pileup.}  
-  \item{\code{filter}:}  {The new default for this parameter is \code{5}; previously
-                  it was set to \code{filter=0}.}
+     \code{summits=FALSE} will preempt re-centering each 
+      peak interval around its point of highest pileup.}  
+  \item{\code{filter}:}  {The new default for this parameter is \code{1}
+  and is based on \code{RPKM} values; previously
+       it was set to \code{filter=0} and was based on read counts.}
   \item{\code{minCount}:} {This is a new parameter representing a minimum read count value.
                    It now default to \code{0}; 
                    to get the previous behavior, set \code{minCount=1}. }
@@ -98,14 +120,13 @@ are as follows:
   \item{\code{background}:} {\code{FALSE}}
 }
 Note that two parameters that used to be available when calling 
-\code{\link{dba.analyze}} are now integrated into the
-\code{\link{dba.normalize}} function:
+\code{\link{dba.analyze}} have been moved:
 
 \itemize{
-  \item{\code{bSubControl}:} {\code{FALSE} by default (unless a greylist has
+  \item{\code{bSubControl}:} {now integrated into  \code{\link{dba.count}}. \code{FALSE} by default (unless a greylist has
   been added using \code{\link{dba.blacklist}}).}
-  \item{\code{bFullLibrarySize}:} {This is now part of the \code{library} parameter
-  for \code{\link{dba.normalize}}. 
+  \item{\code{bFullLibrarySize}:} {now integrated into  
+  \code{\link{dba.normalize}} as an option for  the \code{library} parameter. 
   \code{library=DBA_LIBSIZE_FULL} is equivalent to \code{bFullLibrarySize=TRUE},
   and \code{library=DBA_LIBSIZE_PEAKREADS} is equivalent to 
   \code{bFullLibrarySize=FALSE}.}
