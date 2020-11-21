@@ -317,6 +317,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     blacklist  <- pv$blacklist
     greylist   <- pv$greylist
     peaks.blacklisted <- pv$peaks.blacklisted
+    resultObject <- pv$resultObject
     #annotation <- pv$annotation
     
     pv <- NULL
@@ -334,6 +335,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     pv$blacklist  <- blacklist
     pv$greylist   <- greylist
     pv$peaks.blacklisted <- peaks.blacklisted
+    pv$resultObject <- resultObject
     #pv$annotation <- annotation
   }
   

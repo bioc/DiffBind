@@ -1304,7 +1304,7 @@ pv.overlaps <- function(pv,minOverlap) {
 pv.allSame <- function(pv) {
    callers <- unique(pv$class[DBA_CALLER,])
    if((length(callers)==1) & (callers[1]=='counts')) {
-      if(length(unique(sapply(pv$peaks,nrow)))) {
+      if(length(unique(sapply(pv$peaks,nrow)))==1) {
          return(TRUE)
       }
    }
