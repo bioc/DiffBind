@@ -118,16 +118,12 @@ importFrom(amap, Dist)
 
 importFrom(gplots, heatmap.2)
 
-#importFrom(edgeR,   
-#           estimateCommonDisp, estimateGLMCommonDisp, estimateGLMTagwiseDisp,
-#           estimateTagwiseDisp, exactTest, glmFit, glmLRT,
-#           topTags,calcNormFactors, DGEList)
-
 importFrom(IRanges, IRanges, overlapsAny, "%over%")
 
 importFrom(GenomicRanges, GRanges, GRangesList, seqnames, width, union, mcols)
 
-importFrom(SummarizedExperiment, SummarizedExperiment, assay, "assay<-", assays)
+importFrom(SummarizedExperiment, SummarizedExperiment, assay, "assay<-",
+           assays, "assays<-", rowData, "rowData<-")
 
 importFrom(graphics, abline, boxplot, plot, points, smoothScatter,
            "axis", "hist", "image", "layout", "lines",
@@ -168,7 +164,8 @@ if (tools:::.OStype() == "unix") {
   importFrom(parallel, mcparallel, mccollect)
 }
 
-importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-", mcols)
+importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-", 
+           mcols, "mcols<-")
 
 importFrom(Rsamtools, BamFileList, ScanBamParam, scanBamFlag, 
            countBam, scanBamHeader)

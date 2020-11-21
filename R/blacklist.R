@@ -281,10 +281,12 @@ pv.greylist <- function(pv, greylist, isConsensus=FALSE,
   if(!is(greylist,"GRanges")) {
     controls <- pv$class[PV_BAMCONTROL,]
     if(sum(is.na(controls))==length(controls)) {
-      stop("No control reads specified.",call.=FALSE)
+      message("No control reads specified, unable to generate greylist.")
+      return(pv)
     } else {
       if(length(unique(controls))==1 && controls[1]=="") {
-        stop("No control reads specified.",call.=FALSE)        
+        message("No control reads specified, unable to generate greylist.")
+        return(pv)        
       }
     }
     whichcontrols <- !duplicated(controls)
@@ -322,12 +324,9 @@ pv.greylist <- function(pv, greylist, isConsensus=FALSE,
     }
     
     ## GreyListChIP for each control    
-    controllist <- NULL
-    for (i in 1:length(controls)) {
-      message(sprintf("Building greylist: %s",controlnames[i]))
-      greylist <- pv.makeGreylist(pv,ktype,controls[i],cores,pval=pv$config$greylist.pval)
-      controllist <- pv.listadd(controllist, greylist)
-    }
+    controllist <- pv.makeGreylists(pv,ktype,controls,cores,
+                                    pval=pv$config$greylist.pval)
+    
     ## Merge
     if(length(controllist)==1) {
       greylist <- controllist[[1]]
@@ -381,15 +380,47 @@ pv.greylist <- function(pv, greylist, isConsensus=FALSE,
   return(pv)
 }
 
-pv.makeGreylist <- function(pv,ktype,bamfile,parallel,pval=.999){
-  gl <- new("GreyList",karyotype=ktype[pv$chrmap,])
-  gl <- GreyListChIP::countReads(gl, bamfile)
+pv.makeGreylists <- function(pv,ktype,bamfiles,parallel,pval=.999){
+  
   usecores <- 1
   if(!is.null(parallel)) {
     if(parallel != FALSE) {
       usecores <- parallel
     }
   }
+  if(usecores > 1) {
+    param <- BiocParallel::MulticoreParam(workers <- usecores)
+  } else {
+    param <-  BiocParallel::SerialParam()
+  }
+  
+  message("Counting control reads for greylist...")
+  res <- tryCatch(
+    suppressMessages(
+      gllist <- bplapply(bamfiles,
+                         pv.countGreylist,
+                         pv, ktype, 
+                         BPPARAM=param)),
+    error=function(x){stop("GreyListChIP error: ",x)}
+  )
+  
+  controllist <- NULL
+  for (i in 1:length(gllist)) {
+    message(sprintf("Building greylist: %s",bamfiles[i]))
+    greylist <- pv.makeGreylist(pv,ktype,gllist[[i]],usecores,
+                                pval=pv$config$greylist.pval)
+    controllist <- pv.listadd(controllist, greylist)
+  }
+  return(controllist)
+}
+
+pv.countGreylist <- function(bamfile,pv,ktype) {
+  gl <- new("GreyList",karyotype=ktype[pv$chrmap,])
+  gl <- GreyListChIP::countReads(gl, bamfile)
+  return(gl)
+}
+
+pv.makeGreylist <- function(pv,ktype,gl,usecores,pval=.999){
   if(is.null(pval)) {
     pval=.999
   }
