@@ -44,7 +44,8 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
     originalConsensus <- nrow(DBA$binding)
   }
   
-  doblacklist <- dogreylist <- getgenome <- genome <- FALSE
+  doblacklist <- dogreylist <- getgenome <- FALSE
+  genome <- NULL
   if(is(blacklist,"logical")) {
     if(blacklist == TRUE) {
       doblacklist <- TRUE
@@ -55,11 +56,19 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
     doblacklist <- TRUE
   }
   
+  havegreylist <- FALSE
   if(is(greylist,"logical")) {
     if(greylist == TRUE) {
       dogreylist <- TRUE
       getgenome <- TRUE
     } 
+  } else if (is(greylist,"list") ||
+             is(greylist,"GRanges") || is(greylist,"GRangesList")) {
+    havegreylist <- TRUE
+    dogreylist   <- TRUE
+    if(is.null(genome)) {
+      genome <- FALSE
+    }
   } else {
     if(is.null(genome)) {
       genome <- greylist
@@ -72,10 +81,12 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
       blacklist <- genome <- pv.genomes(DBA$class["bamRead",],DBA$chrmap)
     } 
     if(dogreylist) {
-      if(is.null(genome)) {
-        greylist <- pv.genomes(DBA$class["bamControl",],DBA$chrmap)
-      } else {
-        greylist <- genome
+      if(!havegreylist) {
+        if(is.null(genome)) {
+          greylist <- genome <- pv.genomes(DBA$class["bamControl",],DBA$chrmap)
+        } else {
+          greylist <- genome
+        }
       }
     }
   } 
@@ -85,7 +96,9 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
       message("No genome detected.")
       return(DBA)
     } else {
-      message("Genome detected: ",strsplit(genome,"BSgenome.")[[1]][2])
+      if(is(genome,"character")) {
+        message("Genome detected: ",strsplit(genome,"BSgenome.")[[1]][2])
+      }
     }
   }
   
