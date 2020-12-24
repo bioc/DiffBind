@@ -293,14 +293,9 @@ pv.greylist <- function(pv, greylist, isConsensus=FALSE,
   
   if(!is(greylist,"GRanges")) {
     controls <- pv$class[PV_BAMCONTROL,]
-    if(sum(is.na(controls))==length(controls)) {
+    if(pv.noControls(controls)) {
       message("No control reads specified, unable to generate greylist.")
       return(pv)
-    } else {
-      if(length(unique(controls))==1 && controls[1]=="") {
-        message("No control reads specified, unable to generate greylist.")
-        return(pv)        
-      }
     }
     whichcontrols <- !duplicated(controls)
     whichcontrols <- whichcontrols & !is.na(controls)
@@ -472,6 +467,16 @@ pv.removeBlacklistedPeaks <- function(DBA) {
   return(DBA)
 }
 
+pv.noControls <- function(controls) {
+  if(sum(is.na(controls))==length(controls)) {
+    return(TRUE)
+  } else {
+    if(length(unique(controls))==1 && controls[1]=="") {
+      return(TRUE)        
+    }
+  }
+  return(FALSE)
+}
 
 pv.genome <- function(bamfile, chrmap=NULL, ref=NULL, dba.ktypes=NULL) {
   
@@ -553,6 +558,7 @@ pv.genomes <- function(bamfiles, chrmap=NULL) {
   dba.ktypes <- NULL
   return(ref)
 }
+
 
 
 

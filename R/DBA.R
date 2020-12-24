@@ -447,7 +447,11 @@ dba.blacklist <- function(DBA, blacklist=DBA$config$doBlacklist,
   }
   
   if(is.null(greylist)) {
-    greylist <- TRUE
+    if(pv.noControls(DBA$class["bamControl",])) {
+      greylist <- FALSE
+    } else {
+      greylist <- TRUE
+    }
   }
   
   res <- pv.BlackGreyList(DBA=DBA, blacklist=blacklist, greylist=greylist,
@@ -809,7 +813,9 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
   
   if(is.null(DBA$greylist)) {
     if(bGreylist == TRUE) {
-      dogreylist <- TRUE
+      if(!pv.noControls(DBA$class["bamControl",])) {
+        dogreylist <- TRUE
+      }
     } 
   }
   
