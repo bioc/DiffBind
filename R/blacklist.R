@@ -390,6 +390,10 @@ pv.greylist <- function(pv, greylist, isConsensus=FALSE,
 
 pv.makeGreylists <- function(pv,ktype,bamfiles,parallel,pval=.999){
   
+  if(Sys.info()["sysname"] == "Windows") {
+    parallel <- NULL
+  }
+
   usecores <- 1
   if(!is.null(parallel)) {
     if(parallel != FALSE) {
