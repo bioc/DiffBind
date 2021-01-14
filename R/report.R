@@ -336,7 +336,10 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
     data <- data[order(data$FDR,data$'p-value'),]
   }
   
-  if(length(precision)==2 | precision[1]>0) {
+  if(length(precision==1) && precision[1]>0) {
+    precision <- c(precision,precision)
+  }
+  if(length(precision)==2) {
     if(groups) {
       data[,4:7] <- round(data[,4:7],precision[1])
       data[,8:9] <- signif(data[,8:9],precision[2])
