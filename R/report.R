@@ -336,7 +336,11 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
     data <- data[order(data$FDR,data$'p-value'),]
   }
   
-  if(length(precision)==2 | precision[1]>0) {
+  if(length(precision==1) && precision[1]>0) {
+    precision <- c(precision,precision)
+  }
+  
+  if(length(precision)==2) {
     if(groups) {
       data[,4:7] <- round(data[,4:7],precision[1])
       data[,8:9] <- signif(data[,8:9],precision[2])
@@ -668,6 +672,9 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
   
   res <- pv.model(res, minOverlap=1)
   res <- pv.ResetScores(res, ones=FALSE)
+  res$resultsObject <- TRUE
+  res$score <- DBA_SCORE_FOLD
+  
   class(res) <- "DBA"
   
   return(res)	
@@ -734,7 +741,7 @@ pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
   
   db <- (scores <= th) & (abs(rep$Fold) >= fold)
   up <- rep$Fold >= 0
-  peaks <- cbind(rep[,1:3],rep$Fold)
+  peaks <- cbind(rep[,1:3],rep$Fold,rep[,4:ncol(rep)])
   
   if(bDB) {
     if(bAll) {
@@ -807,3 +814,53 @@ pv.ResetScores <- function(pv, ones=FALSE){
   pv$binding[,4:ncol(pv$binding)] <- as.matrix(GenomicRanges::mcols(binding))
   return(pv)
 }
+
+PV_SCORE_FOLD             <- "score_fold"
+PV_SCORE_CONCENTRATION    <- "score_conc"
+PV_SCORE_CONC_NUMERATOR   <- "score_num"
+PV_SCORE_CONC_DENOMINATOR <- "score_denom"
+PV_SCORE_PVAL             <- "score_pval"
+PV_SCORE_FDR              <- "score_fdr"
+
+pv.ResetResultScores <- function(pv, score) {
+  
+  if(score == pv$score) {
+    return(pv)
+  }
+  
+  if(score == PV_SCORE_FOLD) {
+    pv <- pv.changeScore(pv, 4)
+  } else if(score == PV_SCORE_CONCENTRATION) {
+    pv <- pv.changeScore(pv, 1)      
+  } else if(score == PV_SCORE_CONC_NUMERATOR) {
+    pv <- pv.changeScore(pv, 2)      
+  } else if(score == PV_SCORE_CONC_DENOMINATOR) {
+    pv <- pv.changeScore(pv, 3)      
+  } else if(score == PV_SCORE_PVAL) {
+    pv <- pv.changeScore(pv, 5)      
+  } else if(score == PV_SCORE_FDR) {
+    pv <- pv.changeScore(pv, 6)      
+  } else {
+    message("Invalid score")
+    return(pv)
+  }
+  
+  config <- pv$config
+  pv <- pv.model(pv, minOverlap=pv$minOverlap) 
+  pv$config <- config
+  pv$resultsObject <- TRUE
+  pv$score <- score
+  
+  class(pv) <- "DBA"
+  
+  return(pv)
+}
+
+pv.changeScore <- function(pv, colnum=1) {
+  for(i in 1:length(pv$peaks)) {
+    colnum <- 4+colnum
+    pv$peaks[[i]]$Score <- pv$peaks[[i]][,colnum]
+  }
+  return(pv)
+}
+

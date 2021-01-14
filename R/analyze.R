@@ -248,12 +248,12 @@ pv.blockFactors <- function(pv,group1,group2,label1,label2,blockList) {
   
   snames <- c(colnames(pv$class[,group1]),colnames(pv$class[,group2]))
   if(length(unique(snames))!=sum(group1|group2)){
-    warning('Error: all samples must have unique IDs for blocking analysis',call.=FALSE)
+    warning('All samples must have unique IDs for blocking analysis',call.=FALSE)
     return(NULL)	
   }
   tnames <- rownames(targets)
   #if(length(snames)!=length(tnames)){
-  #   warning('Error: all samples must be matched for blocking analysis')
+  #   warning('All samples must be matched for blocking analysis')
   #   return(res)	
   #}  	 
   

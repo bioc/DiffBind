@@ -44,7 +44,8 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
     originalConsensus <- nrow(DBA$binding)
   }
   
-  doblacklist <- dogreylist <- getgenome <- genome <- FALSE
+  doblacklist <- dogreylist <- getgenome <- FALSE
+  genome <- NULL
   if(is(blacklist,"logical")) {
     if(blacklist == TRUE) {
       doblacklist <- TRUE
@@ -55,11 +56,19 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
     doblacklist <- TRUE
   }
   
+  havegreylist <- FALSE
   if(is(greylist,"logical")) {
     if(greylist == TRUE) {
       dogreylist <- TRUE
       getgenome <- TRUE
     } 
+  } else if (is(greylist,"list") ||
+             is(greylist,"GRanges") || is(greylist,"GRangesList")) {
+    havegreylist <- TRUE
+    dogreylist   <- TRUE
+    if(is.null(genome)) {
+      genome <- FALSE
+    }
   } else {
     if(is.null(genome)) {
       genome <- greylist
@@ -72,10 +81,12 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
       blacklist <- genome <- pv.genomes(DBA$class["bamRead",],DBA$chrmap)
     } 
     if(dogreylist) {
-      if(is.null(genome)) {
-        greylist <- pv.genomes(DBA$class["bamControl",],DBA$chrmap)
-      } else {
-        greylist <- genome
+      if(!havegreylist) {
+        if(is.null(genome)) {
+          greylist <- genome <- pv.genomes(DBA$class["bamControl",],DBA$chrmap)
+        } else {
+          greylist <- genome
+        }
       }
     }
   } 
@@ -85,7 +96,9 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
       message("No genome detected.")
       return(DBA)
     } else {
-      message("Genome detected: ",strsplit(genome,"BSgenome.")[[1]][2])
+      if(is(genome,"character")) {
+        message("Genome detected: ",strsplit(genome,"BSgenome.")[[1]][2])
+      }
     }
   }
   
@@ -280,14 +293,9 @@ pv.greylist <- function(pv, greylist, isConsensus=FALSE,
   
   if(!is(greylist,"GRanges")) {
     controls <- pv$class[PV_BAMCONTROL,]
-    if(sum(is.na(controls))==length(controls)) {
+    if(pv.noControls(controls)) {
       message("No control reads specified, unable to generate greylist.")
       return(pv)
-    } else {
-      if(length(unique(controls))==1 && controls[1]=="") {
-        message("No control reads specified, unable to generate greylist.")
-        return(pv)        
-      }
     }
     whichcontrols <- !duplicated(controls)
     whichcontrols <- whichcontrols & !is.na(controls)
@@ -382,6 +390,10 @@ pv.greylist <- function(pv, greylist, isConsensus=FALSE,
 
 pv.makeGreylists <- function(pv,ktype,bamfiles,parallel,pval=.999){
   
+  if(Sys.info()["sysname"] == "Windows") {
+    parallel <- NULL
+  }
+
   usecores <- 1
   if(!is.null(parallel)) {
     if(parallel != FALSE) {
@@ -459,6 +471,16 @@ pv.removeBlacklistedPeaks <- function(DBA) {
   return(DBA)
 }
 
+pv.noControls <- function(controls) {
+  if(sum(is.na(controls))==length(controls)) {
+    return(TRUE)
+  } else {
+    if(length(unique(controls))==1 && controls[1]=="") {
+      return(TRUE)        
+    }
+  }
+  return(FALSE)
+}
 
 pv.genome <- function(bamfile, chrmap=NULL, ref=NULL, dba.ktypes=NULL) {
   
@@ -540,6 +562,7 @@ pv.genomes <- function(bamfiles, chrmap=NULL) {
   dba.ktypes <- NULL
   return(ref)
 }
+
 
 
 

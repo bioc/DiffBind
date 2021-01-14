@@ -104,9 +104,15 @@ export(dba,
        DBA_NORM_OFFSETS,
        DBA_NORM_OFFSETS_ADJUST,
        DBA_OFFSETS_LOESS,
-       DBA_OFFSETS_USER)
+       DBA_OFFSETS_USER,
+       DBA_SCORE_FOLD,
+       DBA_SCORE_CONCENTRATION,
+       DBA_SCORE_CONC_NUMERATOR,
+       DBA_SCORE_CONC_DENOMINATOR,
+       DBA_SCORE_PVAL,
+       DBA_SCORE_FDR)
 
-exportClasses("DBA")
+# exportClasses("DBA")
 
 S3method(print,DBA)
 S3method(plot,DBA)

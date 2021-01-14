@@ -32,7 +32,7 @@ Cancer Research UK - Cambridge Institute\\
 University of Cambridge
 }
 
-\date{Edited: 9 November 2020; Compiled: \today}
+\date{Edited: 14 January 2021; Compiled: \today}
 
 \maketitle
 
@@ -1880,7 +1880,7 @@ for(norm in c("lib","RLE","TMM", "loess")) {
           dbs.all <- db
           dbs.all$config$factor    <- "Normalization Method"
           dbs.all$config$condition <- "Reference Reads"
-          dbs.all$config$treatment <- "Analyis Method"
+          dbs.all$config$treatment <- "Analysis Method"
           dbs.all$class[DBA_ID,]  <- colnames(dbs.all$class)[1] <- id
           
           dbs.all$class[DBA_FACTOR,]    <- norm
@@ -3105,7 +3105,7 @@ Due to space limitations, the aligned reads associated with the cell line data
 used in this vignette are not included as part of the \DiffBind package. 
 
 Data for the vignette are available for download at 
-\url{http://https://www.cruk.cam.ac.uk/core-facilities/bioinformatics-core/software/diffbind}.
+\url{https://www.cruk.cam.ac.uk/core-facilities/bioinformatics-core/software/diffbind}.
 
 The full data for all chromosomes are also available in the Short Read Archive
 (GEO accession number GSE32222).

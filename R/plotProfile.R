@@ -16,6 +16,7 @@ pv.distanceAround <- 1500
 
 pv.plotProfile <- function(pv, mask, sites, maxSites=1000, 
                            scores, annotate=TRUE, labels=DBA_ID,
+                           normalize=FALSE,
                            doPlot=TRUE, returnVal="profileplyr",
                            ...) {
   
@@ -34,6 +35,21 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000,
       groups <- TRUE
     }
     groupnames <- as.character(gnames)
+    
+    # Normalization factors
+    normfacs <- rep(1, length(sampnames))
+    if(is(normalize,"logical")) {
+      if(normalize != FALSE) {
+        message("normalize must be vector of normalization factors.")
+      }
+    } else {
+      if(length(normalize) == length(sampnames)) {
+        normfacs <- normalize
+      } else {
+        stop("normalize must include one factor for each sample.")
+      }
+    }
+    
   } else {
     
     ## Which samples
@@ -43,6 +59,20 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000,
       mask <- which(mask)
     }
     samples <- pv$class["bamRead",mask]
+    
+    # Normalization factors
+    normfacs <- rep(1, length(mask))
+    if(is(normalize,"logical")) {
+      if(normalize != FALSE) {
+        normfacs <- dba.normalize(pv,bRetrieve=TRUE)$norm.factors[mask]
+      }
+    } else {
+      if(length(normalize) == length(mask)) {
+        normfacs <- normalize
+      } else {
+        stop("normalize must include one factor for each sample.")
+      }
+    }
     
     ## Sample labels
     sampnames <- pv$class[labels,mask]
@@ -136,6 +166,14 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000,
     
     # delete bedfiles
     unlink(bedfiles)
+  }
+  
+  # Normalize
+  if(!is.null(normfacs)) {
+    for(i in 1:length(normfacs)) {
+      assay(profiles,i) <-
+        assay(profiles,i) / normfacs[i]
+    }
   }
   
   # Annotation
@@ -257,7 +295,7 @@ pv.profiles <- function(pv, samples, sites,
 pv.annotate <- function(pv, profiles, annotate) {
   
   if(!is.null(rowData(profiles)$Features)) {
-   return(profiles)
+    return(profiles)
   }
   
   if(is(annotate,"logical")){

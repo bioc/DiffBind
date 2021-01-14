@@ -12,8 +12,8 @@ dba.plotMA(DBA, contrast=1, method=DBA$config$AnalysisMethod,
            th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
            fold=0, bNormalized=TRUE,
            factor="", bFlip=FALSE, bXY=FALSE, dotSize=.45, 
-           bSignificant=TRUE, bSmooth=TRUE, bLoess=TRUE,
-           xrange, yrange, ...)
+           bSignificant=TRUE, highlight=NULL,
+           bSmooth=TRUE, bLoess=TRUE, xrange, yrange, ...)
 }
 
 %- maybe also 'usage' for other objects documented here.
@@ -91,6 +91,10 @@ differentially bound sites (based on \code{contrast},
 \code{th}, \code{bUsePval}, and \code{fold} parameters) 
 should be overlaid in red.
 }
+\item{highlight}{
+  \code{\link{GRanges}} object with sites to highlight in green.
+}
+
   \item{bSmooth}{
 logical indicating that basic plot should be plotted using 
 \code{\link{smoothScatter}}.

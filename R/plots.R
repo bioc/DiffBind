@@ -1,8 +1,7 @@
 pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
                          bUsePval=FALSE,fold=0,facname="",bNormalized=TRUE,
                          cex=.15,bSignificant=TRUE, bSmooth=TRUE, bFlip=FALSE,
-                         xrange, yrange, bLoess=TRUE, ...) {
-  
+                         highlight=NULL, xrange, yrange, bLoess=TRUE, ...) {
   noreport <- FALSE
   if(missing(contrast)){
     contrast <- 1:length(pv$contrasts)
@@ -69,13 +68,20 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
       if(!is.null(res)) {
         if(noreport) {
           bSignificant <- FALSE
-          idx <- rep(FALSE, length(res$Fold))
+          idx <- hilite <- rep(FALSE, length(res$Fold))
         } else {
+          if(!is.null(highlight)) {
+            hilite <- GRanges(res) %over% GRanges(highlight)
+          } else {
+            hilite <- rep(FALSE, length(res$Fold))
+          }
           if(bUsePval) {
             idx <- res$"p-value" <= th
+            #hilite <- hilite & (res$"p-value" <= th)
             tstr <- "p"
           } else {
             idx <- res$FDR <= th
+            #hilite <- hilite & (res$FDR <= th)
             tstr <- "FDR"
           }
           idx <- idx & (abs(res$Fold) >= fold)
@@ -141,6 +147,10 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
           }
           if(bSignificant) {
             points(res$Conc[idx],res$Fold[idx],pch=20,cex=cex,col=crukMagenta)
+          }
+          if(sum(hilite)>0) {
+            points(res$Conc[hilite],res$Fold[hilite],pch=20,cex=cex,
+                   col="green")
           }
           abline(h=0,col='dodgerblue')
           if(bLoess) {
@@ -212,7 +222,13 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
                 yaxp=c(xymin,xymax,(xymax-xymin)),ylim=c(xymin,xymax),
                 ylab=sprintf('log concentration :%s',name1),
                 main=mainstr,...)
-        points(yvals[idx],xvals[idx],pch=20,cex=cex,col=crukMagenta)
+        if(bSignificant) {
+          points(yvals[idx],xvals[idx],pch=20,cex=cex,col=crukMagenta)
+        }
+        if(sum(hilite)>0) {
+          points(res$Conc[hilite],res$Fold[hilite],pch=20,cex=cex,
+                 col=crukCyan)
+        }
         abline(0,1,col='red')
         
       }

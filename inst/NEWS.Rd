@@ -2,6 +2,15 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.1.2}{
+   \itemize{
+      \item{Fix wanring exporting DBA class}
+      \item{Update with bug and documentation fixes}
+      \item{Add highlight to dba.plotMA}      
+      \item{Add new score types for report-based DBA objects}    
+    }
+}
+
 \section{Version 3.0.4}{
    \itemize{
       \item{Move bSubControl from dba.normalize to dba.count}

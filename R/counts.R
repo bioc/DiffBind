@@ -264,14 +264,14 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   
   pv.gc()
   
-  if(minMaxval>0) {
+#  if(minMaxval>0) {
     redoScore <- defaultScore
     if(bSubControl) {
       defaultScore <- PV_SCORE_RPKM_MINUS
     } else {
       defaultScore <- PV_SCORE_RPKM
     }
-  } else redoScore <- 0
+#  } else redoScore <- 0
   if(defaultScore == redoScore) redoScore <- 0
   
   errors <- vapply(results,function(x) if(is.list(x)) return(FALSE) else return(TRUE),TRUE)

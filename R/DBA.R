@@ -447,7 +447,11 @@ dba.blacklist <- function(DBA, blacklist=DBA$config$doBlacklist,
   }
   
   if(is.null(greylist)) {
-    greylist <- TRUE
+    if(pv.noControls(DBA$class["bamControl",])) {
+      greylist <- FALSE
+    } else {
+      greylist <- TRUE
+    }
   }
   
   res <- pv.BlackGreyList(DBA=DBA, blacklist=blacklist, greylist=greylist,
@@ -489,6 +493,13 @@ DBA_READS_DEFAULT <- PV_READS_DEFAULT
 DBA_READS_BAM     <- PV_READS_BAM
 DBA_READS_BED     <- PV_READS_BED
 
+DBA_SCORE_FOLD             <- PV_SCORE_FOLD 
+DBA_SCORE_CONCENTRATION    <- PV_SCORE_CONCENTRATION  
+DBA_SCORE_CONC_NUMERATOR   <- PV_SCORE_CONC_NUMERATOR 
+DBA_SCORE_CONC_DENOMINATOR <- PV_SCORE_CONC_DENOMINATOR
+DBA_SCORE_PVAL             <- PV_SCORE_PVAL    
+DBA_SCORE_FDR              <- PV_SCORE_FDR  
+
 dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
                       fragmentSize=DBA$config$fragmentSize, summits=200, 
                       filter=1, bRemoveDuplicates=FALSE,
@@ -498,6 +509,12 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
                       readFormat=DBA_READS_DEFAULT,bParallel=DBA$config$RunParallel) 
 {
   DBA <- pv.check(DBA,missing(peaks))
+  
+  if(!is.null(DBA$resultObject)) {
+    if(DBA$resultObject == TRUE) {
+      return(pv.ResetResultScores(DBA,score))
+    }
+  }
   
   if(minOverlap > length(DBA$peaks)) {
     stop(sprintf("minOverlap can not be greater than the number of peaksets [%s]",length(DBA$peaks)))	
@@ -809,7 +826,9 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
   
   if(is.null(DBA$greylist)) {
     if(bGreylist == TRUE) {
-      dogreylist <- TRUE
+      if(!pv.noControls(DBA$class["bamControl",])) {
+        dogreylist <- TRUE
+      }
     } 
   }
   
@@ -1269,8 +1288,8 @@ dba.plotMA <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                        th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
                        fold=0, bNormalized=TRUE,
                        factor="", bFlip=FALSE, bXY=FALSE, dotSize=.45, 
-                       bSignificant=TRUE, bSmooth=TRUE, bLoess=TRUE,
-                       xrange, yrange, ...)
+                       bSignificant=TRUE, highlight=NULL,
+                       bSmooth=TRUE, bLoess=TRUE, xrange, yrange, ...)
   
 {
   DBA <- pv.check(DBA,bCheckEmpty=TRUE)
@@ -1279,7 +1298,8 @@ dba.plotMA <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
                       th=th, bUsePval=bUsePval, fold=fold,
                       facname=factor, bNormalized=bNormalized, cex=dotSize, 
                       bSignificant=bSignificant, bSmooth=bSmooth,bFlip=bFlip,
-                      xrange=xrange, yrange=yrange,bLoess=bLoess,...)
+                      highlight=highlight, xrange=xrange, yrange=yrange,
+                      bLoess=bLoess,...)
   
   invisible(res)
 }

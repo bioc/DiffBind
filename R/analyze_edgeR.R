@@ -295,7 +295,7 @@ pv.DEinitedgeR <- function(pv,
   
   srcmask <- pv.mask(pv,PV_CALLER,"source") | pv.mask(pv,PV_CALLER,"counts")
   if(sum(srcmask)==0) {
-    stop('Error: no samples present with read counts',call.=FALSE)
+    stop('No samples present with read counts',call.=FALSE)
   }
   
   counts  <- pv.get_reads(pv, srcmask, bSubControl=bSubControl,numReads=numReads)

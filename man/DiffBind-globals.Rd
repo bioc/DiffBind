@@ -87,6 +87,12 @@
 \alias{DBA_NORM_OFFSETS_ADJUST}
 \alias{DBA_OFFSETS_LOESS}
 \alias{DBA_OFFSETS_USER}
+\alias{DBA_SCORE_FOLD}          
+\alias{DBA_SCORE_CONCENTRATION}    
+\alias{DBA_SCORE_CONC_NUMERATOR}   
+\alias{DBA_SCORE_CONC_DENOMINATOR} 
+\alias{DBA_SCORE_PVAL}             
+\alias{DBA_SCORE_FDR}
 
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
@@ -144,6 +150,12 @@ DBA_SCORE_TMM_MINUS_EFFECTIVE_CPM
 DBA_SCORE_SUMMIT
 DBA_SCORE_SUMMIT_ADJ
 DBA_SCORE_SUMMIT_POS
+DBA_SCORE_FOLD          
+DBA_SCORE_CONCENTRATION    
+DBA_SCORE_CONC_NUMERATOR   
+DBA_SCORE_CONC_DENOMINATOR 
+DBA_SCORE_PVAL             
+DBA_SCORE_FDR
 
 DBA_READS_DEFAULT
 DBA_READS_BAM
@@ -337,6 +349,28 @@ dba.count score is summit height (highest pile-up), adjusted for library size.
 \item{DBA_SCORE_SUMMIT_POS}{
 dba.count score is summit location (position of highest pile-up).
 }
+
+\item{DBA_SCORE_FOLD}{
+score for report-based DBA object is Log Fold Change.
+}          
+\item{DBA_SCORE_CONCENTRATION}{
+score for report-based DBA object is Log Mean Concentration.
+}         
+\item{DBA_SCORE_CONC_NUMERATOR}{
+score for report-based DBA object is Log Mean Concentration
+of numerator (first group in contrast).
+}        
+\item{DBA_SCORE_CONC_DENOMINATOR}{
+score for report-based DBA object isLog Mean Concentration
+of denominator (second group in contrast).
+}      
+\item{DBA_SCORE_PVAL}{
+score for report-based DBA object is p-value.
+}                  
+\item{DBA_SCORE_FDR}{
+score for report-based DBA object is FDR.
+}     
+
 \item{DBA_READS_DEFAULT}{
 When counting read files, use the file extension to determine the file type.
 }

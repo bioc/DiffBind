@@ -35,7 +35,9 @@ If GRanges, RangedData, dataframe, or matrix, this parameter contains the interv
 only include peaks in at least this many peaksets when generating consensus peakset (i.e. when peaks parameter is missing).  If minOverlap is between zero and one, peak will be included from at least this proportion of peaksets.
 }
 \item{score}{
-which score to use in the binding affinity matrix. Note that all raw read counts are maintained for use by \code{\link{dba.analyze}}, regardless of how this is set. One of:
+which score to use in the binding affinity matrix.
+Note that all raw read counts are maintained for use by \code{\link{dba.analyze}}, regardless of how this is set.
+One of:
 \tabular{ll}{
 DBA_SCORE_NORMALIZED \tab normalized reads, as set by \code{\link{dba.normalize}}\cr
 DBA_SCORE_READS \tab raw read count for interval using only reads from ChIP\cr
@@ -60,6 +62,16 @@ DBA_SCORE_RPKM_MINUS \tab RPKM for interval from ChIP minus RPKM for interval fr
 DBA_SCORE_SUMMIT \tab summit height (maximum read pileup value)\cr
 DBA_SCORE_SUMMIT_ADJ \tab summit height (maximum read pileup value), normalized to relative library size\cr
 DBA_SCORE_SUMMIT_POS \tab summit position (location of maximum read pileup)\cr
+}
+
+If \code{DBA} is a report-based object, the allowable scores are:
+\tabular{ll}{
+DBA_SCORE_FOLD  \tab log2 Fold Change\cr        
+DBA_SCORE_CONCENTRATION \tab mean concentration (log2)\cr      
+DBA_SCORE_CONC_NUMERATOR \tab mean concentration (log2) of first group in contrast\cr
+DBA_SCORE_CONC_DENOMINATOR \tab mean concentration (log2) of second group in contrast\cr
+DBA_SCORE_PVAL  \tab p-value\cr            
+DBA_SCORE_FDR  \tab FDR\cr  
 }
 }
 
