@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.0.12}{
+   \itemize{
+      \item{Change how dba.report computes counts}      
+    }
+}
+
 \section{Version 3.0.4}{
    \itemize{
       \item{Move bSubControl from dba.normalize to dba.count}

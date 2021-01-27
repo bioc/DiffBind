@@ -501,10 +501,10 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
                       bLog=FALSE, bUseSummarizeOverlaps=TRUE,  
                       readFormat=DBA_READS_DEFAULT,bParallel=DBA$config$RunParallel) 
 {
-  DBA <- pv.check(DBA,missing(peaks))
+  DBA <- pv.check(DBA, missing(peaks))
   
-  if(minOverlap > length(DBA$peaks)) {
-    stop(sprintf("minOverlap can not be greater than the number of peaksets [%s]",length(DBA$peaks)))	
+  if(minOverlap > length(DBA$peaks) && missing(peaks)) {
+    minOverlap <- length(DBA$peaks)
   }           
   
   bUseLast <- FALSE
