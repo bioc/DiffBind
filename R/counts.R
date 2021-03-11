@@ -264,14 +264,14 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   
   pv.gc()
   
-#  if(minMaxval>0) {
-    redoScore <- defaultScore
-    if(bSubControl) {
-      defaultScore <- PV_SCORE_RPKM_MINUS
-    } else {
-      defaultScore <- PV_SCORE_RPKM
-    }
-#  } else redoScore <- 0
+  #  if(minMaxval>0) {
+  redoScore <- defaultScore
+  if(bSubControl) {
+    defaultScore <- PV_SCORE_RPKM_MINUS
+  } else {
+    defaultScore <- PV_SCORE_RPKM
+  }
+  #  } else redoScore <- 0
   if(defaultScore == redoScore) redoScore <- 0
   
   errors <- vapply(results,function(x) if(is.list(x)) return(FALSE) else return(TRUE),TRUE)
@@ -423,15 +423,18 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
     if(!missing(minMaxval)) {
       data <- pv.check1(res$binding[,4:ncol(res$binding)])
       maxs <- apply(data,1,filterFun)
-      tokeep <- maxs>=minMaxval
-      if(sum(tokeep)<length(tokeep)) {
-        if(sum(tokeep)>1) {
+      tokeep <- maxs >= minMaxval
+      if(sum(tokeep) < length(tokeep)) {
+        if(sum(tokeep) > 1) {
           res$binding <- pv.check1(res$binding[tokeep,])
           rownames(res$binding) <- 1:sum(tokeep)
           for(i in 1:length(res$peaks)) {
             res$peaks[[i]] <- res$peaks[[i]][tokeep,]
             rownames(res$peaks[[i]]) <- 1:sum(tokeep)
           } 
+          if(!is.null(res$called)) {
+            res$called <- res$called[tokeep,]
+          }
           res <- pv.vectors(res,minOverlap=1,bAllSame=pv.allSame(res))
         } else {
           stop('No sites have activity greater than minMaxval',call.=FALSE)
@@ -792,30 +795,31 @@ pv.setScore <- function(pv,score,bLog=FALSE,minMaxval=0,rescore=FALSE,
                         filterFun=max,bSignal2Noise=TRUE) {
   
   doscore <- TRUE
-  
   if(rescore == TRUE) {
     if(!is.null(pv$score)) {
       if(pv$score == score) {
         if(!is.null(pv$maxFilter)) {
           if(pv$maxFilter == minMaxval) {
             return(pv)	
-          }	
+          }
         } 
         doscore <- FALSE
       }	
     }
   }
   
+  if(!is.null(pv$maxFilter)) {
+    if(pv$maxFilter != minMaxval) {
+      pv <- pv.doSetScore(pv, DBA_SCORE_RPKM)
+      pv <- pv.doFilter(pv, minMaxval, filterFun, bSignal2Noise)	
+      doscore <- TRUE
+    }	
+  }
+  
   if(doscore) {
     
     pv <- pv.doSetScore(pv, score, noSub=!rescore)
-    
-    # if(rescore && minMaxval > 0) {
-    #   pv <- pv.doFilter(pv, minMaxval, filterFun, bSignal2Noise)
-    #   pv$score <- NULL
-    #   pv <- pv.doSetScore(pv, score)
-    # }
-    
+
   }
   
   pv$score <- score
@@ -976,7 +980,9 @@ pv.doFilter <- function(pv,minMaxval, filterFun, bSignal2Noise=TRUE) {
         pv$peaks[[i]] <- pv$peaks[[i]][tokeep,]
         rownames(pv$peaks[[i]]) <- 1:sum(tokeep)
       }
-      
+      if(!is.null(pv$called)) {
+        pv$called <- pv$called[tokeep,]
+      }
       pv <- pv.vectors(pv,minOverlap=1,bAllSame=TRUE)
       
       if(!is.null(pv$contrasts)) {

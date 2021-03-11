@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.0.14}{
+   \itemize{
+      \item{Fix bug in filtering relating to $Called in report}      
+    }
+}
+
 \section{Version 3.0.12}{
    \itemize{
       \item{Change how dba.report computes counts}      

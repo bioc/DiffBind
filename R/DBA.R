@@ -544,10 +544,14 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
   
   if(!missing(peaks)) {
     if(is.null(peaks)) {
-      # if(!is.null(DBA$minCount)) {
-      #   minCount <- DBA$minCount
-      # }
-      DBA$minCount <- minCount 
+      if(!is.null(DBA$minCount)) {
+        if(DBA$minCount != minCount) {
+          warning("Unable to reset minCount without re-counting (peaks can not be NULL).",
+                  call.=FALSE)
+        } 
+      } else {
+        DBA$minCount <- minCount 
+      }
     }
   }
   
