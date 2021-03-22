@@ -153,7 +153,7 @@ details on how to include a spike-in track with a sample
 All chromosomes in the spike-in bam files will be used.
 
 If \code{spikein} is a character vector of one or more chromosome names,
-only reads on the names chromosome(s) will be used for background normalization.
+only reads on the named chromosome(s) will be used for background normalization.
 If spike-in tracks are available, reads on chromosomes with these names in the
 spike-in track will be counted.
 If no spike-in tracks are available, reads on chromosomes with these names

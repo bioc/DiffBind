@@ -81,7 +81,8 @@ If the value is greater than zero, all consensus peaks will be re-centered aroun
 with the value of \code{summits} indicating how many base pairs to include upstream and downstream 
 of the summit (so all consensus peaks will be of the same width, namely \code{2 * summits + 1}). 
 
-Note that if \code{summits} is greater than zero, the counting procedure will take twice as long, and \code{bUseSummarizeOverlaps} must be \code{FALSE}.
+Note that if \code{summits} is no \code{FALSE} on the first call, 
+the counting procedure will take twice as long..
 }
 
 \item{filter}{

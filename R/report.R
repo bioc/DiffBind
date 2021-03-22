@@ -196,8 +196,8 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
       #                     filter=filter, filterFun=filterFun)
       
       counts <- pv.countsMA(pv, method=DBA_DESEQ2, contrast=NULL, 
-                  bNormalized=bNormalized, bCountsOnly=TRUE, filter=0,
-                  noSub=!pv$norm$DESeq2$bSubControl)
+                            bNormalized=bNormalized, bCountsOnly=TRUE, filter=0,
+                            noSub=!pv$norm$DESeq2$bSubControl)
       counts <- cbind(counts[,group1],counts[,group2])
       
       if(method=='DESeq2Block') {

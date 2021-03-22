@@ -991,13 +991,18 @@ dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod,
     bCounts <- TRUE
   }
   
-  if(!missing(bDB)|!missing(bNotDB)) {
+  if(!missing(bDB) | !missing(bNotDB) | bGain | bLoss) {
     if(missing(bDB)) {
-      bDB <- FALSE
+      if(bGain | bLoss) {
+        bDB <- TRUE
+      } else {
+        bDB <- FALSE
+      }
     }
     if(missing(bNotDB)) {
       bNotDB <- FALSE
     }
+    message("Generating report-based DBA object...")
     res <- pv.resultsDBA(DBA,contrasts=contrast,methods=method,
                          th=th,bUsePval=bUsePval,fold=fold,
                          bDB=bDB,bNotDB=bNotDB,bUp=bGain,bDown=bLoss,bAll=bAll,
