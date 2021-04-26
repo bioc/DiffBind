@@ -2,15 +2,16 @@
 \alias{dba.plotProfile}
 
 \title{
-Generate profile heatmaps
+BETA: Generate profiles and make profile heatmaps
 }
 \description{
-Generates profile heatmap plots.
+BETA: Generates profiles and heatmap plots.
 }
 \usage{
 dba.plotProfile(Object, samples, sites, scores, labels, 
                 normalize=TRUE, merge=DBA_REPLICATE,
-                maxSites=1000, doPlot=is(Object,"profileplyr"), 
+                maxSites=1000, absScores=TRUE,
+                doPlot=is(Object,"profileplyr"), 
                 ...)
 }
 
@@ -78,7 +79,18 @@ included.
 }
 
 \item{scores}{
-Currently unsupported. 
+\code{character} string corresponding to the name of a metadata column containing 
+numerical scores used to sort the sites (within each group).
+
+These can be any of the \code{\link{mcols}} name values when passing in \code{sites} 
+as a \code{GRanges} or \code{GRangesList} object,
+or the metadata fields in a report-based DBA object.
+If the \code{Object} is of type \code{profileplyr-class}, it can
+be any of its \code{\link{mcols}} names for columns corresponding 
+to numeric values. 
+
+If \code{scores=NULL}, the sites will be sorted by their
+mean counts across all the samples.
 }
  
 \item{labels}{
@@ -128,6 +140,16 @@ Maximum number of sites to include in a heatmap group.
 The top-scoring sites will be retained.
 }
 
+\item{absScores}{
+If \code{TRUE}, the absolute values for the score values
+(specified by the \code{scores} parameter)
+will be used for 
+sorting sites.
+Useful for fold changes. 
+If score values are greater than zero, this has no effect.
+}
+
+
 \item{doPlot}{
 \code{logical} indicating if the heatmap should be plotted.
 If \code{FALSE}, the profiles are generated and returned but not plotted.
@@ -140,7 +162,7 @@ additional parameters passed on to \code{profileplyr::generateEnrichedHeatmap}.
 }
 
 \details{
-details, details, details!
+This feature is currently released in a BETA form.
 }
 \value{
 silently returns a \code{profileplyr-class} object.
@@ -161,7 +183,12 @@ Rory Stark
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
- \code{\link{dba.report}},  \code{profileplyr::profileplyr}
+\itemize{ 
+\item \code{profileplyr::profileplyr-class}
+\item \code{profileplyr::BamBigwig_to_chipProfile}
+\item \code{profileplyr::generateEnrichedHeatmap}
+\item \code{profileplyr::profileplyr} (Vignette)
+}
 }
 
 \examples{

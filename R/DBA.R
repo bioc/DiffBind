@@ -1354,16 +1354,17 @@ dba.plotVolcano <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
 #############################################
 
 dba.plotProfile <- function(Object, samples, sites,
-                            scores, labels, # annotate=TRUE, 
+                            scores="Score", labels, # annotate=TRUE, 
                             normalize=TRUE, merge=DBA_REPLICATE,
-                            maxSites=1000, doPlot=is(Object,"profileplyr"),
+                            maxSites=1000, absScores=TRUE, 
+                            doPlot=is(Object,"profileplyr"),
                             ...)
 {
   Object <- pv.check(Object,bCheckEmpty=TRUE)
   
   res <- pv.plotProfile(pv=Object, mask=samples, sites=sites, maxSites=maxSites, 
                         scores=scores, annotate=FALSE, labels=labels,
-                        normalize=normalize,merge=merge,
+                        normalize=normalize,merge=merge, absScores=absScores,
                         doPlot=doPlot, returnVal="profileplyr",
                         ...) 
   

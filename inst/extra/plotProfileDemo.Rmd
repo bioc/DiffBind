@@ -3,23 +3,30 @@ title: "dba.plotProfile Demo"
 author: "Rory Stark"
 date: "14/04/2021"
 output:
+  pdf_document: 
+    fig_width: 7.5
+    fig_height: 6
+  html_notebook: 
+    toc: yes
+    fig_width: 7
+    fig_height: 9
   html_document: 
     toc: yes
     fig_width: 7.5
     fig_height: 6
     number_sections: yes
-  pdf_document: 
-    fig_width: 7.5
-    fig_height: 6
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 options(connectionObserver = NULL)
+knitr::opts_knit$set(root.dir = "/data/personal/stark01/DiffBind_Vignette/")
 library(DiffBind)
 ```
 
 setwd("\~/Work/DiffBind/Vignette/DiffBind_Vignette/")
+setwd("/data/personal/stark01/DiffBind_Vignette/")
+
 
 # dba.plotProfile() Tests/Demo
 

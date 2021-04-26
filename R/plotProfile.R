@@ -6,8 +6,8 @@ pv.distanceUp     <- 1000
 pv.distanceDown   <- 1000
 
 
-pv.plotProfile <- function(pv, mask, sites, maxSites=1000, 
-                           scores, annotate=TRUE, labels,
+pv.plotProfile <- function(pv, mask, sites, maxSites=1000, labels,
+                           scores="Score", absScores=TRUE, annotate=TRUE, 
                            normalize=TRUE,merge=DBA_REPLICATE,
                            doPlot=TRUE, returnVal="profileplyr",
                            ...) {
@@ -16,14 +16,16 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000,
     stop("Package profileplyr not installed",call.=FALSE)
   }
   
+  if(missing(sites)) {
+    sites <- NULL
+  }
+  
   if(!is(pv,"profileplyr")) { # Need to compute profiles
     
     if(missing(mask)) {
       mask <- NULL
     }
-    if(missing(sites)) {
-      sites <- NULL
-    }
+    
     if(missing(labels)) {
       labels <- NULL
     }
@@ -63,13 +65,13 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000,
       # Get all sites from binding matrix and scramble
       sites <- pv.peakMatrix_toGR(pv,pv$binding)
       sites <- sites[sample(1:length(sites)),]
-      
+      scores <- NULL
     }  else if(is(sites,"numeric")) {
       # Generate Report-based
       con <- sites
       sites <- dba.report(pv, contrast=con,
                           bDB=TRUE,bGain=TRUE,bLoss=TRUE,bAll=FALSE)
-      sites$peaks[[2]]$Score <- abs(sites$peaks[[2]]$Score)
+      #sites$peaks[[2]]$Score <- abs(sites$peaks[[2]]$Score)
       
       if(is.null(mask)) {
         if(!is.null(pv$contrasts[[con]]$group1)) {
@@ -125,9 +127,11 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000,
     ## Get sites
     if (is(sites,"vector")) { # specified sites
       # Get specified sites from binding matrix
-      sites <- pv.peakMatrix_toGR(pv,pv$binding[sites,])
+      sites  <- pv.peakMatrix_toGR(pv,pv$binding[sites,])
+      scores <- NULL
     } else if(is(sites, "GRanges")) { # Supplied sites
       # User supplied sites
+      # just pass them through
     } else if(is(sites,"GRangesList")) { # Supplied groups of sites
       groups <- TRUE
       groupnames <- names(sites)
@@ -147,7 +151,7 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000,
       peaks <- sites$peaks
       for(i in 1:length(peaks)) {
         peaks[[i]] <- GRanges(peaks[[i]])
-        names(mcols(peaks[[i]])) <- "score"
+        #names(mcols(peaks[[i]])) <- "score"
       }
       peaks <- GRangesList(peaks)
       
@@ -174,11 +178,6 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000,
     # Limit sites
     for(i in 1:length(sites)) {
       sites[[i]] <- sites[[i]][1:min(maxSites,length(sites[[i]])),]
-    }
-    
-    # Scores
-    if(!missing(scores)) {
-      message("Alternative scores unsupported.")
     }
     
     # save sites in bedfiles
@@ -295,6 +294,10 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000,
     }
   }
   
+  
+  # Scores
+  profiles <- pv.siteScore(profiles, sites, scores, absScores)
+  
   # Annotation
   profiles <- pv.annotate(pv, profiles, annotate)
   
@@ -312,7 +315,7 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000,
     }
     doAnnotation <- annotate != FALSE
     profilehm <- pv.profileHeatmap(profiles, 
-                                   sample_names=sampnames,
+                                   samples_names=sampnames,
                                    group_names=groupnames,
                                    annotate=doAnnotation,
                                    return_ht_list,
@@ -449,9 +452,47 @@ pv.profiles <- function(pv, samples, sites, mergelist=NULL, normfacs=NULL,
     proplyrObject <- profileplyr::as_profileplyr(proplyrObject)
   }
   
-  proplyrObject <- profileplyr::orderBy(proplyrObject,"score")
-  
   return(proplyrObject)
+}
+
+pv.siteScore <- function(profiles, sites, scores, absScores) {
+  
+  if(!is.null(sites)) { # Add metadata
+    psites <- mcols(profiles)$name
+    if(is(sites,"GRangesList")) {
+      names(sites) <- NULL
+    }
+    sites  <- unlist(sites)
+    ssites <- names(sites)
+    
+    matches <- match(psites, ssites)
+    if(sum(is.na(matches)) > 0) {
+      mcols(profiles) <- cbind(mcols(profiles), mcols(sites))      
+    } else {
+      mcols(profiles) <- cbind(mcols(profiles),
+                               mcols(sites[match(psites, ssites),]))
+    }
+  }
+  
+  profiles@params$mcolToOrderBy <- NULL
+  if(!is.null(scores)) {
+    if(!scores %in% names(mcols(profiles))) {
+      if(!is.null(profiles@params$mcolToOrderBy)) {
+        message(scores," not a valid score column, using mean signal.")
+      }
+    } else {
+      profiles@params$mcolToOrderBy <- "score"
+      whichscore <- match(scores, names(mcols(profiles)))
+      mcols(profiles)$score <- mcols(profiles)[whichscore][,1]   
+      if(absScores) {
+        mcols(profiles)$score <- abs(mcols(profiles)$score)
+      } 
+    }
+  } 
+  
+  profiles <- profileplyr::orderBy(profiles,profiles@params$mcolToOrderBy)
+  
+  return(profiles)
 }
 
 pv.annotate <- function(pv, profiles, annotate) {
@@ -523,9 +564,9 @@ pv.conditionColors <- list(c("white",crukMagenta),
                            c("white",crukGrey), 
                            c("white",crukCyan))
 
-pv.profileHeatmap <- function(profiles, sample_names, group_names,
+pv.profileHeatmap <- function(profiles, samples_names, group_names,
                               annotate=FALSE,
-                              return_ht_list=FALSE, ...){
+                              ret_ht_list=FALSE, ...){
   message("Plotting...")
   
   if(is.null(group_names)) {
@@ -549,33 +590,36 @@ pv.profileHeatmap <- function(profiles, sample_names, group_names,
     extra_anno_color <- NULL
   }
   
-  arguments <- list(profiles,
-                    matrices_pos_line=FALSE,
-                    decreasing=TRUE,
-                    sample_names=sample_names,
-                    include_group_annotation =
-                      include_group_annotation,
-                    group_anno_color =  
-                      group_anno_color,
-                    group_anno_column_names_gp =
-                      grid::gpar(col="white"),
-                    extra_annotation_columns = 
-                      extra_annotation_columns,
-                    extra_anno_color =
-                      extra_anno_color,
-                    return_ht_list=return_ht_list,
-                    raster_device="png",
-                    raster_quality = 10)
+  arguments <- list(profiles)
   
   args <- list(...)
   args <- pv.sepProfilingArgs(args, remove=TRUE)
   addarg <- NULL
+  
   if(!"matrices_color" %in% names(args)) {
     conditions <- metadata(profiles)$"Sample Group"
     if(!is.null(conditions)) {
-      addarg <- list(matrices_color=pv.conditionColors[conditions])
+      addarg <- pv.addArg(addarg, "matrices_color",
+                          pv.conditionColors[conditions])
     }
   }
+  
+  addarg <- pv.addArg(addarg, "matrices_pos_line",FALSE, args)
+  addarg <- pv.addArg(addarg, "decreasing",TRUE, args)
+  addarg <- pv.addArg(addarg, "sample_names",samples_names, args)
+  addarg <- pv.addArg(addarg, "include_group_annotation",
+                      include_group_annotation, args)
+  addarg <- pv.addArg(addarg, "group_anno_color",
+                      group_anno_color, args)
+  addarg <- pv.addArg(addarg, "group_anno_column_names_gp",
+                      grid::gpar(col="white"), args)
+  addarg <- pv.addArg(addarg, "extra_annotation_columns",
+                      extra_annotation_columns, args)
+  addarg <- pv.addArg(addarg, "extra_anno_color", extra_anno_color, args)
+  addarg <- pv.addArg(addarg, "return_ht_list",ret_ht_list, args)
+  addarg <- pv.addArg(addarg, "raster_device","png", args)
+  addarg <- pv.addArg(addarg, "raster_quality","10", args)
+  
   
   if(!is.null(addarg)){
     arguments <- c(arguments, addarg)
@@ -584,6 +628,25 @@ pv.profileHeatmap <- function(profiles, sample_names, group_names,
   hm <- do.call(profileplyr::generateEnrichedHeatmap, c(arguments,args))
   
   return(hm)
+}
+
+
+pv.addArg <- function(addarg, param, val, args=NULL) {
+  
+  if(!is.null(args)) {
+    if(param %in% names(args)) {
+      return(addarg)
+    }
+  }
+  
+  if(is.null(addarg)) {
+    addarg <- list(x=val)
+    names(addarg) <- param
+  } else {
+    addarg <- pv.listadd(addarg, val)
+    names(addarg)[length(addarg)] <- param
+  }
+  return(addarg)
 }
 
 pv.groupNames <- function(pv) {
@@ -750,9 +813,14 @@ pv.ProfilingArgs <- c("style","nOfWindows","bin_size",
 
 pv.sepProfilingArgs <- function(arglist, remove=FALSE) {
   profiling <- which(names(arglist) %in% pv.ProfilingArgs)
-  proargs <- arglist[profiling]
-  plotargs <- arglist[!profiling]
-  
+  if(length(profiling) > 0) {
+    proargs <- arglist[profiling]
+    plotargs <- arglist[!profiling]
+  } else {
+    proargs <- NULL
+    plotargs <- arglist
+  }
+
   if(remove) {
     return(plotargs)
   } else {
