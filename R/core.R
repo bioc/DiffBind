@@ -222,6 +222,11 @@ pv.consensus <- function(pv,sampvec,minOverlap = 2,
     tmp <- pv.vectors(tmp,minOverlap = minOverlap)
   }
   
+  if (nrow(tmp$binding) == 0) {
+    message(">> zero peaks in consensus, skipping.")
+    return(pv)
+  }
+  
   if (minOverlap > 0 && minOverlap < 1) {
     minOverlap <- ceiling(length(tmp$peaks) * minOverlap)
   }

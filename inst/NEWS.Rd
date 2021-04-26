@@ -2,9 +2,18 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.1.4}{
+   \itemize{
+      \item{Roll-up v3.0 fixes}
+      \item{Expose dba.plotProfile}
+      \item{if end not specified in dba.count(), 
+            check each bam file separately for single-end or paired end}
+    }
+}
+
 \section{Version 3.1.2}{
    \itemize{
-      \item{Fix wanring exporting DBA class}
+      \item{Fix warning exporting DBA class}
       \item{Update with bug and documentation fixes}
       \item{Add highlight to dba.plotMA}      
       \item{Add new score types for report-based DBA objects}    

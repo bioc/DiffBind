@@ -48,6 +48,22 @@ pv.peaks2DataType <- function(peaks,datatype=DBA_DATA_DEFAULT) {
    
 }
 
+pv.peakMatrix_toGR <- function(pv, peaks) {
+   
+   res <- GRanges(Rle(factor(pv$chrmap[peaks[,1]])),
+                  IRanges(peaks[,2],width=peaks[,3]-peaks[,2]+1,
+                          names=rownames(peaks)),
+                  strand <- Rle("*", length(seqnames)))
+   
+   if(ncol(peaks)>3) {
+      mdata <- data.frame(peaks[,4:ncol(peaks)])
+      colnames(mdata)  <- colnames(peaks)[4:ncol(peaks)]
+      elementMetadata(res) <- mdata
+   }   	
+   
+   return(res)
+}
+
 pv.DataType2Peaks <- function(RDpeaks){
    
    if(is.null(RDpeaks)) {

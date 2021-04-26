@@ -13,6 +13,7 @@ export(dba,
        dba.plotVolcano,
        dba.plotVenn,
        dba.plotBox,
+       dba.plotProfile,
        dba.show,
        dba.mask,
        dba.save,
@@ -129,7 +130,7 @@ importFrom(IRanges, IRanges, overlapsAny, "%over%")
 importFrom(GenomicRanges, GRanges, GRangesList, seqnames, width, union, mcols)
 
 importFrom(SummarizedExperiment, SummarizedExperiment, assay, "assay<-",
-           assays, "assays<-", rowData, "rowData<-")
+           assays, "assays<-", rowData, "rowData<-", colData, "colData<-")
 
 importFrom(graphics, abline, boxplot, plot, points, smoothScatter,
            "axis", "hist", "image", "layout", "lines",
@@ -171,7 +172,7 @@ if (tools:::.OStype() == "unix") {
 }
 
 importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-", 
-           mcols, "mcols<-")
+           mcols, "mcols<-", metadata, "metadata<-")
 
 importFrom(Rsamtools, BamFileList, ScanBamParam, scanBamFlag, 
            countBam, scanBamHeader)

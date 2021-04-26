@@ -178,7 +178,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   
   yieldSize <- 5000000
   mode      <- "IntersectionNotEmpty"
-  singleEnd <- TRUE
+  singleEnd <- NULL
   
   scanbamparam <- NULL
   addfuns <- NULL
@@ -211,15 +211,18 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
     }
     
     if(is.null(pv$config$singleEnd)) {
-      bfile <- pv.BamFile(todo[1], bIndex=TRUE)
-      pv$config$singleEnd	<- !suppressMessages(
-        Rsamtools::testPairedEndBam(bfile))
-    } 
-    singleEnd <-  pv$config$singleEnd
-    if(singleEnd) {
-      message("Reads will be counted as Single-end.")
+      # bfile <- pv.BamFile(todo[1], bIndex=TRUE)
+      # pv$config$singleEnd	<- !suppressMessages(
+      #   Rsamtools::testPairedEndBam(bfile))
     } else {
-      message("Reads will be counted as Paired-end.")        
+      singleEnd <-  pv$config$singleEnd
+    }
+    if(!is.null(singleEnd)) {
+      if(singleEnd) {
+        message("Reads will be counted as Single-end.")
+      } else {
+        message("Reads will be counted as Paired-end.")        
+      }
     }
     
     if(!is.null(pv$config$fragments)) {
@@ -264,14 +267,14 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   
   pv.gc()
   
-#  if(minMaxval>0) {
-    redoScore <- defaultScore
-    if(bSubControl) {
-      defaultScore <- PV_SCORE_RPKM_MINUS
-    } else {
-      defaultScore <- PV_SCORE_RPKM
-    }
-#  } else redoScore <- 0
+  #  if(minMaxval>0) {
+  redoScore <- defaultScore
+  if(bSubControl) {
+    defaultScore <- PV_SCORE_RPKM_MINUS
+  } else {
+    defaultScore <- PV_SCORE_RPKM
+  }
+  #  } else redoScore <- 0
   if(defaultScore == redoScore) redoScore <- 0
   
   errors <- vapply(results,function(x) if(is.list(x)) return(FALSE) else return(TRUE),TRUE)
@@ -423,15 +426,18 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
     if(!missing(minMaxval)) {
       data <- pv.check1(res$binding[,4:ncol(res$binding)])
       maxs <- apply(data,1,filterFun)
-      tokeep <- maxs>=minMaxval
-      if(sum(tokeep)<length(tokeep)) {
-        if(sum(tokeep)>1) {
+      tokeep <- maxs >= minMaxval
+      if(sum(tokeep) < length(tokeep)) {
+        if(sum(tokeep) > 1) {
           res$binding <- pv.check1(res$binding[tokeep,])
           rownames(res$binding) <- 1:sum(tokeep)
           for(i in 1:length(res$peaks)) {
             res$peaks[[i]] <- res$peaks[[i]][tokeep,]
             rownames(res$peaks[[i]]) <- 1:sum(tokeep)
           } 
+          if(!is.null(res$called)) {
+            res$called <- res$called[tokeep,]
+          }
           res <- pv.vectors(res,minOverlap=1,bAllSame=pv.allSame(res))
         } else {
           stop('No sites have activity greater than minMaxval',call.=FALSE)
@@ -530,6 +536,22 @@ pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=FALSE,
     if(minMappingQuality>0) {
       #warning('minMappingQuality ignored for summarizeOverlaps, set in ScanBamParam.',call.=FALSE)
     }
+    
+    if(is.null(singleEnd)) {
+      bfile <- pv.BamFile(bamfile, bIndex=TRUE)
+      singleEnd	<- !suppressMessages(Rsamtools::testPairedEndBam(bfile))
+    }
+    
+    if(!is.null(singleEnd)) {
+      if(singleEnd) {
+        message("Reads will be counted as Single-end.")
+      } else {
+        message("Reads will be counted as Paired-end.")        
+      }
+    } else {
+      message("End not detected.")
+    }
+    
     res <- pv.getCountsLowMem(bamfile,intervals,bWithoutDupes,mode,yieldSize,
                               singleEnd,fragments,
                               scanbamparam,minCount=minCount,minQC=minMappingQuality)
@@ -792,29 +814,30 @@ pv.setScore <- function(pv,score,bLog=FALSE,minMaxval=0,rescore=FALSE,
                         filterFun=max,bSignal2Noise=TRUE) {
   
   doscore <- TRUE
-  
   if(rescore == TRUE) {
     if(!is.null(pv$score)) {
       if(pv$score == score) {
         if(!is.null(pv$maxFilter)) {
           if(pv$maxFilter == minMaxval) {
             return(pv)	
-          }	
+          }
         } 
         doscore <- FALSE
       }	
     }
   }
   
+  if(!is.null(pv$maxFilter)) {
+    if(pv$maxFilter != minMaxval) {
+      pv <- pv.doSetScore(pv, DBA_SCORE_RPKM)
+      pv <- pv.doFilter(pv, minMaxval, filterFun, bSignal2Noise)	
+      doscore <- TRUE
+    }	
+  }
+  
   if(doscore) {
     
     pv <- pv.doSetScore(pv, score, noSub=!rescore)
-    
-    # if(rescore && minMaxval > 0) {
-    #   pv <- pv.doFilter(pv, minMaxval, filterFun, bSignal2Noise)
-    #   pv$score <- NULL
-    #   pv <- pv.doSetScore(pv, score)
-    # }
     
   }
   
@@ -976,7 +999,9 @@ pv.doFilter <- function(pv,minMaxval, filterFun, bSignal2Noise=TRUE) {
         pv$peaks[[i]] <- pv$peaks[[i]][tokeep,]
         rownames(pv$peaks[[i]]) <- 1:sum(tokeep)
       }
-      
+      if(!is.null(pv$called)) {
+        pv$called <- pv$called[tokeep,]
+      }
       pv <- pv.vectors(pv,minOverlap=1,bAllSame=TRUE)
       
       if(!is.null(pv$contrasts)) {

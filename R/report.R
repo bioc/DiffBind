@@ -188,12 +188,19 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
       }
       
     } else {
-      counts <- pv.DEinit(pv,group1,group2,name1,name2,
-                          method='DESeq2',
-                          bSubControl=con$DESeq2$bSubControl,
-                          bFullLibrarySize=con$DESeq2$bFullLibrarySize,
-                          bRawCounts=TRUE,
-                          filter=filter, filterFun=filterFun)
+      # counts <- pv.DEinit(pv,group1,group2,name1,name2,
+      #                     method='DESeq2',
+      #                     bSubControl=con$DESeq2$bSubControl,
+      #                     bFullLibrarySize=con$DESeq2$bFullLibrarySize,
+      #                     bRawCounts=TRUE,
+      #                     filter=filter, filterFun=filterFun)
+      
+      counts <- pv.countsMA(pv, method=DBA_DESEQ2, contrast=NULL, 
+                            bNormalized=bNormalized, bCountsOnly=TRUE, filter=0,
+                            noSub=!pv$norm$DESeq2$bSubControl)
+      counts <- cbind(counts[,group1],counts[,group2])
+      
+      
       if(method=='DESeq2Block') {
         data <- con$DESeq2$block$de
         normfacs <- con$DESeq2$block$facs[facs]
@@ -201,9 +208,9 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
         data <- con$DESeq2$de
         normfacs <- con$DESeq2$facs[facs]
       }
-      if(bNormalized){
-        counts <- t(t(counts)/normfacs)
-      }
+      # if(bNormalized){
+      #   counts <- t(t(counts)/normfacs)
+      # }
     }
   } else {
     stop('Unknown DE method: ',method,call.=FALSE)

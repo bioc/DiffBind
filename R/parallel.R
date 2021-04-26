@@ -32,7 +32,9 @@ dba.parallel <- function(DBA) {
    #    return(DBA)
    # }
    # 
-   warning('UNKNOWN PARALLEL PACKAGE: ',DBA$config$parallelPackage,call.=FALSE)
+   if(DBA$config$parallelPackage > 0) {
+      warning('UNKNOWN PARALLEL PACKAGE: ',DBA$config$parallelPackage,call.=FALSE)
+   }
    return(DBA)
 }
 

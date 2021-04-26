@@ -15,15 +15,17 @@
 ## dba.normalize    Normalize dataset
 
 ## dba.contrast	    Establish contrast(s) for analysis
-##   	  Execute affinity analysis
+## dna.analyze  	  Execute affinity analysis
 ## dba.report	      Generate report for a contrast analysis
 
-## dba.plotClust	Cluster dendrogram plo
+## dba.plotClust	  Cluster dendrogram plo
 ## dba.plotHeatmap	Heatmap plot
 ## dba.plotPCA	    Principal Components plot
 ## dba.plotBox	    Boxplots
-## dba.plotMA	    MA/scatter plot
+## dba.plotMA	      MA/scatter plot
 ## dba.plotVenn	    2, 3, or 4-way Venn diagram plot
+## dba.plotVolcano	Volcano plots
+## dba.plotProfile  Profile heatmaps
 
 ## dba.show	        List dba metadata
 ## dba.mask	        Mask samples or sites 
@@ -32,7 +34,7 @@
 ## dba.load	        Load dba object
 
 ### NOTE: DBA is a front-end to a package formerly known as pv, with most DBA
-### functions being simple pass-thoughs to pv functions
+### functions being simple pass-throughs to pv functions
 
 ##########################
 ### CONSTANT VARIABLES ###
@@ -413,11 +415,24 @@ dba.overlap <- function(DBA, mask, mode=DBA_OLAP_PEAKS,
     if(DataType!=DBA_DATA_FRAME) {
       res <- lapply(res,pv.peaks2DataType,DataType)
     }   
+    if(DataType == DBA_DATA_GRANGES) {
+      for(i in 1:length(res)) {
+        if(!is.null(res[[i]])) {
+          if(is.null(res[[i]]$score)) {
+            res[[i]]$score <- rowMeans(data.frame(mcols(res[[i]])), 
+                                            na.rm=TRUE)
+          }
+        } else {
+          res[[i]] <- GRanges(NULL)
+        }
+      }
+      res <- GRangesList(res)
+    }
   }                       
   
   return(res)
 }
-
+   
 ##############################################################
 ## dba.blacklist -- apply/generate blacklists and greylists ##
 ##############################################################
@@ -508,7 +523,7 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
                       bLog=FALSE, bUseSummarizeOverlaps=TRUE,  
                       readFormat=DBA_READS_DEFAULT,bParallel=DBA$config$RunParallel) 
 {
-  DBA <- pv.check(DBA,missing(peaks))
+  DBA <- pv.check(DBA, missing(peaks))
   
   if(!is.null(DBA$resultObject)) {
     if(DBA$resultObject == TRUE) {
@@ -516,9 +531,9 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
     }
   }
   
-  if(minOverlap > length(DBA$peaks)) {
-    stop(sprintf("minOverlap can not be greater than the number of peaksets [%s]",length(DBA$peaks)))	
-  }           
+  if(minOverlap > length(DBA$peaks) && missing(peaks)) {
+    minOverlap <- length(DBA$peaks)
+  }
   
   bUseLast <- FALSE
   
@@ -557,10 +572,14 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
   
   if(!missing(peaks)) {
     if(is.null(peaks)) {
-      # if(!is.null(DBA$minCount)) {
-      #   minCount <- DBA$minCount
-      # }
-      DBA$minCount <- minCount 
+      if(!is.null(DBA$minCount)) {
+        if(DBA$minCount != minCount) {
+          warning("Unable to reset minCount without re-counting (peaks can not be NULL).",
+                  call.=FALSE)
+        } 
+      } else {
+        DBA$minCount <- minCount 
+      }
     }
   }
   
@@ -1000,13 +1019,18 @@ dba.report <- function(DBA, contrast, method=DBA$config$AnalysisMethod,
     bCounts <- TRUE
   }
   
-  if(!missing(bDB)|!missing(bNotDB)) {
+  if(!missing(bDB) | !missing(bNotDB) | bGain | bLoss) {
     if(missing(bDB)) {
-      bDB <- FALSE
+      if(bGain | bLoss) {
+        bDB <- TRUE
+      } else {
+        bDB <- FALSE
+      }
     }
     if(missing(bNotDB)) {
       bNotDB <- FALSE
     }
+    message("Generating report-based DBA object...")
     res <- pv.resultsDBA(DBA,contrasts=contrast,methods=method,
                          th=th,bUsePval=bUsePval,fold=fold,
                          bDB=bDB,bNotDB=bNotDB,bUp=bGain,bDown=bLoss,bAll=bAll,
@@ -1324,6 +1348,29 @@ dba.plotVolcano <- function(DBA, contrast=1, method=DBA$config$AnalysisMethod,
   invisible(pv.peaks2DataType(res,datatype=DBA_DATA_GRANGES))
 }
 
+
+#############################################
+## dba.plotProfile -- Profile heatmap plot ##
+#############################################
+
+dba.plotProfile <- function(Object, samples, sites,
+                            scores, labels, # annotate=TRUE, 
+                            normalize=TRUE, merge=DBA_REPLICATE,
+                            maxSites=1000, doPlot=is(Object,"profileplyr"),
+                            ...)
+{
+  Object <- pv.check(Object,bCheckEmpty=TRUE)
+  
+  res <- pv.plotProfile(pv=Object, mask=samples, sites=sites, maxSites=maxSites, 
+                        scores=scores, annotate=FALSE, labels=labels,
+                        normalize=normalize,merge=merge,
+                        doPlot=doPlot, returnVal="profileplyr",
+                        ...) 
+  
+  invisible(res)
+}
+
+
 ####################################################
 ## dba.plotVenn -- Venn diagram plots of overlaps ##
 ####################################################
@@ -1493,6 +1540,20 @@ dba.plotVenn <- function(DBA, mask, overlaps, label1, label2, label3, label4,
     }
   } else {
     overlaps <- lapply(overlaps, pv.peaks2DataType, DataType)
+    if(DataType == DBA_DATA_GRANGES) {
+      for(i in 1:length(overlaps)) {
+        if(!is.null(overlaps[[i]])) {
+          if(is.null(overlaps[[i]]$score)) {
+            overlaps[[i]]$score <- rowMeans(data.frame(mcols(overlaps[[i]])), 
+                                            na.rm=TRUE)
+          }
+        }
+        else {
+          overlaps[[i]] <- GRanges(NULL)
+        }
+      }
+      overlaps <- GRangesList(overlaps)
+    }
     invisible(overlaps)
   }   
 }
@@ -1786,6 +1847,6 @@ plot.DBA <- function(x,...){
 }
 
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage(" >>> DiffBind 3.0 includes substantial updates. See ?DiffBind3 for details on what has changed.")
+  packageStartupMessage(" >>> DiffBind 3.2.")
 }
 

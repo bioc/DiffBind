@@ -97,17 +97,23 @@ pv.contrast <- function(pv,group1,group2=!group1,name1,name2,
       if(missing(categories)) {
          attributes <- c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT)
       } else {
-         attributes=categories
+         attributes <- categories
       }
       if(!doBlock) {
-         res <- pv.getContrasts(pv,minMembers=minMembers,attributes=attributes,bNot=bNot)
+         res <- pv.getContrasts(pv,minMembers=minMembers,attributes=attributes,
+                                bNot=bNot)
          if(bMulti) {
-            res <- pv.listaddto(res,pv.contrastPairs(pv,minMembers=minMembers,attributes=attributes,conlist=res,bNot=bNot))  
+            res <- pv.listaddto(res,pv.contrastPairs(pv,minMembers=minMembers,
+                                                     attributes=attributes,
+                                                     conlist=res,bNot=bNot))  
          }
       } else {
-         res <- pv.getContrasts(pv,minMembers=minMembers,attributes=attributes,block=block,bNot=bNot)
+         res <- pv.getContrasts(pv,minMembers=minMembers,attributes=attributes,
+                                block=block,bNot=bNot)
          if(bMulti) {
-            res <- pv.listaddto(res,pv.contrastPairs(pv,minMembers=minMembers,attributes=attributes,block=block,bNot=bNot))   
+            res <- pv.listaddto(res,pv.contrastPairs(pv,minMembers=minMembers,
+                                                     attributes=attributes,
+                                                     block=block,bNot=bNot))   
          }
       }
       if(!is.null(res)) {
@@ -192,7 +198,8 @@ pv.contrast <- function(pv,group1,group2=!group1,name1,name2,
    
 }
 
-pv.getContrasts <- function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT),
+pv.getContrasts <- function(pv,minMembers=3,
+                            attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT),
                             block,bNot=FALSE){
    
    srcidx <-  pv.mask(pv,PV_CALLER,"source") | pv.mask(pv,PV_CALLER,"counts")
@@ -245,7 +252,8 @@ pv.getContrasts <- function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_
    return(jobs)   
 }
 
-pv.contrastPairs <- function(pv,minMembers=3,attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT),
+pv.contrastPairs <- function(pv,minMembers=3,
+                             attributes=c(PV_TISSUE,PV_FACTOR,PV_CONDITION,PV_TREATMENT),
                              block=NULL,conlist=NULL, bNot=TRUE) {
    
    if(length(attributes)==1) {
