@@ -3,14 +3,23 @@ title: "dba.plotProfile Demo"
 author: "Rory Stark"
 date: "14/04/2021"
 output:
-  pdf_document: default
-  html_document: default
+  html_document: 
+    toc: yes
+    fig_width: 7.5
+    fig_height: 6
+    number_sections: yes
+  pdf_document: 
+    fig_width: 7.5
+    fig_height: 6
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(connectionObserver = NULL)
 library(DiffBind)
 ```
+
+setwd("\~/Work/DiffBind/Vignette/DiffBind_Vignette/")
 
 # dba.plotProfile() Tests/Demo
 
@@ -52,10 +61,10 @@ dba.plotProfile(profiles)
 
 ### Default plot: merging cell types
 
-In the sample experiment, there are multiple sample groups within each side of the contrast (The Resistant class has two sample groups based on the BT474 and MCF7 cell lines, while the Responsive class has three group, based on the MCF7, T47D, and ZR75 cell lines). If we want to generate profiles for the Responsive and Resistant classes, the `DBA_TISSUE` attribute can be added to the merge specification. By specifying`merge=c(DBA_TISSUE ,DBA_REPLICATE),` the mean counts (normalized) for all of the Resistant sample will calculated, as well as for the Responsive samples:
+In the sample experiment, there are multiple sample groups within each side of the contrast (The Resistant class has two sample groups based on the BT474 and MCF7 cell lines, while the Responsive class has three group, based on the MCF7, T47D, and ZR75 cell lines). If we want to generate profiles for the Responsive and Resistant classes, the `DBA_TISSUE` attribute can be added to the merge specification. By specifying`merge=c(DBA_TISSUE ,DBA_REPLICATE),` the mean counts (normalized) for all of the Resistant samples will calculated, as well as for all of the Responsive samples:
 
 ```{r default_merge_tissue, cache=TRUE}
-profiles <- dba.plotProfile(tamoxifen,merge=c(DBA_TISSUE ,DBA_REPLICATE))
+profiles <- dba.plotProfile(tamoxifen,merge=c(DBA_TISSUE, DBA_REPLICATE))
 dba.plotProfile(profiles)
 ```
 
@@ -64,16 +73,17 @@ dba.plotProfile(profiles)
 The `samples` parameter can be used to specify a subset of samples to include in the plot. For example, we can limit the plot to only the MCF7 samples:
 
 ```{r default_samples_MCF7, cache=TRUE}
-profiles <- dba.plotProfile(tamoxifen,samples=tamoxifen$mask$MCF7)
+profiles <- dba.plotProfile(tamoxifen,samples=tamoxifen$mask$MCF7,
+                            labels=c("MCF7_Responsive","MCF7_Resistant"))
 dba.plotProfile(profiles)
 ```
 
-Somewhat counter-intuitively, the resulting plot shows two sample groups: Resistant and Responsive. This is because a) by default, the plots are based on the first contrast, b) by default, all samples in a group that differ only in their `DBA_REPLICATE` values ar merged, and c) by default, the label for a merged sample group includes only the attribute values that make it unique. As a result, this plot is showing only Gain/Loss sites for the first (Resistant vs Responsive) contrast, but *only using data for the MCF7 samples in the profiles*.
+The resulting plot shows two sample groups: Resistant and Responsive. This is because a) by default, the plots are based on the first contrast, b) by default, all samples in a group that differ only in their `DBA_REPLICATE` values ar merged, and c) by default, the label for a merged sample group includes only the attribute values that make it unique. As a result, this plot is showing only Gain/Loss sites for the first (Resistant vs Responsive) contrast, but *only using data for the MCF7 samples in the profiles*.
 
 To see all of the MCF7 samples, specify `merge=NULL`, which will prevent the replicates from being merged:
 
 ```{r default_samples_MCF7_nomerge, cache=TRUE}
-profiles <- dba.plotProfile(tamoxifen,samples=tamoxifen$mask$MCF7, merge=NULL)
+profiles <- dba.plotProfile(tamoxifen, samples=tamoxifen$mask$MCF7, merge=NULL)
 dba.plotProfile(profiles)
 ```
 
@@ -108,7 +118,9 @@ Alternatively, a `GRangesList` object can be used to specify groups of sites, in
 repList <- GRangesList(Gain=rep[rep$Fold>0,],Loss=rep[rep$Fold<0,])
 profiles <- dba.plotProfile(tamoxifen, sites=repList,
                             samples=list(Resistant=tamoxifen$mask$Resistant,
-                                         Responsive=tamoxifen$mask$Responsive))
+                                         Responsive=tamoxifen$mask$Responsive),
+                            labels=list(sites=c("Resist","Respond")),
+                            score="Fold")
 dba.plotProfile(profiles)
 ```
 
@@ -168,6 +180,8 @@ dba.plotProfile(profiles)
 ```
 
 Compare with the second plot.
+
+ADD NORMALIZATION VECTOR EXAMPLE HERE
 
 ## Changing profiling parameters
 
