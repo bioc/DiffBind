@@ -1,5 +1,5 @@
 \name{DBA object methods}
-\alias{DBA}
+\alias{DBA-object}
 \alias{print.DBA}
 \alias{summary.DBA}
 \alias{plot.DBA}

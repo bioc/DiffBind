@@ -145,13 +145,13 @@ dba.multicore.lapply <- function(config,params,arglist,fn,...){
 
 ### ADD JOB ###
 dba.multicore.addjob <- function(config,params,fn,...) {
-   job <- mcparallel(fn(...))
+   job <- parallel::mcparallel(fn(...))
    return(job)
 }
 
 ### WAIT FOR JOBS TO COMPLETE AND GATHER RESULTS ###
 dba.multicore.wait4jobs <- function(config,joblist) {
-   res <- mccollect(joblist)
+   res <- parallel::mccollect(joblist)
    return(res)
 }
 

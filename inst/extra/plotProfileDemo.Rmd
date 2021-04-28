@@ -3,18 +3,18 @@ title: "dba.plotProfile Demo"
 author: "Rory Stark"
 date: "14/04/2021"
 output:
-  pdf_document: 
+  html_document: 
+    toc: yes
     fig_width: 7.5
-    fig_height: 6
+    fig_height: 8
+    number_sections: yes
   html_notebook: 
     toc: yes
     fig_width: 7
     fig_height: 9
-  html_document: 
-    toc: yes
+  pdf_document: 
     fig_width: 7.5
     fig_height: 6
-    number_sections: yes
 ---
 
 ```{r setup, include=FALSE}
