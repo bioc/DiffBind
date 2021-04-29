@@ -222,6 +222,10 @@ if \code{TRUE}, use multicore to get counts for each read file in parallel
 DBA object with binding affinity matrix based on read count scores.
 }
 
+%\note{
+%The consensus set will be determine
+%}
+
 \author{
 Rory Stark and Gordon Brown
 }

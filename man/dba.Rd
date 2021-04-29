@@ -118,7 +118,7 @@ report file names.}
 (\code{FALSE}) or p-values (\code{TRUE}).}
 \item {\code{doBlacklist:}}   {logical, whether to attempt to find and apply
 a blacklist if none is present when running \code{\link{dba.analyze}}}.
-\item {\code{doBlacklist:}}   {logical, whether to attempt to generate and apply 
+\item {\code{doGreylist:}}   {logical, whether to attempt to generate and apply 
 a greylist if none is present when running \code{\link{dba.analyze}}}.
 }
 }
@@ -232,7 +232,7 @@ Rory Stark and Gordon Brown
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
- \code{\link{dba.peakset}},  \code{\link{dba.show}}
+ \code{\link{dba.peakset}},  \code{\link{dba.show}}, \code{\link{DBA.config}}.
 }
 
 \examples{

@@ -397,11 +397,16 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
         defaultScore <- redoScore
         redoScore <- 0
       }
-      res <- pv.counts(res,peaks=res$merged,defaultScore=defaultScore,bLog=bLog,insertLength=insertLength,
-                       bOnlyCounts=TRUE,bCalledMasks=TRUE,minMaxval=minMaxval,filterFun=filterFun,
-                       bParallel=bParallel,bWithoutDupes=bWithoutDupes,bScaleControl=bScaleControl,
-                       bSignal2Noise=bSignal2Noise,bLowMem=saveLowMem,readFormat=readFormat,summits=0,
-                       bRecentered=TRUE,minMappingQuality=minMappingQuality)
+      res <- pv.counts(res,peaks=res$merged,defaultScore=defaultScore,
+                       bLog=bLog,insertLength=insertLength,
+                       bOnlyCounts=TRUE,bCalledMasks=TRUE,minMaxval=minMaxval,
+                       filterFun=filterFun,
+                       bParallel=bParallel,bWithoutDupes=bWithoutDupes,
+                       bScaleControl=bScaleControl,
+                       bSignal2Noise=bSignal2Noise,bLowMem=saveLowMem,
+                       readFormat=readFormat,summits=0,
+                       bRecentered=TRUE,minMappingQuality=minMappingQuality,
+                       maxGap=maxGap)
       pv.gc()
       return(res)
     } else {
@@ -646,6 +651,12 @@ pv.Recenter <- function(pv,summits,peakrange,called=NULL) {
     stop('Summits not available; re-run dba.count with summits=TRUE',call.=FALSE)   
   }
   
+  if(is.null(pv$config$mergeOverlap)) {
+    maxGap <- as.integer(-1)
+  } else {
+    maxGap <- as.integer(-pv$config$mergeOverlap)
+  }
+  
   message('Re-centering peaks...')
   
   positions <- sapply(peaklist,function(x)x$Summits)
@@ -669,12 +680,12 @@ pv.Recenter <- function(pv,summits,peakrange,called=NULL) {
   pv$class <- pv$class[,peakrange]
   if(!is.null(called)) {
     peaklist <- lapply(called,function(x)cbind(bed,x))
-    res <- pv.merge(bed,peaklist,pv$class)
+    res <- pv.merge(bed,peaklist,pv$class,maxgap=maxGap)
     pv$merged <- res$merged[,1:3]
     pv$called <- res$merged[,4:ncol(res$merged)]
     pv$chrmap <- res$chrmap
   } else {
-    res <- pv.merge(bed)
+    res <- pv.merge(bed,maxgap=maxGap)
     pv$merged <- res$merged
     pv$chrmap <- res$chrmap
   }

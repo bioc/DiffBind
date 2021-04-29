@@ -188,6 +188,7 @@ Rory Stark
 \item \code{profileplyr::BamBigwig_to_chipProfile}
 \item \code{profileplyr::generateEnrichedHeatmap}
 \item \code{profileplyr::profileplyr} (Vignette)
+\item \code{\link{DBA.config}}
 }
 }
 

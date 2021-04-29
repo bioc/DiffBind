@@ -45,7 +45,7 @@ Rory Stark
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{dba.save}}
+\code{\link{dba.save}}, \code{\link{DBA.config}}.
 }
 
 \examples{

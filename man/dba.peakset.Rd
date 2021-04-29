@@ -253,6 +253,8 @@ Rory Stark
 
 \seealso{
 to add peaksets using a sample sheet, see  \code{\link{dba}}.
+
+\code{$config$} options are described in \code{\link{DBA.config}}.
 }
 
 \examples{

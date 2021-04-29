@@ -224,7 +224,7 @@ Contrasts can be cleared by \code{DBA$contrasts <- NULL}.
 
 \seealso{
 
-\code{\link{dba.analyze}}
+\code{\link{dba.analyze}}, \code{\link{DBA.config}}.
 
 }
 

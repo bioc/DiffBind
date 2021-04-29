@@ -73,7 +73,7 @@ Rory Stark
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
- \code{\link{dba.load}}
+ \code{\link{dba.load}},  \code{\link{DBA.config}}.
 }
 
 \examples{

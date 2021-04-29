@@ -13,7 +13,8 @@ dba.report(DBA, contrast, method=DBA$config$AnalysisMethod,
            fold=0, bNormalized=TRUE, bFlip=FALSE, precision,
            bCalled=FALSE, bCounts=FALSE, bCalledDetail=FALSE,
            bDB, bNotDB, bAll=TRUE, bGain=FALSE, bLoss=FALSE,
-           file,initString=DBA$config$reportInit,ext='csv',DataType=DBA$config$DataType) 
+           file,initString=DBA$config$reportInit,ext='csv',
+           DataType=DBA$config$DataType) 
 }        
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -130,7 +131,10 @@ The class of object for returned report:
 \item \code{\link{DBA_DATA_FRAME}}
 }
 If set to \code{\link{DBA_DATA_SUMMARIZED_EXPERIMENT}}, the result will be 
-a \code{\link{SummarizedExperiment}} object, with all the count data and sample metadata for the experiment. The contrast statistics will be included as metadata columns in the \code{rowData} of the object.
+a \code{\link{SummarizedExperiment}} object, with all the count data and 
+sample metadata for the experiment. 
+The contrast statistics will be included as metadata columns in the 
+\code{rowData} of the object.
 
 Can be set as default behavior by setting \code{DBA$config$DataType}.
 }
@@ -190,7 +194,7 @@ Rory Stark
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
- \code{\link{dba.analyze}}
+ \code{\link{dba.analyze}},  \code{\link{DBA.config}}.
 }
 
 \examples{

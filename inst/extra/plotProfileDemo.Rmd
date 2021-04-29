@@ -3,29 +3,36 @@ title: "dba.plotProfile Demo"
 author: "Rory Stark"
 date: "14/04/2021"
 output:
-  html_document: 
-    toc: yes
-    fig_width: 7.5
-    fig_height: 8
-    number_sections: yes
+  pdf_document: 
+    fig_width: 7
+    fig_height: 7
   html_notebook: 
     toc: yes
     fig_width: 7
-    fig_height: 9
-  pdf_document: 
-    fig_width: 7.5
-    fig_height: 6
+    fig_height: 7
+  html_document: 
+    toc: yes
+    fig_width: 7
+    fig_height: 7
+    number_sections: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 options(connectionObserver = NULL)
-knitr::opts_knit$set(root.dir = "/data/personal/stark01/DiffBind_Vignette/")
 library(DiffBind)
 ```
 
-setwd("\~/Work/DiffBind/Vignette/DiffBind_Vignette/")
-setwd("/data/personal/stark01/DiffBind_Vignette/")
+# Download data and set working directory
+
+```{r download_data}
+tmpdir <- tempdir()
+url <- 'https://content.cruk.cam.ac.uk/bioinformatics/software/DiffBind/DiffBind_vignette_data.tar.gz'
+file <- basename(url)
+download.file(url, file.path(tmpdir,file))
+untar(file.path(tmpdir,file), exdir = tmpdir )
+knitr::opts_knit$set(root.dir=file.path(tmpdir,"DiffBind_Vignette"))
+```
 
 
 # dba.plotProfile() Tests/Demo

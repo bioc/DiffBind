@@ -535,6 +535,12 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
     minOverlap <- length(DBA$peaks)
   }
   
+  if(is.null(DBA$config$mergeOverlap)) {
+    maxGap <- as.integer(-1)
+  } else {
+    maxGap <- as.integer(-DBA$config$mergeOverlap)
+  }
+  
   bUseLast <- FALSE
   
   res <- NULL
@@ -601,7 +607,8 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
                              bLowMem=bUseSummarizeOverlaps,
                              readFormat=readFormat,summits=0,
                              minMappingQuality=mapQCth,bRecentered=TRUE,
-                             minCount=minCount, bSubControl=bSubControl)
+                             minCount=minCount, bSubControl=bSubControl, 
+                             maxGap=maxGap)
             res$summits <- summits
             res$norm <- DBA$norm
             res <- pv.reNormalize(res)
@@ -635,7 +642,8 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
                      bLowMem=bUseSummarizeOverlaps,readFormat=readFormat,
                      summits=summits,
                      minMappingQuality=mapQCth,
-                     minCount=minCount, bSubControl=bSubControl)
+                     minCount=minCount, bSubControl=bSubControl,
+                     maxGap=maxGap)
     if(summits != -1) {
       res$summits <- summits
     }

@@ -109,7 +109,8 @@ Rory Stark
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{dba}}, \code{\link{dba.peakset}}, \code{\link{dba.contrast}}. \code{\link{dba.analyze}}
+\code{\link{dba}}, \code{\link{dba.peakset}}, \code{\link{dba.contrast}}
+\code{\link{dba.analyze}},  \code{\link{DBA.config}}.
 }
 
 \examples{

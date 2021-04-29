@@ -163,7 +163,8 @@ re-called and read into \code{DiffBind}.
 }
 
 \seealso{
-\code{GreyListChIP (\link{GreyList})}, \code{BSgenome}
+\code{GreyListChIP (\link{GreyList})}, \code{BSgenome}, 
+\code{\link{DBA.config}}.
 }
 \examples{
 

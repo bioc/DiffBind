@@ -285,6 +285,12 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     mask <- 1:length(pv$peaks)
   }
   
+  if(is.null(pv$config$mergeOverlap)) {
+    maxGap <- as.integer(-1)
+  } else {
+    maxGap <- as.integer(-pv$config$mergeOverlap)
+  }
+  
   called <- SN <- NULL
   if (!missing(mask)) {
     if (is.logical(mask)) {
@@ -380,7 +386,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     }
     allnames <- NULL
     if (nrow(allpeaks) > 0) {
-      res  <- pv.merge(allpeaks,peaks,pv$class)
+      res  <- pv.merge(allpeaks,peaks,pv$class, maxgap=maxGap)
       pv$called <- res$included
       pv$totalMerged <- nrow(res$merged)
       rownames(res$merged) <- 1:nrow(res$merged)

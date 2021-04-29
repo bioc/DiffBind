@@ -148,7 +148,7 @@ to a single factor analysis.
 
 \code{\link{dba.blacklist}}, \code{\link{dba.count}},
 \code{\link{dba.contrast}}, \code{\link{dba.normalize}},
-\code{\link{dba.report}}
+\code{\link{dba.report}}, \code{\link{DBA.config}}.
 
 }
 
