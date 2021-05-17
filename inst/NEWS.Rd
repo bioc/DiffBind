@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.1.5}{
+   \itemize{
+      \item{Finish dba.plotProfile man page}
+      \item{Finish plotProfileDemo.Rmd demo workbook}
+      \item{Bugfix in dba.blacklist when called after counting}
+    }
+}
+
 \section{Version 3.1.4}{
    \itemize{
       \item{Roll-up v3.0 fixes}

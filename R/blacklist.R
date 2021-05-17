@@ -121,6 +121,7 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
     
     if(isConsensus) {
       DBA <- pv.removeBlacklistedPeaks(DBA)
+      DBA <- dba(DBA)
       DBA <- pv.reNormalize(DBA)
     } else {
       DBA <- dba(DBA)
