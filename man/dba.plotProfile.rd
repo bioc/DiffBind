@@ -234,6 +234,10 @@ Rory Stark
 }
 
 \examples{
+
+# See plotProfileDemo notebook:
+# system.file('extra/plotProfileDemo.Rmd',package='DiffBind')
+
 data(tamoxifen_analysis)
 
 # default Profile plot

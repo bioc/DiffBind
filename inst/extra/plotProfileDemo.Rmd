@@ -86,7 +86,12 @@ dba.plotProfile(profiles)
 
 ## Default plot: analysis
 
-If an analysis has been completed, the default will be based on the results of the first contrast. If the contrast compares two sample groups, the samples in those groups will be included, with the heatmaps colored separately for each side of the contrast. Sample groups are based on the `DBA_REPLICATE` attribute, such that each sample class will have one heatmap based on the normalized mean read counts for all the samples in that class that have the same metadata except for the Replicate number.
+If an analysis has been completed, the default plot 
+will be based on the results of the first contrast. 
+If the contrast compares two conditions, 
+all of the samples in each condition will be included, 
+with the heatmaps colored separately for samples in each contrast condition.
+Sample groups are formed based on the `DBA_REPLICATE` attribute, such that each sample class will have one heatmap based on the normalized mean read counts for all the samples in that class that have the same metadata except for the Replicate number.
 
 Two groups of differentially bound sites are included: Gain sites (with positive fold change) and Loss sites (negative fold change). If there are more than 1,000 sites in either category, the 1,000 sites with the great absolute value fold change will be included (the maximum number of sites to be profiled can be altered).
 
@@ -140,8 +145,12 @@ In this plot, the profile heatmaps are all plotted using the same color (red). T
 By specifying the samples as a list of two sample masks, the Resistant and Responsive MCF7 samples can be plotted using different colors:
 
 ```{r default_samples_MCF7_list, cache=TRUE}
+mask.MCF7 <- tamoxifen$masks$MCF7
 profiles <- dba.plotProfile(tamoxifen,
-                           samples=list(MCF7_Resistant=8:9,MCF7_Responsive=3:5),
+                           samples=list(MCF7_Resistant=
+                                          mask.MCF7 & tamoxifen$masks$Resistant,
+                                        MCF7_Responsive=
+                                          mask.MCF7 & tamoxifen$masks$Responsive),
                            merge=NULL)
 dba.plotProfile(profiles)
 ```

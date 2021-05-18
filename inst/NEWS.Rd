@@ -2,38 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 3.1.5}{
-   \itemize{
-      \item{Finish dba.plotProfile man page}
-      \item{Finish plotProfileDemo.Rmd demo workbook}
-      \item{Bugfix in dba.blacklist when called after counting}
-    }
+\section{Version 3.2}{
+\itemize{
+ \item{New type of plot: dba.plotProfile()}
+ \item{Can mix single-end and paired-end bam files}
+ \item{Various bug fixes}
 }
-
-\section{Version 3.1.4}{
-   \itemize{
-      \item{Roll-up v3.0 fixes}
-      \item{Expose dba.plotProfile}
-      \item{if end not specified in dba.count(), 
-            check each bam file separately for single-end or paired end}
-    }
-}
-
-\section{Version 3.1.2}{
-   \itemize{
-      \item{Fix warning exporting DBA class}
-      \item{Update with bug and documentation fixes}
-      \item{Add highlight to dba.plotMA}      
-      \item{Add new score types for report-based DBA objects}    
-    }
-}
-
-\section{Version 3.0.4}{
-   \itemize{
-      \item{Move bSubControl from dba.normalize to dba.count}
-      \item{Change filtering to use RPKM or RPKM_MINUS}
-      \item{Change default filter value to 1}      
-    }
 }
 
 \section{Version 3.0}{

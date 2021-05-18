@@ -49,7 +49,7 @@ The tamoxifen resistance dataset is used for the DBA vignette
 and man page examples. 
 
 Data used to create these objects can be downloaded at
-\samp{http://DiffBind.starkhome.com/}.
+\url{https://content.cruk.cam.ac.uk/bioinformatics/software/DiffBind/DiffBind_vignette_data.tar.gz}.
 }
 \value{
 loads a DBA object named \code{tamoxifen} (or \code{tamoxifen.greylist}).
