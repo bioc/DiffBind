@@ -120,7 +120,7 @@ pv.DEedgeR_parallel <- function(contrast,pv,blockList,bSubControl,
     blockList <- crec$blocklist
   }
   if(!is.null(crec$contrast)){
-    res <- pv.edgeRContrast(pv,crec)
+    res <- pv.edgeRContrastResults(pv,crec)
   } else {
     res <- pv.DEedgeR(pv,crec$group1,crec$group2,crec$name1,crec$name2,
                       blockList=blockList,
@@ -190,7 +190,7 @@ pv.allDEedgeR <- function(pv,block,bFullLibrarySize=FALSE,bParallel=FALSE,bSubCo
   } else { #SERIAL
     for(i in 1:length(pv$contrast)) { 	
       if(!is.null(pv$contrasts[[i]]$contrast)){
-        res <- pv.edgeRContrast(pv,pv$contrasts[[i]])
+        res <- pv.edgeRContrastResults(pv,pv$contrasts[[i]])
       } else {
         res <- pv.DEedgeR(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
                           pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
@@ -373,7 +373,7 @@ pv.DEinitedgeR <- function(pv,
 }
 
 
-pv.edgeRContrast <- function(pv, contrast, shrink=TRUE) {
+pv.edgeRContrastResults <- function(pv, contrast, shrink=TRUE, lfc=0) {
   
   if(is.null(pv$edgeR)) {
     stop("Can not test contrast: model has not been run",call.=FALSE)
@@ -387,7 +387,11 @@ pv.edgeRContrast <- function(pv, contrast, shrink=TRUE) {
     stop("edgeR: unsupported contrast.",call.=FALSE)
   }
   
-  de <- edgeR::glmQLFTest(pv$edgeR$DEdata,contrast=coeffs)
+  if(lfc == 0) {
+    de <- edgeR::glmQLFTest(pv$edgeR$DEdata,contrast=coeffs)
+  } else {
+    de <- edgeR::glmTreat(pv$edgeR$DEdata, contrast=coeffs, lfc=lfc)
+  }
   
   if(is.null(de)) {
     stop("edgeR: unsupported contrast.",call.=FALSE)

@@ -3059,7 +3059,15 @@ Note that coefficient names can be retrieved by calling
 these are obtained from a call to \Rcode{DESeq2::resultsNames}.
 
 The fold changes used in subsequent reports and plots are the shrunk values 
-estimated from the \Rcode{results}.
+estimated from the \Rcode{results} using \Rfunction{DESeq2::lfcShrink}.
+
+When retrieving or plotting results (e.g. calling \Rfunction{dba.report()},
+\Rfunction{dba.plotMA()},or \Rfunction{dba.plotVolcano()}), 
+if a \Rcode{fold} cutoff is specified other than \Rcode{0.0}, 
+the results are re-computed using 
+\Rfunction{DESeq2::results} with the \Rcode{lfcThreshold} supplied.
+Fold values are re-computed as well 
+(using \Rfunction{DESeq2::lfcShrink)}).
 
 \subsection{Details of \Biocpkg{edgeR} analysis}
 \label{subsec:technical_edger}
@@ -3115,7 +3123,7 @@ by calling \Rfunction{dba.analyze()} with \Rcode{bRetrieveAnalysis=DBA\_EDGER}.
 
 Each specified contrast is evaluated in two steps.
 First the main test is performed by a call to 
-First is a call to\Rcode{edgeR::glmQLFTest} with the fitted model 
+First is a call to \Rcode{edgeR::glmQLFTest} with the fitted model 
 and the values for each coefficient in the design matrix.
 If the contrast was specified to \Rfunction{dba.contrast()} 
 using values for each of the coefficients in the design matrix, 
@@ -3134,6 +3142,12 @@ can be retrieved by calling
 Finally, \Rfunction{edgeR::topTags} is called to retrieve the results of the test.
 The fold changes used in subsequent reports and plots are those estimated 
 from the \Rcode{TopTags}.
+
+When retrieving or plotting results (e.g. calling \Rfunction{dba.report()},
+\Rfunction{dba.plotMA()},or \Rfunction{dba.plotVolcano()}), 
+if a \Rcode{fold} cutoff is specified other than \Rcode{0.0}, 
+the results are re-computed using 
+\Rcode{edgeR::glmTreat} instead of \Rcode{edgeR::glmQLFTest}.
 
 \section{Technical notes for versions prior to \DBA 3.0 (without an explicit model design)}
 

@@ -60,7 +60,18 @@ A value of \code{1} will include all binding sites in the report.
 logical indicating whether to use FDR (\code{FALSE}) or p-value (\code{TRUE}) for thresholding.
 }
 \item{fold}{
-only sites with an absolute log Fold value greater than equal to this will be included in the report.
+only sites with an absolute log Fold value greater than equal to this 
+will be included in the report.
+This should be supplied as a \code{log2()} value.
+
+If \code{fold} is greater than zero, 
+and an explicit design was used for the contrast,
+the \code{p-value} and \code{FDR} will be re-calculated based on testing
+for changes greater than the specified fold change.
+For a \code{DESeq2} analysis, this involves including the \code{fold}
+when calling \code{DESeq2::results}.
+For a \code{edgeR} analysis, \code{edgeR::glmTreat} is used.
+
 }
 \item{bNormalized}{
 logical indicating that normalized data (using normalization factors computed b

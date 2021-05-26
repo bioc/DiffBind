@@ -30,7 +30,8 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
     }
     contrast <- contrast[1]
   } else if(max(contrast) > length(pv$contrasts)) {
-    stop('Specified contrast number is greater than number of contrasts',call.=FALSE)
+    stop('Specified contrast number is greater than number of contrasts',
+         call.=FALSE)
     return(NULL)
   }
   
@@ -62,8 +63,9 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
       if(noreport) {
         res <- pv.countsMA(pv, meth, conrec, bNormalized)
       } else {
-        res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=TRUE,
-                            th=100,bNormalized=bNormalized,bFlip=bFlip,precision=0)
+        res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,
+                            bUsePval=TRUE,th=100,bNormalized=bNormalized,
+                            bFlip=bFlip,precision=0, lfc=fold)
       }
       if(!is.null(res)) {
         if(noreport) {
@@ -262,7 +264,8 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
     }
     for(meth in method) {
       res <- pv.DBAreport(pv,contrast=contrast[con],method=meth,bUsePval=TRUE,
-                          th=100,bNormalized=TRUE,bFlip=bFlip,precision=0)
+                          th=100,bNormalized=TRUE,bFlip=bFlip,precision=0,
+                          lfc=fold)
       
       if(!is.null(res)) {
         if(bUsePval) {
@@ -288,15 +291,22 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
         idx <- idx & abs(res$Fold) >= fold 
         
         sigSites <- res[idx,]
-        rownames(sigSites) <- 1:sum(idx)
+        if(sum(idx)>0){
+          rownames(sigSites) <- 1:sum(idx)
+        }
         
         res <- cbind(0,res)
         colnames(res)[1] <- "SiteNum"
-        res[idx,1] <- 1:sum(idx)
+        if(sum(idx)>0){
+          res[idx,1] <- 1:sum(idx)
+          sidx <- sum(idx)
+        } else {
+          sidx <- 0
+        }
         
         constr <- pv.getContrastString(conrec)
         plotTitle <- sprintf('%s Contrast: %s  [%s %s<=%1.3f',
-                             facname, constr,sum(idx),tstr,th)
+                             facname, constr,sidx,tstr,th)
         if(fold>0) {
           plotTitle <- sprintf("%s & abs(Fold)>=%1.2f]",
                                plotTitle, 2^fold)
@@ -317,8 +327,8 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
           labs(title=plotTitle,x=xLabel,y=yLabel)
         
         if(bLabels) {
-          maxLabels <- min(sum(idx),maxLabels)
-          if(maxLabels > 0) {
+          maxLabels <- min(sidx,maxLabels)
+          if(maxLabels > 0 && sidx > 0) {
             xx <-  which(idx)[1:maxLabels]
             p <- p + geom_text_repel(data=sigSites[1:maxLabels,],
                                      aes(x=Fold, 
@@ -330,7 +340,11 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
       }
     }
   }
-  return(sigSites[,-10])
+  if(sidx > 0) {
+    return(sigSites[,-10])
+  } else {
+    return(NULL)
+  }
 }
 
 ## pv.plotHeatmap -- draw a heatmap using a subset of binding sites

@@ -2,7 +2,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
                          bCalled=FALSE,bCounts=FALSE,bCalledDetail=FALSE,
                          file,initString='reports/DBA',bNormalized=TRUE,
                          ext="csv",minFold=0,bSupressWarning=FALSE,
-                         bFlip=FALSE, precision=2:3) {
+                         bFlip=FALSE, precision=2:3, lfc=minFold) {
   
   
   if(length(contrast)>1){
@@ -121,7 +121,17 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
     if(bNormalized && !normalized){
       counts <- t(t(counts)/sizes)
       counts <- counts * pls
-    } 
+    }
+    
+    if(lfc > 0) {
+      if(!is.null(con$contrast)) {
+        data <- pv.edgeRContrastResults(pv, con, lfc=lfc)$de
+      } else {
+        warning("Contrast has no explicit design; assuming fold=0.",
+                call.=FALSE) 
+      }
+    }
+    
   } else if(method=='edgeRlm'){
     
     filter <- pv$norm$edgeR$filter.val
@@ -177,7 +187,8 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
         pv$DESeq2$DEdata <- deseq2$DEdata
       }
       
-      counts <- DESeq2::counts(pv$DESeq2$DEdata, normalized = bNormalized)
+      counts <- DESeq2::counts(pv$DESeq2$DEdata, 
+                               normalized = bNormalized)
       
       data     <- con$DESeq2$de
       normfacs <- pv$DESeq2$facs
@@ -187,19 +198,16 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
         normfacs <- c(normfacs[group1],normfacs[group2])
       }
       
+      if(lfc > 0) {
+        data <- pv.DESeq2ContrastResults(pv, con, lfc=lfc)$de
+      }
+      
     } else {
-      # counts <- pv.DEinit(pv,group1,group2,name1,name2,
-      #                     method='DESeq2',
-      #                     bSubControl=con$DESeq2$bSubControl,
-      #                     bFullLibrarySize=con$DESeq2$bFullLibrarySize,
-      #                     bRawCounts=TRUE,
-      #                     filter=filter, filterFun=filterFun)
       
       counts <- pv.countsMA(pv, method=DBA_DESEQ2, contrast=NULL, 
                             bNormalized=bNormalized, bCountsOnly=TRUE, filter=0,
                             noSub=!pv$norm$DESeq2$bSubControl)
       counts <- cbind(counts[,group1],counts[,group2])
-      
       
       if(method=='DESeq2Block') {
         data <- con$DESeq2$block$de
@@ -208,9 +216,11 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
         data <- con$DESeq2$de
         normfacs <- con$DESeq2$facs[facs]
       }
-      # if(bNormalized){
-      #   counts <- t(t(counts)/normfacs)
-      # }
+      
+      if(minFold > 0) {
+        warning("Contrast has no explicit design; assuming fold=0.",
+                call.=FALSE)
+      }
     }
   } else {
     stop('Unknown DE method: ',method,call.=FALSE)
@@ -688,8 +698,10 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
   
 }
 
-pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
-                         fold=0,bDB=TRUE,bNotDB=FALSE,bAll=FALSE,bUp=FALSE,bDown=FALSE,
+pv.doResults <- function(res,DBA,contrast,method,
+                         th,bUsePval,fold=0,
+                         bDB=TRUE,bNotDB=FALSE,bAll=FALSE,
+                         bUp=FALSE,bDown=FALSE,
                          bFlip=FALSE) {
   
   if(method=='edgeR' || method=="edgeRGLM") {
@@ -727,10 +739,15 @@ pv.doResults <- function(res,DBA,contrast,method,th,bUsePval,
     useth <- th
   }
   
-  rep <- suppressWarnings(dba.report(DBA,contrast=contrast,method=method,
-                                     th=useth,bUsePval=bUsePval,fold=0,
-                                     bFlip=bFlip,
-                                     DataType=DBA_DATA_FRAME))
+  # rep <- suppressWarnings(dba.report(DBA,contrast=contrast,method=method,
+  #                                    th=useth,bUsePval=bUsePval,fold=0,
+  #                                    bFlip=bFlip,
+  #                                    DataType=DBA_DATA_FRAME))
+  
+  rep <- suppressWarnings(pv.DBAreport(pv=DBA,contrast=contrast,method=method,
+                                       th=useth,bUsePval=bUsePval,
+                                       minFold=0, lfc=fold,
+                                       bFlip=bFlip, precision=2:3))
   
   if(is.null(rep)) {
     return(res)	

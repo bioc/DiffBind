@@ -21,12 +21,14 @@ Entry Points:
 \cr
 
 \code{\link{dba.overlap}}:	\tab	Compute binding site overlaps and/or correlations\cr
+\code{\link{dba.blacklist}}:	\tab	Filter peaks using blacklists and greylists\cr
 \code{\link{dba.count}}:	\tab	Count reads in binding sites\cr
 \cr
 	
-\code{\link{dba.contrast}}:	\tab	Establish contrast(s) for analysis\cr
-\code{\link{dba.analyze}}:	\tab	Execute affinity analysis\cr
-\code{\link{dba.report}}:	\tab	Generate report for a contrast analysis\cr
+\code{\link{dba.contrast}}:	\tab	Establish design and contrast(s) for analysis\cr
+\code{\link{dba.normalize}}: \tab	Normalize count data for analysis\cr
+\code{\link{dba.analyze}}:	\tab	Execute quantitative analysis\cr
+\code{\link{dba.report}}:	\tab	Generate results report for a contrast analysis\cr
 \cr
 
 \code{\link{dba.plotHeatmap}}:\tab	Heatmap plot\cr
@@ -35,6 +37,7 @@ Entry Points:
 \code{\link{dba.plotMA}}:	\tab	MA/scatter plot\cr
 \code{\link{dba.plotVenn}}:	\tab 	Venn diagram plot\cr
 \code{\link{dba.plotVolcano}}:	\tab 	Volcano plot\cr
+\code{\link{dba.plotProfile}}:	\tab 	Peak profile heatmaps\cr
 \cr
 	
 \code{\link{dba.show}}:	\tab	Show dba metadata\cr

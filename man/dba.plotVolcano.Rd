@@ -47,7 +47,16 @@ less than or equal to this value will be colored red in the plot
 logical indicating whether to use FDR (\code{FALSE}) or p-value (\code{TRUE}) for thresholding.
 }
   \item{fold}{
-will only include sites with fold change greater than this as significant (colored red).
+will only include sites with fold change greater than this 
+as significant (colored red).
+
+If \code{fold} is greater than zero, 
+and an explicit design was used for the contrast,
+the \code{p-value} and \code{FDR} will be re-calculated based on testing
+for changes greater than the specified fold change.
+For a \code{DESeq2} analysis, this involves including the \code{fold}
+when calling \code{DESeq2::results}.
+For a \code{edgeR} analysis, \code{edgeR::glmTreat} is used.
 }
 
  \item{factor}{
@@ -105,11 +114,11 @@ data(tamoxifen_analysis)
 # default volcano plot
 dba.plotVolcano(tamoxifen)
 
-# only highlight significant sites with at least 5x Fold Change
-sigSites <- dba.plotVolcano(tamoxifen, fold=log2(5))
+# only highlight significant sites with at least 3x Fold Change
+sigSites <- dba.plotVolcano(tamoxifen, fold=log2(3))
 
 # use labels to find outlier sites
-sigSites <- dba.plotVolcano(tamoxifen, fold=log2(10),bLabels=TRUE)
+sigSites <- dba.plotVolcano(tamoxifen, fold=log2(5), th=0.01, bLabels=TRUE)
 sigSites
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

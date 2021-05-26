@@ -63,6 +63,14 @@ for thresholding.
   \item{fold}{
 will only include sites with fold change greater than this as significant 
 (colored red).
+
+If \code{fold} is greater than zero, 
+and an explicit design was used for the contrast,
+the \code{p-value} and \code{FDR} will be re-calculated based on testing
+for changes greater than the specified fold change.
+For a \code{DESeq2} analysis, this involves including the \code{fold}
+when calling \code{DESeq2::results}.
+For a \code{edgeR} analysis, \code{edgeR::glmTreat} is used.
 }
   \item{bNormalized}{
 logical indicating whether to plot normalized data using normalization factors 

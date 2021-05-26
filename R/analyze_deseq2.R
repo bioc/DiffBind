@@ -270,7 +270,7 @@ pv.allDESeq2 <- function(pv,block,bSubControl=FALSE,bFullLibrarySize=FALSE,
   } else { # SERIAL
     for(i in 1:length(pv$contrast)) { 	
       if(!is.null(pv$contrasts[[i]]$contrast)){
-        res <- pv.DESeq2Contrast(pv,pv$contrasts[[i]])
+        res <- pv.DESeq2ContrastResults(pv,pv$contrasts[[i]])
       } else {
         res <- pv.DESeq2(pv,pv$contrasts[[i]]$group1,pv$contrasts[[i]]$group2,
                          pv$contrasts[[i]]$name1,pv$contrasts[[i]]$name2,
@@ -302,7 +302,7 @@ pv.DESeq2_parallel <- function(contrast,pv,blockList,bSubControl,
     blockList <- crec$blocklist
   }
   if(!is.null(crec$contrast)){
-    res <- pv.DESeq2Contrast(pv,crec)
+    res <- pv.DESeq2ContrastResults(pv,crec)
   } else {
     res <- pv.DESeq2(pv,crec$group1,crec$group2,crec$name1,crec$name2,
                      bSubControl=bSubControl,bFullLibrarySize=bFullLibrarySize,
@@ -313,7 +313,7 @@ pv.DESeq2_parallel <- function(contrast,pv,blockList,bSubControl,
   return(res)
 }
 
-pv.DESeq2Contrast <- function(pv, contrast, shrink=TRUE) {
+pv.DESeq2ContrastResults <- function(pv, contrast, shrink=TRUE, lfc=0) {
   
   if(is.null(pv$DESeq2)) {
     stop("Can not test contrast: model has not been run",call.=FALSE)
@@ -321,23 +321,28 @@ pv.DESeq2Contrast <- function(pv, contrast, shrink=TRUE) {
   
   res <- NULL
   if(contrast$contrastType!="byname") {
-    res$de     <- DESeq2::results(pv$DESeq2$DEdata, contrast=contrast$contrast)
+    res$de     <- DESeq2::results(pv$DESeq2$DEdata, contrast=contrast$contrast,
+                                  lfcThreshold=lfc)
   } else {
-    res$de     <- DESeq2::results(pv$DESeq2$DEdata, name=contrast$contrast)
+    res$de     <- DESeq2::results(pv$DESeq2$DEdata, name=contrast$contrast,
+                                  lfcThreshold=lfc)
   }
   
   if(shrink) {
     if(contrast$contrastType=="byname") {
       res$de <- suppressMessages(DESeq2::lfcShrink(pv$DESeq2$DEdata,
                                                    coef=contrast$contrast,
+                                                   lfcThreshold=lfc,
                                                    res=res$de,type="apeglm"))
     } else  if(contrast$contrastType=="results1") {
       res$de <- suppressMessages(DESeq2::lfcShrink(pv$DESeq2$DEdata,
                                                    coef=contrast$contrast[[1]],
+                                                   lfcThreshold=lfc,
                                                    res=res$de,type="apeglm"))
     } else {
       res$de <- suppressMessages(DESeq2::lfcShrink(pv$DESeq2$DEdata,
                                                    contrast=contrast$contrast,
+                                                   lfcThreshold=lfc,
                                                    res=res$de,type="ashr"))
     }
   }
