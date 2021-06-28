@@ -677,7 +677,7 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
   }
   
   if(is.null(res)) {
-    warning('No valid contrasts/methods specified.',call.=FALSE)	
+    stop('No valid contrasts/methods specified.')	
   }
   
   res$config <- DBA$config
@@ -739,11 +739,6 @@ pv.doResults <- function(res,DBA,contrast,method,
     useth <- th
   }
   
-  # rep <- suppressWarnings(dba.report(DBA,contrast=contrast,method=method,
-  #                                    th=useth,bUsePval=bUsePval,fold=0,
-  #                                    bFlip=bFlip,
-  #                                    DataType=DBA_DATA_FRAME))
-  
   rep <- suppressWarnings(pv.DBAreport(pv=DBA,contrast=contrast,method=method,
                                        th=useth,bUsePval=bUsePval,
                                        minFold=0, lfc=fold,
@@ -771,19 +766,19 @@ pv.doResults <- function(res,DBA,contrast,method,
     if(bAll) {
       if(sum(db)) {
         res <- pv.peakset(res,peaks=peaks[db,],sampID=id,factor="DB",tissue="All",
-                          condition=methname,treatment=block)	
+                          condition=methname,treatment=block,bMakeMasks=FALSE)	
       }
     }
     if(bUp) {
       if(sum(db&up)) {	
         res <- pv.peakset(res,peaks=peaks[db&up,],sampID=id, factor ="DB", tissue ="Gain",
-                          condition=methname,treatment=block)	
+                          condition=methname,treatment=block,bMakeMasks=FALSE)	
       }
     }
     if(bDown) {
       if(sum(db&!up)) {
         res <- pv.peakset(res,peaks=peaks[db&!up,],sampID=id, factor ="DB", tissue ="Loss",
-                          condition=methname,treatment=block)	
+                          condition=methname,treatment=block,bMakeMasks=FALSE)	
       }
     }		
   }
@@ -791,22 +786,26 @@ pv.doResults <- function(res,DBA,contrast,method,
     if(bAll) {
       if(sum(!db)) {
         res <- pv.peakset(res,peaks=peaks[!db,],sampID=id, factor ="!DB", tissue ="All",
-                          condition=methname,treatment=block)	
+                          condition=methname,treatment=block,bMakeMasks=FALSE)	
       }
     }
     if(bUp) {
       if(sum(!db&up)) {
         res <- pv.peakset(res,peaks=peaks[!db&up,],sampID=id, factor ="!DB", tissue ="Gain",
-                          condition=methname,treatment=block)	
+                          condition=methname,treatment=block,bMakeMasks=FALSE)	
       }
     }
     if(bDown) {
       if(sum(!db&!up)) {
         res <- pv.peakset(res,peaks=peaks[!db&!up,],sampID=id, factor ="!DB", tissue ="Loss",
-                          condition=methname,treatment=block)	
+                          condition=methname,treatment=block,bMakeMasks=FALSE)	
       }
     }		
   }    
+  
+  if(is.null(res$masks)) {
+    res$masks <- pv.mask(res)
+  }
   
   return(res)	
 }

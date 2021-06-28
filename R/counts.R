@@ -445,7 +445,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
           }
           res <- pv.vectors(res,minOverlap=1,bAllSame=pv.allSame(res))
         } else {
-          stop('No sites have activity greater than minMaxval',call.=FALSE)
+          stop('No sites have activity greater than filter value.',call.=FALSE)
         }
       }
     } else {

@@ -620,8 +620,7 @@ pv.plotPCA <-
               "PCA: %s+%s+%s+%s",pv.attname(class,pv),
               pv.attname(second,pv),
               pv.attname(third,pv),
-              pv.attname(fourth,pv),pvar
-            )
+              pv.attname(fourth,pv))
         } else {
           classvec <-
             sprintf("%s:%s:%s",classes[class,],classes[second,],classes[third,])
@@ -629,17 +628,16 @@ pv.plotPCA <-
             sprintf(
               "PCA: %s+%s+%s",pv.attname(class,pv),
               pv.attname(second,pv),
-              pv.attname(third,pv),pvar
-            )
+              pv.attname(third,pv))
         }
       } else {
         classvec <- sprintf("%s:%s",classes[class,],classes[second,])
         thetitle <- sprintf("PCA: %s+%s",pv.attname(class,pv),
-                            pv.attname(second,pv),pvar)
+                            pv.attname(second,pv))
       }
     } else {
       classvec <- classes[class,]
-      thetitle <- sprintf("PCA: %s",pv.attname(class,pv),pvar)
+      thetitle <- sprintf("PCA: %s",pv.attname(class,pv))
     }
     
     if (!is.null(label)) {

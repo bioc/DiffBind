@@ -174,6 +174,8 @@ dba <- function(DBA,mask, minOverlap=2,
     res$ChIPQCobj <- NULL   
   }
   
+  gc(verbose=FALSE)
+  
   return(res)                 
 }
 
@@ -321,6 +323,7 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor,
     
     if(bMerge) {
       res <- pv.check(res,bCheckSort=bCheckS,bDoVectors=bDoV)
+      gc(verbose=FALSE)
     }
     
     if(!is.null(DBA$ChIPQCobj)) {
@@ -669,6 +672,8 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
     res <- checkQCobj(DBA$ChIPQCobj,res)
   }
   
+  gc(verbose=FALSE)
+  
   return(res)
 }
 
@@ -937,7 +942,7 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
   }
   
   if(is.null(DBA$contrasts)) {
-    if(missing(design)) {
+    if(missing(design) && is.null(DBA$design)) {
       message("Forming default model design and contrast(s)...")
     } else {
       message("Setting default contrast(s)...")      
@@ -1003,6 +1008,8 @@ and that the default model is of full rank, and call dba.contrast() explicitly."
   if(!is.null(DBA$ChIPQCobj)) {
     res <- checkQCobj(DBA$ChIPQCobj,res)
   }
+  
+  gc(verbose=FALSE)
   
   return(res)
 }
@@ -1786,7 +1793,7 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
     saveChIPQC@DBA <- res
     res <- saveChIPQC
   }
-  pv.gc()
+  gc(verbose=FALSE)
   return(res)
 } 
 

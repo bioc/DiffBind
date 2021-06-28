@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.3.2}{
+\itemize{
+ \item{Re-compute FDR when fold change other than 0 is specified}
+ \item{Remove most gc() calls}
+ \item{Roll in bugfixes}
+}
+}
+
 \section{Version 3.2}{
 \itemize{
  \item{New type of plot: dba.plotProfile()}
