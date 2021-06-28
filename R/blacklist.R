@@ -121,7 +121,8 @@ pv.BlackGreyList <- function (DBA, blacklist, greylist,
     
     if(isConsensus) {
       DBA <- pv.removeBlacklistedPeaks(DBA)
-      DBA <- dba(DBA)
+      reDBA <- dba(DBA)
+      DBA <- pv.restoreContrasts(reDBA,DBA)
       DBA <- pv.reNormalize(DBA)
     } else {
       DBA <- dba(DBA)
@@ -565,5 +566,24 @@ pv.genomes <- function(bamfiles, chrmap=NULL) {
 }
 
 
-
+pv.restoreContrasts <- function(reDBA,DBA){
+  reDBA$design <- DBA$design
+  
+  if(!is.null(DBA$contrasts)) {
+    reDBA$contrasts <- DBA$contrasts
+    for(i in 1:length(reDBA$contrasts)) {
+      reDBA$contrasts[[i]]$DESeq2 <- NULL
+      reDBA$contrasts[[i]]$edgeR  <- NULL
+    }
+  }
+  
+  if(!is.null(DBA$DESeq2)) {
+    reDBA$DESeq2 <- NULL
+    reDBA$DESEq2$names <- DBA$names
+  }
+  
+  reDBA$edgeR <- NULL
+  
+  return(reDBA)
+}
 

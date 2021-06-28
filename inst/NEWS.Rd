@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.2.3}{
+\itemize{
+ \item{Fix for when applying blacklists after counting with non-default contrasts.}
+}
+}
+
 \section{Version 3.2}{
 \itemize{
  \item{New type of plot: dba.plotProfile()}
