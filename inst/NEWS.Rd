@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.2.4}{
+\itemize{
+ \item{Fix bFlip issues}
+ \item{remove gc() for performance}
+}
+}
+
 \section{Version 3.2.3}{
 \itemize{
  \item{Fix for when applying blacklists after counting with non-default contrasts.}

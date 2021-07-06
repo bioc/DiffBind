@@ -1290,7 +1290,7 @@ stripSpaces <- function(data) {
 }
 
 pv.gc <- function(){
-   gc(verbose=FALSE)
+   #gc(verbose=FALSE)
 }
 
 pv.overlaps <- function(pv,minOverlap) {

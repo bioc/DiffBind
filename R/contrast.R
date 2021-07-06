@@ -1132,7 +1132,7 @@ pv.generateSimpleDesign <- function(pv,addfactor) {
    return(design)
 }
 
-pv.getContrastString <- function(conrec) {
+pv.getContrastString <- function(conrec, bFlip=FALSE) {
    if(!is.null(conrec$contrastType)) {
       constr <- conrec$contrast
       if(conrec$contrastType=='bycolumn') {
@@ -1140,14 +1140,30 @@ pv.getContrastString <- function(conrec) {
       } else if(conrec$contrastType=='byresults1') {
          constr <- constr[[1]]
       } else if(conrec$contrastType=='byresults2') {
-         constr <- paste(constr[[1]],"vs.",constr[[2]])
+         if(bFlip==TRUE) {
+            constr <- paste(constr[[2]],"vs.",constr[[3]])
+         } else {
+            constr <- paste(constr[[1]],"vs.",constr[[2]])
+         }
       } else if(length(constr) == 2) {
-         constr <- paste(constr[1],"vs.",constr[2])      
+         if(bFlip==TRUE) {
+            constr <- paste(constr[2],"vs.",constr[1 ])   
+         } else {
+            constr <- paste(constr[1],"vs.",constr[2])      
+         }
       } else if(length(constr) == 3)  {
-         constr <- paste(constr[2],"vs.",constr[3])      
+         if(bFlip==TRUE) {
+            constr <- paste(constr[3],"vs.",constr[2])   
+         } else {
+            constr <- paste(constr[2],"vs.",constr[3])    
+         }
       }
    } else {
-      constr <- paste(conrec$name1, "vs.", conrec$name2)
+      if(bFlip==TRUE) {
+         constr <- paste(conrec$name2, "vs.", conrec$name1)         
+      } else {
+         constr <- paste(conrec$name1, "vs.", conrec$name2)
+      }
    }
    return(constr)
 }
