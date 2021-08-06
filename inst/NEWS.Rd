@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.2.5}{
+\itemize{
+ \item{Fix buf where mode not passed to summarizeOverlaps}
+}
+}
+
 \section{Version 3.2.4}{
 \itemize{
  \item{Fix bFlip issues}

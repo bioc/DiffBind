@@ -179,6 +179,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   yieldSize <- 5000000
   mode      <- "IntersectionNotEmpty"
   singleEnd <- NULL
+  interfeature <- TRUE
   
   scanbamparam <- NULL
   addfuns <- NULL
@@ -209,6 +210,10 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
     if(!is.null(pv$config$intersectMode)) {
       mode <- pv$config$intersectMode	
     }
+    
+    if(!is.null(pv$config$inter.feature)) {
+      interfeature <- pv$config$inter.feature	
+    } 
     
     if(is.null(pv$config$singleEnd)) {
       # bfile <- pv.BamFile(todo[1], bIndex=TRUE)
@@ -242,7 +247,8 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
                                      pv.do_getCounts,bed,bWithoutDupes=bWithoutDupes,
                                      bLowMem,yieldSize,mode,singleEnd,
                                      scanbamparam,readFormat,
-                                     summits,fragments,minMappingQuality,minCount)
+                                     summits,fragments,minMappingQuality,minCount,
+                                     interfeature)
     } else {
       results <- NULL
       for(job in todorecs) {
@@ -251,7 +257,8 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
                                                       bLowMem,yieldSize,mode,singleEnd,
                                                       scanbamparam,readFormat,
                                                       summits,fragments,
-                                                      minMappingQuality,minCount))
+                                                      minMappingQuality,minCount,
+                                                      interfeature))
       }	
     }
     if(PV_DEBUG){
@@ -517,14 +524,15 @@ pv.checkExists <- function(filelist){
 pv.do_getCounts <- function(countrec,intervals,bWithoutDupes=FALSE,
                             bLowMem=FALSE,yieldSize,mode,singleEnd,scanbamparam,
                             fileType=0,summits,fragments,minMappingQuality=0,
-                            minCount=0) {
+                            minCount=0, interfeature=TRUE) {
   
   res <- pv.getCounts(bamfile=countrec$bamfile,intervals=intervals,insertLength=countrec$insert,
                       bWithoutDupes=bWithoutDupes,
                       bLowMem=bLowMem,yieldSize=yieldSize,mode=mode,singleEnd=singleEnd,
                       scanbamparam=scanbamparam,
                       fileType=fileType,summits=summits,fragments=fragments,
-                      minMappingQuality=minMappingQuality,minCount=minCount)
+                      minMappingQuality=minMappingQuality,minCount=minCount,
+                      interfeature=interfeature)
   pv.gc()
   return(res)
   
@@ -532,7 +540,7 @@ pv.do_getCounts <- function(countrec,intervals,bWithoutDupes=FALSE,
 pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=FALSE,
                          bLowMem=FALSE,yieldSize,mode,singleEnd,scanbamparam,
                          fileType=0,summits=-1,fragments,minMappingQuality=0,
-                         minCount=0) {
+                         minCount=0, interfeature=TRUE) {
   
   bufferSize <- 1e6
   fdebug(sprintf('pv.getCounts: ENTER %s',bamfile))
@@ -559,7 +567,8 @@ pv.getCounts <- function(bamfile,intervals,insertLength=0,bWithoutDupes=FALSE,
     
     res <- pv.getCountsLowMem(bamfile,intervals,bWithoutDupes,mode,yieldSize,
                               singleEnd,fragments,
-                              scanbamparam,minCount=minCount,minQC=minMappingQuality)
+                              scanbamparam,minCount=minCount,minQC=minMappingQuality,
+                              interfeature=interfeature)
     return(res)
   }
   
@@ -588,7 +597,7 @@ pv.filterRate <- function(pv,vFilter,filterFun=max) {
 pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=FALSE,
                                mode="IntersectionNotEmpty",yieldSize=5000000,
                                singleEnd=TRUE,fragments=FALSE,params=NULL,
-                               minCount=0, minQC=0) {
+                               minCount=0, minQC=0, interfeature=TRUE) {
   
   intervals <- pv.peaks2DataType(intervals,DBA_DATA_GRANGES)
   
@@ -607,8 +616,9 @@ pv.getCountsLowMem <- function(bamfile,intervals,bWithoutDups=FALSE,
   }
   
   counts  <- assay(
-    GenomicAlignments::summarizeOverlaps(features=intervals,reads=bfl,
+    GenomicAlignments::summarizeOverlaps(features=intervals,reads=bfl, 
                                          ignore.strand=TRUE,singleEnd=singleEnd,
+                                         mode=mode, inter.feature=interfeature,
                                          fragments=fragments,param=params))
   counts[counts<minCount] <- minCount
   libsize <-
