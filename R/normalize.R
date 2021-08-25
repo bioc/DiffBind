@@ -458,13 +458,15 @@ pv.getBackground <- function(pv,background=PV_BACKGROUND_BINSIZE,
     
     rParams <- pv.readParams(pv, restrict)
     if(pv$config$RunParallel) {
-      if(pv$config$parallelPackage == DBA_PARALLEL_MULTICORE) {
-        if(is.null(pv$config$cores)) {
-          cores <- BiocParallel::multicoreWorkers()
-        } else {
-          cores <- pv$config$cores
+      if(!is.null(pv$config$parallelPackage)) {
+        if(pv$config$parallelPackage == DBA_PARALLEL_MULTICORE) {
+          if(is.null(pv$config$cores)) {
+            cores <- BiocParallel::multicoreWorkers()
+          } else {
+            cores <- pv$config$cores
+          }
+          mcparam <- BiocParallel::MulticoreParam(workers=cores)
         }
-        mcparam <- BiocParallel::MulticoreParam(workers=cores)
       }
     } else {
       mcparam <- BiocParallel::SerialParam()

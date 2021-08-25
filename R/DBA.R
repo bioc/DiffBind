@@ -117,13 +117,13 @@ dba <- function(DBA,mask, minOverlap=2,
   }
   
   if(is.null(res$config$parallelPackage)){
-    res$config$parallelPackage=DBA_PARALLEL_MULTICORE
+    res$config$parallelPackage <- DBA_PARALLEL_MULTICORE
   }
   if(is.null(res$config$RunParallel)){
     res$config$RunParallel <- TRUE
   }
   if(is.null(res$config$AnalysisMethod)){
-    res$config$AnalysisMethod=DBA_DESEQ2
+    res$config$AnalysisMethod <- DBA_DESEQ2
   }
   if(is.null(res$config$bCorPlot)){
     res$config$bCorPlot <- FALSE

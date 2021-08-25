@@ -2,9 +2,16 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.2.6}{
+\itemize{
+ \item{Handle case where no parallelPackage is set}
+}
+}
+
 \section{Version 3.2.5}{
 \itemize{
- \item{Fix buf where mode not passed to summarizeOverlaps}
+ \item{Fix bug where mode not passed to summarizeOverlaps}
+ \item{Add $inter.feature config parameter}
 }
 }
 
