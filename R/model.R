@@ -165,7 +165,7 @@ pv.peakset <- function(pv = NULL,peaks, sampID, tissue, factor,condition, treatm
     } else {
       peaks <- pv.peaksort(peaks)
       if (is.null(scoreCol))
-        scoreCol <- 0
+        scoreCol <- pv.defaultScoreCol(peak.format)
       if (is.null(bLowerScoreBetter))
         bLowerScoreBetter <- FALSE
     }

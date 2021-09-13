@@ -328,18 +328,23 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor,
       #          resQC@DBA <- res
       #          res <- resQC
       warning('Returning new DBA object (not ChIPQCexperiment object)')
-    }   
-  }   
-  
-  numpeaks <- length(res$peaks)
-  if(numpeaks > 1) {
-    if(is.null(res$called)) {
-      res <- dba(res)
-    } else 
-      if(numpeaks != ncol(res$called)) {
+    }
+    
+    numpeaks <- length(res$peaks)
+    if(numpeaks > 1) {
+      if(is.null(res$called)) {
         res <- dba(res)
-      }
-  }
+      } else 
+        if(numpeaks != ncol(res$called)) {
+          res <- dba(res)
+        }
+    }
+    
+    if(!is(res,"DBA")) {
+      res <- dba(res)
+    }
+    
+  } 
   
   return(res)                       
   

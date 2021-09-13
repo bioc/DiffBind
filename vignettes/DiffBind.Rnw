@@ -34,7 +34,7 @@ Cancer Research UK - Cambridge Institute\\
 University of Cambridge
 }
 
-\date{Edited: 18 May 2021; Compiled: \today}
+\date{Edited: 3 September 2021; Compiled: \today}
 
 \maketitle
 
@@ -2913,7 +2913,7 @@ Note that two parameters that used to be available when calling
 \item
 \Rcode{bSubControl:} 
 now integrated into  \Rcode{dba.count}.
-\Rcode{FALSE} by default (unless a greylist has
+\Rcode{TRUE} by default (unless a greylist has
 been added using \Rcode{dba.blacklist}).
 \item
 \Rcode{bFullLibrarySize:} 

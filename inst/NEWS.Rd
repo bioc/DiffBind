@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.2.7}{
+\itemize{
+ \item{Fix bug when adding peaks to NULL DBA}
+ \item{Fix error in vignette (bSubControl=FALSE)} 
+  \item{Changed warning to error when fail to create report-based DBA} 
+}
+}
+
 \section{Version 3.2.6}{
 \itemize{
  \item{Handle case where no parallelPackage is set}

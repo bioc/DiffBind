@@ -473,7 +473,10 @@ pv.readPeaks <- function(peaks,peak.format,skipLines=0){
 
 
 pv.defaultScoreCol <- function(peak.format){
-   if(peak.format == "macs") {
+   if(is.null(peak.format)) {
+      val <- 0
+   }
+   else if(peak.format == "macs") {
       val <- 7
    } 
    else if(peak.format == "bayes") {

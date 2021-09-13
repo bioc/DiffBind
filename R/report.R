@@ -671,7 +671,7 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
   }
   
   if(is.null(res)) {
-    warning('No valid contrasts/methods specified.',call.=FALSE)	
+    stop('No valid contrasts/methods specified.',call.=FALSE)	
   }
   
   res$config <- DBA$config
