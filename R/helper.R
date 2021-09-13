@@ -474,7 +474,7 @@ pv.readPeaks <- function(peaks,peak.format,skipLines=0){
 
 pv.defaultScoreCol <- function(peak.format){
    if(is.null(peak.format)) {
-      val <- 0
+      return(0)
    }
    else if(peak.format == "macs") {
       val <- 7
