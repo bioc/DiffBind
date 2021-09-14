@@ -104,7 +104,7 @@ dba <- function(DBA,mask, minOverlap=2,
                   bRemoveM=bRemoveM, bRemoveRandom=bRemoveRandom,
                   filter=filter, attributes=attributes, dir)
   
-  res$contrasts=NULL
+  res$contrasts <- NULL
   
   if(nrow(res$peaks[[1]])>0) {
     if(sum(res$peaks[[1]]$Score<0)>0) {
@@ -117,19 +117,19 @@ dba <- function(DBA,mask, minOverlap=2,
   }
   
   if(is.null(res$config$parallelPackage)){
-    res$config$parallelPackage=DBA_PARALLEL_MULTICORE
+    res$config$parallelPackage <- DBA_PARALLEL_MULTICORE
   }
   if(is.null(res$config$RunParallel)){
     res$config$RunParallel <- TRUE
   }
   if(is.null(res$config$AnalysisMethod)){
-    res$config$AnalysisMethod=DBA_DESEQ2
+    res$config$AnalysisMethod <- DBA_DESEQ2
   }
   if(is.null(res$config$bCorPlot)){
     res$config$bCorPlot <- FALSE
   } 
   if(is.null(res$config$th)){
-    res$config$th=0.05
+    res$config$th <- 0.05
   }
   if(is.null(res$config$bUsePval)){
     res$config$bUsePval <- FALSE
@@ -174,7 +174,7 @@ dba <- function(DBA,mask, minOverlap=2,
     res$ChIPQCobj <- NULL   
   }
   
-  gc(verbose=FALSE)
+  pv.gc(force=FALSE)
   
   return(res)                 
 }
@@ -323,7 +323,7 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor,
     
     if(bMerge) {
       res <- pv.check(res,bCheckSort=bCheckS,bDoVectors=bDoV)
-      gc(verbose=FALSE)
+      pv.gc(force=FALSE)
     }
     
     if(!is.null(DBA$ChIPQCobj)) {
@@ -332,20 +332,24 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor,
       #          res <- resQC
       warning('Returning new DBA object (not ChIPQCexperiment object)')
     }   
-  }   
-  
-  numpeaks <- length(res$peaks)
-  if(numpeaks > 1) {
-    if(is.null(res$called)) {
-      res <- dba(res)
-    } else 
-      if(numpeaks != ncol(res$called)) {
+    
+    numpeaks <- length(res$peaks)
+    if(numpeaks > 1) {
+      if(is.null(res$called)) {
         res <- dba(res)
-      }
+      } else 
+        if(numpeaks != ncol(res$called)) {
+          res <- dba(res)
+        }
+    }
+    
+    if(!is(res,"DBA")) {
+      res <- dba(res)
+    }
+    
   }
   
   return(res)                       
-  
 }                      
 
 ##################################################
@@ -423,7 +427,7 @@ dba.overlap <- function(DBA, mask, mode=DBA_OLAP_PEAKS,
         if(!is.null(res[[i]])) {
           if(is.null(res[[i]]$score)) {
             res[[i]]$score <- rowMeans(data.frame(mcols(res[[i]])), 
-                                            na.rm=TRUE)
+                                       na.rm=TRUE)
           }
         } else {
           res[[i]] <- GRanges(NULL)
@@ -435,7 +439,7 @@ dba.overlap <- function(DBA, mask, mode=DBA_OLAP_PEAKS,
   
   return(res)
 }
-   
+
 ##############################################################
 ## dba.blacklist -- apply/generate blacklists and greylists ##
 ##############################################################
@@ -672,7 +676,7 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
     res <- checkQCobj(DBA$ChIPQCobj,res)
   }
   
-  gc(verbose=FALSE)
+  pv.gc(force=FALSE)
   
   return(res)
 }
@@ -1009,7 +1013,7 @@ and that the default model is of full rank, and call dba.contrast() explicitly."
     res <- checkQCobj(DBA$ChIPQCobj,res)
   }
   
-  gc(verbose=FALSE)
+  pv.gc(force=FALSE)
   
   return(res)
 }
@@ -1383,6 +1387,7 @@ dba.plotProfile <- function(Object, samples, sites,
                         doPlot=doPlot, returnVal="profileplyr",
                         ...) 
   
+  pv.gc(force=TRUE)
   invisible(res)
 }
 
@@ -1793,7 +1798,7 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
     saveChIPQC@DBA <- res
     res <- saveChIPQC
   }
-  gc(verbose=FALSE)
+  pv.gc(force=FALSE)
   return(res)
 } 
 
@@ -1863,6 +1868,6 @@ plot.DBA <- function(x,...){
 }
 
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage(" >>> DiffBind 3.2.")
+  packageStartupMessage(" >>> DiffBind 3.3 (Development)")
 }
 

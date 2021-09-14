@@ -295,6 +295,9 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
       fold <- con1 - con2
     } else {
       fold <- data$fold[keep]
+      if(bFlip==TRUE) {
+        fold <- fold * -1
+      }
     }
     data <- cbind(pv.getsites(pv,siteids),conc,con1,con2,fold,data[keep,c(pvCol,fdrCol)])
     conc1 <- sprintf('Conc_%s',name1)
@@ -677,7 +680,7 @@ pv.resultsDBA <- function(DBA,contrasts,methods=DBA$config$AnalysisMethod,
   }
   
   if(is.null(res)) {
-    stop('No valid contrasts/methods specified.')	
+    stop('No valid contrasts/methods specified.', call.=FALSE)	
   }
   
   res$config <- DBA$config
@@ -750,7 +753,7 @@ pv.doResults <- function(res,DBA,contrast,method,
   
   rep <- rep[order(as.integer(rownames(rep))),]
   
-  id <- pv.getContrastString(DBA$contrast[[contrast]]) 
+  id <- pv.getContrastString(DBA$contrast[[contrast]], bFlip) 
   
   if(bUsePval) {
     scores <- rep$"p-value"

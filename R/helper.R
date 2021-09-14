@@ -470,9 +470,10 @@ pv.readPeaks <- function(peaks,peak.format,skipLines=0){
    }     
 }
 
-
-
 pv.defaultScoreCol <- function(peak.format){
+   if(is.null(peak.format)) {
+      return(0)
+   }
    if(peak.format == "macs") {
       val <- 7
    } 
@@ -1289,8 +1290,10 @@ stripSpaces <- function(data) {
    return(data)
 }
 
-pv.gc <- function(){
-   #gc(verbose=FALSE)
+pv.gc <- function(force=FALSE){
+   if(force) {
+      gc(verbose=FALSE)
+   }
 }
 
 pv.overlaps <- function(pv,minOverlap) {

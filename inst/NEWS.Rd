@@ -2,10 +2,18 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.3.4}{
+\itemize{
+ \item{Fix bFlip issues}
+  \item{Fix bug where mode not passed to summarizeOverlaps}
+   \item{Add $inter.feature config parameter}
+}
+}
+
 \section{Version 3.3.2}{
 \itemize{
  \item{Re-compute FDR when fold change other than 0 is specified}
- \item{Remove most gc() calls}
+ \item{Remove most gc() calls for performance}
  \item{Roll in bugfixes}
 }
 }

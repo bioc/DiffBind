@@ -110,7 +110,7 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
             ymax <- yrange[2]
           }
           
-          constr <- pv.getContrastString(conrec)
+          constr <- pv.getContrastString(conrec, bFlip)
           
           if(is(res,"list")) {
             mainstr <- constr
@@ -200,7 +200,7 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
         xymin <- max(xymin,0)
         xymax <- max(xmax,ymax)
         
-        constr <- pv.getContrastString(conrec)
+        constr <- pv.getContrastString(conrec,bFlip)
         
         if(is(res,"list")) {
           mainstr <- constr
@@ -304,7 +304,7 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
           sidx <- 0
         }
         
-        constr <- pv.getContrastString(conrec)
+        constr <- pv.getContrastString(conrec, bFlip)
         plotTitle <- sprintf('%s Contrast: %s  [%s %s<=%1.3f',
                              facname, constr,sidx,tstr,th)
         if(fold>0) {

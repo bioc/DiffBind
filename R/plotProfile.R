@@ -323,7 +323,7 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000, labels,
   }
   
   #return
-  gc()
+
   if(returnVal == "profileplyr") {
     return(profiles)
   }

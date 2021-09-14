@@ -199,6 +199,8 @@ complete the count operation.\cr
 \code{DBA$config$singleEnd} \tab logical indicating if reads are single end; 
 if NULL, status will be automatically detected.\cr 
 \code{DBA$config$fragments} \tab logical indicating how unmatched reads are counted; default is \code{FALSE}\cr 
+\code{DBA$config$inter.feature} \tab logical indicating the setting
+for the \code{inter.feature} parameter; default is \code{TRUE}\cr 
 \code{DBA$config$scanbamparam} \tab \code{ScanBamParam} object to pass to \code{\link{summarizeOverlaps}}. 
 If present, \code{bRemoveDuplicates} is ignored.\cr 
 }

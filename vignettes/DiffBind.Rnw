@@ -2913,7 +2913,7 @@ Note that two parameters that used to be available when calling
 \item
 \Rcode{bSubControl:} 
 now integrated into  \Rcode{dba.count}.
-\Rcode{FALSE} by default (unless a greylist has
+\Rcode{TRUE} by default (unless a greylist has
 been added using \Rcode{dba.blacklist}).
 \item
 \Rcode{bFullLibrarySize:} 
