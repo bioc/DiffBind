@@ -1868,6 +1868,6 @@ plot.DBA <- function(x,...){
 }
 
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage(" >>> DiffBind 3.3 (Development)")
+  packageStartupMessage(" >>> DiffBind 3.4")
 }
 
