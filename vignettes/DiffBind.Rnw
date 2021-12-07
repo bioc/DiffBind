@@ -2315,7 +2315,7 @@ where a more sophisticated modeling approach is used.}.
 
 Alternatively, if there are sites for the primary pull-down that
 are known to not change binding affinity, these can be used
-with performing a second pull down.
+without performing a second pull down.
 This can be seen in the \Rpackage{THOR} tool, where the "housekeeping"
 normalization is based on focusing on histone marks
 such as H3K4me3 that should be consistently bound in the 

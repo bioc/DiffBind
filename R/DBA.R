@@ -116,12 +116,23 @@ dba <- function(DBA,mask, minOverlap=2,
     res$config$DataType <- DBA_DATA_DEFAULT
   }
   
-  if(is.null(res$config$parallelPackage)){
-    res$config$parallelPackage <- DBA_PARALLEL_MULTICORE
-  }
+  
+  if(Sys.info()["sysname"] == "Windows") {
+    res$config$RunParallel <- FALSE
+    res$config$parallelPackage <- 0
+  } 
+  
   if(is.null(res$config$RunParallel)){
     res$config$RunParallel <- TRUE
+    if(is.null(res$config$parallelPackage)){
+      res$config$parallelPackage <- DBA_PARALLEL_MULTICORE
+    }
   }
+  
+  if(is.null(res$config$parallelPackage)){
+    res$config$parallelPackage <- 0
+  }
+  
   if(is.null(res$config$AnalysisMethod)){
     res$config$AnalysisMethod <- DBA_DESEQ2
   }
@@ -285,12 +296,23 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor,
     if(is.null(res$config$DataType)) {
       res$config$DataType <- DBA_DATA_DEFAULT
     }
-    if(is.null(res$config$parallelPackage)){
-      res$config$parallelPackage <- DBA_PARALLEL_MULTICORE
-    }
+    
+    if(Sys.info()["sysname"] == "Windows") {
+      res$config$RunParallel <- FALSE
+      res$config$parallelPackage <- 0
+    } 
+    
     if(is.null(res$config$RunParallel)){
       res$config$RunParallel <- TRUE
+      if(is.null(res$config$parallelPackage)){
+        res$config$parallelPackage <- DBA_PARALLEL_MULTICORE
+      }
     }
+    
+    if(is.null(res$config$parallelPackage)){
+      res$config$parallelPackage <- 0
+    }
+    
     if(is.null(res$config$th)){
       res$config$th <- 0.05
     }
