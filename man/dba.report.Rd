@@ -74,9 +74,20 @@ For a \code{edgeR} analysis, \code{edgeR::glmTreat} is used.
 
 }
 \item{bNormalized}{
-logical indicating that normalized data (using normalization factors computed b
-y differential analysis method) should be reported. 
-\code{FALSE} uses raw count data.
+logical indicating that normalized data (using normalization factors computed 
+by differential analysis method) should be reported.
+
+When \code{bNormalized=TRUE}, read counts are adjusted by the 
+normalization factors for calculating concentration values.
+Fold changes are reported using the potentially shrunk values
+computed by the underlying analysis package.
+
+When \code{bNormalized=FALSE}, raw count data is used as the basis for reporting 
+log concentration values, and Fold changes are reported based on 
+subtracting the log concentration of one sample group from the other.
+
+Confidence statistics (p-value/FDR) are always reported as computed by the
+underlying analysis package, which incorporate normalization factors.
 }
  \item{bFlip}{
 logical indicating that order of groups in contrast should be "flipped",

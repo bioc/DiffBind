@@ -2,21 +2,24 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 3.3.4}{
+\section{Version 3.4.2}{
 \itemize{
- \item{Fix bFlip issues}
-  \item{Fix bug where mode not passed to summarizeOverlaps}
-   \item{Add $inter.feature config parameter}
+ \item{Update man page for dba.report to clarify how fold changes are 
+ reported when bNormalized=FALSE.}
+  \item{Update code to ensure serial operation on windows.}
 }
 }
 
-\section{Version 3.3.2}{
+\section{Version 3.4}{
 \itemize{
+ \item{Fix bFlip issues}
+ \item{Fix bug where mode not passed to summarizeOverlaps}
+ \item{Add $inter.feature config parameter}
  \item{Re-compute FDR when fold change other than 0 is specified}
  \item{Remove most gc() calls for performance}
- \item{Roll in bugfixes}
 }
 }
+
 
 \section{Version 3.2}{
 \itemize{
