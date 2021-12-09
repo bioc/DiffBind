@@ -313,11 +313,13 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
         } else {
           plotTitle <- sprintf("%s]",plotTitle)
         }
-        if(is.null(conrec$name2)) {
-          xLabel <- "log Fold Change"
-        } else {
-          xLabel <- sprintf('log Fold Change [log2(%s) - log2(%s)]',name1,name2)
-        }
+        
+        # if(is.null(conrec$name2)) {
+        #   xLabel <- "log Fold Change"
+        # } else {
+        #   xLabel <- sprintf('log Fold Change [log2(%s) - log2(%s)]',name1,name2)
+        # }
+        xLabel <- "log2 Fold Change"
         
         yLabel <- sprintf("-log10(%s)",tstr)
         
