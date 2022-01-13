@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.4.4}{
+\itemize{
+ \item{Fix error/warning in dba.blacklist realting to non-matching chromosome names}
+}
+}
+
 \section{Version 3.4.2}{
 \itemize{
  \item{Update man page for dba.report to clarify how fold changes are 

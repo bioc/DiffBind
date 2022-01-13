@@ -258,8 +258,16 @@ pv.applyBlacklist <- function(pv, blacklist) {
   names(blacklisted) <- pv$class[PV_ID,]
   if(is(pv$peaks.blacklisted,"GRangesList")) {
     for(i in 1:length(blacklisted)) {
-      pv$peaks.blacklisted[[i]] <- 
-        sort(c(pv$peaks.blacklisted[[i]], blacklisted[[i]]))
+      if(length(blacklisted[[i]]) != 0) {
+        if(length(pv$peaks.blacklisted[[i]]) == 0) {
+          suppressWarnings(pv$peaks.blacklisted[[i]] <- blacklisted[[i]])
+        } else {
+          pv$peaks.blacklisted[[i]] <- 
+            sort(
+              suppressWarnings(c(pv$peaks.blacklisted[[i]], blacklisted[[i]]))
+            )
+        }
+      }
     }
   } else {
     pv$peaks.blacklisted <- blacklisted
@@ -395,7 +403,7 @@ pv.makeGreylists <- function(pv,ktype,bamfiles,parallel,pval=.999){
   if(Sys.info()["sysname"] == "Windows") {
     parallel <- NULL
   }
-
+  
   usecores <- 1
   if(!is.null(parallel)) {
     if(parallel != FALSE) {
