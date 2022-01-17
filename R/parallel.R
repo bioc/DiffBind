@@ -95,10 +95,10 @@ dba.multicore.init <- function(config) {
    
    noparallel <- FALSE
    if (requireNamespace("parallel",quietly=TRUE)) {
-      if(!exists("mcparallel","package:parallel")) {
+      if(!exists("mcparallel")) {
          noparallel <- TRUE
       }     
-      if(!exists("mclapply","package:parallel")) {
+      if(!exists("mclapply")) {
          noparallel <- TRUE
       } 
    } else {

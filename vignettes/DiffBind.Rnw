@@ -2223,7 +2223,7 @@ non-normalized}
 
 Figure~\ref{DiffBind-spikeMAnone} shows the non-normalized data.
 
-Next we use the normalization methods already discussed:
+Next we use the non-spikein normalization methods already discussed:
 full library sizes, as well as \Rcode{RLE} normalization
 using Reads-in-Peaks and background reads.
 
@@ -2273,7 +2273,8 @@ in the spike-in reads being counted.}
 
 <<spikeMAspikein,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=10,height=14>>=
 par(mfrow=c(2,1))
-spikes <- dba.normalize(spikes, spikein = spikes.spikeins)
+spikes <- dba.normalize(spikes, normalize=DBA_NORM_LIB, 
+                        spikein=spikes.spikeins)
 spikes <- dba.analyze(spikes)
 dba.plotMA(spikes, sub="LIB spikein", bSmooth=FALSE, dotSize=1.5)
 
@@ -2351,11 +2352,12 @@ the background distributions and proceed to normalization:
 
 <<parfacMA,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE,width=10,height=14>>=
 par(mfrow=c(2,1))
-parallelFactor <- dba.normalize(parallelFactor,spikein = parallelFactor.peaks)
+parallelFactor <- dba.normalize(parallelFactor, norm=DBA_NORM_LIB,
+                                spikein = parallelFactor.peaks)
 parallelFactor <- dba.analyze(parallelFactor)
 dba.plotMA(parallelFactor, sub="LIB CTCF", bSmooth=FALSE, dotSize=1.5)
 
-parallelFactor <- dba.normalize(parallelFactor,norm=DBA_NORM_RLE,
+parallelFactor <- dba.normalize(parallelFactor, norm=DBA_NORM_RLE,
                                 spikein = TRUE) 
 parallelFactor <- dba.analyze(parallelFactor)
 dba.plotMA(parallelFactor, sub="RLE CTCF", bSmooth=FALSE, dotSize=1.5)

@@ -804,8 +804,9 @@ pv.merge <- function(allpeaks,peaks=NULL,classes,maxgap=-1,
          }
          res <- mergeScores(merged,def,peakset,TRUE)
          result[,i+3] <- res$score
-         included[,i] <- res$included
+         #included[,i] <- res$included
       }
+      included <- pv.called(merged, chrmap, peaks)
    }
    
    colnames(result) <- rep("",ncol(result))
@@ -815,8 +816,20 @@ pv.merge <- function(allpeaks,peaks=NULL,classes,maxgap=-1,
    }
    
    pv.gc()
-   
    return(list(merged=result,included=included, chrmap=chrmap))
+}
+
+pv.called <- function(merged, chrmap, peaks) {
+   colnames(merged) <- c("chr","start","end")
+   merged[,1] <- chrmap[merged[,1]]
+   merged <- GRanges(merged)
+   
+   called <- NULL
+   for(i in 1:length(peaks)) {
+      called <- cbind(called, merged %over% GRanges(peaks[[i]]))
+   }
+   called[called==TRUE] <- 1
+   return(called)
 }
 
 pv.CalledMasks <- function(pv,newpv,master) {
