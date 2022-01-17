@@ -2,6 +2,15 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.4.5}{
+\itemize{
+ \item{Change spike-in normalization to use reference library sizes}
+ \item{Change default spike-in normalization to NATIVE (TLE/TMM)}
+ \item{Fix bug involving Called columns in reports}
+ \item{Fix issue with package:parallel}
+}
+}
+
 \section{Version 3.4.4}{
 \itemize{
  \item{Fix error/warning in dba.blacklist realting to non-matching chromosome names}

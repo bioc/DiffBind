@@ -170,7 +170,8 @@ A \code{$background} object can be obtained by calling
 and \code{method=DBA_ALL_METHODS}.
 
 Note that if \code{spikein} is not \code{FALSE}, then
-the library size will be set to \code{library=DBA_LIBSIZE_BACKGROUND}
+the library size will be set to \code{library=DBA_LIBSIZE_BACKGROUND}.
+When \code{spikein}s are used, the default is \code{normalize=DBA_NORM_NATIVE}.
 }
 \item{offsets}{
 This parameter controls the use of offsets (matrix of normalization factors)

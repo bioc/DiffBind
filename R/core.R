@@ -613,6 +613,9 @@ pv.overlapRate <- function(pv,mask = mask) {
   if (is.null(pv$called)) {
     stop("No peak overlap information available",call.=FALSE)
   }
+  if(!is.null(pv$allcalled)) {
+    pv$called <- pv$allcalled
+  }
   sums <- apply(pv$called,1,sum)
   res <- sapply(1:length(pv$peaks),function(x)
     sum(sums >= x))

@@ -768,10 +768,25 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
   
   if(length(normalize)==1 && normalize[1]==DBA_NORM_DEFAULT) {
     normalize <- defnorm
+    missnorm <- TRUE
+  } else {
+    missnorm <- FALSE
   }
   
   if(missing(background)) {
     background <- defback
+  }
+  
+  if(!missing(spikein)) {
+    if(missnorm) {
+      if(is(spikein,"logical")) {
+        if(spikein != FALSE) {
+          normalize <- DBA_NORM_NATIVE
+        }
+      } else {
+        normalize <- DBA_NORM_NATIVE
+      }
+    }
   }
   
   res <- pv.normalize(DBA, method=method, 

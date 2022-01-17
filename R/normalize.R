@@ -39,6 +39,7 @@ pv.normalize <- function(pv,
   }
   
   dospikein <- TRUE
+  back.calc <- ""
   if(is(spikein,"logical")) {
     if(spikein[1] == FALSE) {
       dospikein <- FALSE
@@ -47,7 +48,8 @@ pv.normalize <- function(pv,
     libSizes <- DBA_LIBSIZE_BACKGROUND
   } else if(is(spikein,"list")) {
     if(!is.null(spikein$back.calc)) {
-      if(spikein$back.calc == "Spike-in" ||
+      if(spikein$back.calc == "Spike-in bins" ||
+         spikein$back.calc == "Spike-in chromosomes" ||
          spikein$back.calc == "Parallel factor") {
         background <- spikein
         spikein <- TRUE
@@ -199,6 +201,9 @@ pv.normalize <- function(pv,
     norm$background <- FALSE
   }
   
+  if(is.null(back.calc)) {
+    back.calc <- ""
+  }
   
   if(length(libSizes) == ncol(pv$class)) {
     norm$lib.calc  <- "User supplied"
@@ -214,7 +219,13 @@ pv.normalize <- function(pv,
                                         filter=filter, filterFun=filterFun)
     }  else if(libSizes==PV_LIBSIZE_CHRREADS) {
       norm$lib.calc  <- "Reads in Background"
-      norm$lib.sizes <- binned$totals
+      if(back.calc == "Spike-in bins") {
+        norm$lib.sizes <- binned$totals + as.numeric(pv$class[PV_READS,]) 
+      } else if(back.calc == "Spike-in chromosomes") {
+        norm$lib.sizes <- as.numeric(pv$class[PV_READS,]) 
+      } else {
+        norm$lib.sizes <- binned$totals
+      }
     } else {
       stop('Invalid libSizes',call.=FALSE)      
     }
@@ -244,8 +255,15 @@ pv.normalize <- function(pv,
     norm$norm.method <- normalize
     if(normalize == PV_NORM_LIB) {
       norm$norm.calc  <- "Library size"
+      if(back.calc == "Spike-in bins" ||
+         back.calc == "Spike-in chromosomes") {
+        spikelibs <- binned$totals
+      } else {
+        spikelibs <- NULL
+      }
       norm <- pv.normfacsLIB(pv, norm=norm, method=method,
-                             libFun=libFun, background=background)
+                             libFun=libFun, background=background,
+                             spikes=spikelibs)
     } else if(normalize == PV_NORM_TMM) {
       norm$norm.calc  <- "edgeR/TMM"
       norm <- pv.normfacsTMM(pv,norm=norm,method=method,
@@ -371,7 +389,8 @@ pv.normfacsRLE <- function(pv,norm,method,bSubControl=FALSE,
 }
 
 pv.normfacsLIB <- function(pv, norm=norm, method=method,
-                           libFun=libFun, background=background){
+                           libFun=libFun, background=background,
+                           spikes=""){
   
   norm$lib.fun <- libFun
   
@@ -380,9 +399,18 @@ pv.normfacsLIB <- function(pv, norm=norm, method=method,
   } 
   
   if(method==DBA_DESEQ2) {
-    norm$norm.facs  <- norm$lib.sizes/libFun(norm$lib.sizes)
+    if(is.null(spikes)) {
+      norm$norm.facs  <- norm$lib.sizes/libFun(norm$lib.sizes)
+    } else {
+      norm$norm.facs <- spikes/libFun(spikes)
+    }
   } else if(method==DBA_EDGER) {
-    norm$norm.facs <- rep(1,length(norm$lib.sizes))
+    if(is.null(spikes)) {
+      norm$norm.facs <- rep(1,length(norm$lib.sizes))
+    } else {
+      stop(paste("Library normalization invalid for edgeR when using spike-ins.",
+                 "Try normalize=DBA_NORM_TMM."),call.=FALSE)
+    }
     # norm$norm.facs  <- 1/(norm$lib.sizes/libFun(norm$lib.sizes))
     # norm$norm.facs <- pv.makeProd1(norm$norm.facs)
   }
@@ -431,7 +459,7 @@ pv.getBackground <- function(pv,background=PV_BACKGROUND_BINSIZE,
             message("Generating counts for spike-ins...")
             bamfiles <- pv$class[PV_SPIKEIN,]
             restrict <- NULL
-            back.calc <- "Spike-in"
+            back.calc <- "Spike-in bins"
           } else {
             stop("Spike-in reads not available for all samples.", call.=FALSE)
           }
@@ -450,6 +478,7 @@ pv.getBackground <- function(pv,background=PV_BACKGROUND_BINSIZE,
                   back.calc="Parallel factor"))
     } else {
       restrict <- spikein
+      back.calc <- "Spike-in chromosomes"
     }
     
     if (!requireNamespace("csaw",quietly=TRUE)) {
@@ -484,14 +513,14 @@ pv.getBackground <- function(pv,background=PV_BACKGROUND_BINSIZE,
 pv.readParams <- function(pv, restrict) {
   
   pe <- "none"
-  if(!is.null(pv$config$singleEnd)) {
+  if(is.null(pv$config$singleEnd)) {
     bfile <- pv.BamFile(pv$class[PV_BAMREADS,1], bIndex=TRUE)
     pv$config$singleEnd <- !suppressMessages(
       Rsamtools::testPairedEndBam(bfile))
-    if(!pv$config$singleEnd) {
-      pe <- "both"
-    }
-  } 
+  }
+  if(!pv$config$singleEnd) {
+    pe <- "both"
+  }
   
   minq <- 15
   if(!is.null(pv$config$minQCth)) {

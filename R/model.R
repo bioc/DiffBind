@@ -291,7 +291,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     maxGap <- as.integer(-pv$config$mergeOverlap)
   }
   
-  called <- SN <- NULL
+  called <- SN <- allcalled <- NULL
   if (!missing(mask)) {
     if (is.logical(mask)) {
       mask <- which(mask)
@@ -309,6 +309,9 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     if(!is.null(pv$called)) {
       if(length(mask)<=ncol(pv$called)) {
         called   <- pv$called[,mask]
+        if(!is.null(pv$allcalled)) {
+          allcalled <- pv$allcalled[,mask]
+        } 
       }
     }
     if(!is.null(pv$SN)) {
@@ -333,6 +336,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     pv$config     <- config
     pv$samples    <- samples
     pv$called     <- called
+    pv$allcalled  <- allcalled
     #pv$contrasts  <- contrasts
     pv$score      <- score
     pv$SN         <- SN
@@ -387,13 +391,16 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     allnames <- NULL
     if (nrow(allpeaks) > 0) {
       res  <- pv.merge(allpeaks,peaks,pv$class, maxgap=maxGap)
-      pv$called <- res$included
       pv$totalMerged <- nrow(res$merged)
       rownames(res$merged) <- 1:nrow(res$merged)
       allnames <- res$chrmap
+      pv$called  <- res$included
       pv$merged <- res$merged[,1:3]
       if ((ncol(res$merged) > 4) && (minOverlap > 1)) {
-        pv$binding <- res$merged[pv.overlaps(pv,minOverlap),]
+        olaps <- pv.overlaps(pv,minOverlap)
+        pv$binding <- res$merged[olaps,]
+        pv$called  <- pv$called[olaps,]
+        pv$allcalled <- res$included
       }  else {
         pv$binding <- res$merged
       }
@@ -422,6 +429,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     pv$merged <- pv$binding[,1:3]
     pv$totalMerged <- nrow(pv$binding)
     pv$called <- called
+    pv$allcalled <- allcalled
     allnames <- pv$chrmap
   }
   

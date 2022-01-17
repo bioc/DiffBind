@@ -166,10 +166,11 @@ importFrom(dplyr,bind_rows, mutate, filter, "%>%")
 
 importFrom(BiocParallel, bplapply)
 
-importFrom(parallel, mclapply)
-if (tools:::.OStype() == "unix") {
-  importFrom(parallel, mcparallel, mccollect)
-}
+import(parallel)
+#importFrom(parallel, mclapply)
+#if (tools:::.OStype() == "unix") {
+#  importFrom(parallel, mcparallel, mccollect)
+#}
 
 importFrom(S4Vectors, DataFrame, SimpleList, Rle, "elementMetadata<-", 
            mcols, "mcols<-", metadata, "metadata<-")
