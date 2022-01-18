@@ -1751,6 +1751,7 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
     }
     contrasts  <- res$contrasts
     called     <- res$called
+    allcalled  <- res$allcalled
     attributes <- res$attributes
     for(i in 1:length(res$peaks)) {
       if(is.factor(res$peaks[[i]][,1])) {
@@ -1761,8 +1762,11 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
                       merge=is.null(res$merged))
     res$contrasts  <- contrasts
     res$called     <- called
+    res$allcalled  <- allcalled
     res$attributes <- attributes
   }
+  
+  res <- pv.checkCalled(res)
   
   if(is.null(res$config$DataType)) {
     res$config$DataType=DBA_DATA_DEFAULT

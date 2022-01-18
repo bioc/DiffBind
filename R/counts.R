@@ -109,6 +109,9 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
         pv$config$bCorPlot <- saveCorPlot 
         pv$chrmap <- tmp$chrmap
         bed <- tmp$binding[,1:3]
+        if(!is.null(tmp$allcalled)) {
+          tmp$called <- tmp$allcalled
+        }
         called <- tmp$called[pv.overlaps(tmp,minOverlap),]
       }
     } else { # peaks provided
@@ -133,7 +136,11 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
     } else {
       bed <- pv$merged[overlaps,]
     }
-    called <- pv$called[overlaps,]
+    if(!is.null(pv$allcalled)) {
+      pv$called <- pv$allcalled[overlaps,]
+    } else {
+      called <- pv$called[overlaps,]
+    }
   }
   
   bed <- pv.check1(bed)
@@ -417,9 +424,13 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
       pv.gc()
       return(res)
     } else {
-      savecalled <- pv$called
+      if(!is.null(pv$allcalled)) {
+        savecalled <- pv$allcalled
+      } else {
+        savecalled <- pv$called
+      }
       if(ncol(savecalled) == numAdded) {
-        pv$called <- NULL
+        pv$called <- pv$allcalled <- NULL
       }
       res <- pv.vectors(pv,(numpeaks-numAdded+1):numpeaks,minOverlap=1,bAllSame=TRUE)
       if(is.null(res$called)) {
