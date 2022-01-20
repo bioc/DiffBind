@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.5.4}{
+\itemize{
+ \item{Backward compatibility for Called fix}
+}
+}
+
 \section{Version 3.5.3}{
 \itemize{
  \item{Change spike-in normalization to use reference library sizes}

@@ -307,8 +307,8 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     config     <- pv$config
     samples    <- pv$samples
     if(!is.null(pv$called)) {
-      if(length(mask)<=ncol(pv$called)) {
-        called   <- pv$called[,mask]
+      if(length(mask) <= ncol(pv$called)) {
+        called <- pv$called[,mask]
         if(!is.null(pv$allcalled)) {
           allcalled <- pv$allcalled[,mask]
         } 
@@ -316,7 +316,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     }
     if(!is.null(pv$SN)) {
       if(length(mask)==length(SN)) {
-        SN       <- pv$SN[mask]
+        SN <- pv$SN[mask]
       }
     }
     score      <- pv$score
@@ -395,6 +395,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
       rownames(res$merged) <- 1:nrow(res$merged)
       allnames <- res$chrmap
       pv$called  <- res$included
+      pv$allcalled <- NULL
       pv$merged <- res$merged[,1:3]
       if ((ncol(res$merged) > 4) && (minOverlap > 1)) {
         olaps <- pv.overlaps(pv,minOverlap)

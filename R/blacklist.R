@@ -475,8 +475,14 @@ pv.removeBlacklistedPeaks <- function(DBA) {
   bl <- data.frame(DBA$peaks.blacklisted[[1]])[,1:3]
   bl[,1] <- match(bl[,1],DBA$chrmap)
   toremove    <- which(GRanges(data.frame(DBA$merged)) %over% GRanges(bl))
+  
+  if(nrow(DBA$merged) != nrow(DBA$binding)) {
+    stop("Internal error removing blacklisted regions (merged != binding).")
+  }
+  
   DBA$merged  <- DBA$merged[-toremove,]
   DBA$binding <- DBA$binding[-toremove,]  
+  DBA$called  <- DBA$called[-toremove,]    
   
   return(DBA)
 }

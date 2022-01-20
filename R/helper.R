@@ -59,6 +59,7 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
       if(bDoVectors) {
          contrasts  <- pv$contrasts
          called     <- pv$called
+         allcalled  <- pv$allcalled
          attributes <- pv$attributes
          for(i in 1:length(pv$peaks)) {
             if(is.factor(pv$peaks[[i]][,1])) {
@@ -69,9 +70,12 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
                           merge=is.null(pv$merged))
          pv$contrasts  <- contrasts
          pv$called     <- called
+         pv$allcalled  <- allcalled
          pv$attributes <- attributes
       }
    }
+   
+   pv <- pv.checkCalled(pv)
    
    if(is.null(pv$config$DataType)) {
       pv$config$DataType=DBA_DATA_DEFAULT
@@ -804,9 +808,9 @@ pv.merge <- function(allpeaks,peaks=NULL,classes,maxgap=-1,
          }
          res <- mergeScores(merged,def,peakset,TRUE)
          result[,i+3] <- res$score
-         #included[,i] <- res$included
+         included[,i] <- res$included
       }
-      included <- pv.called(merged, chrmap, peaks)
+      #included <- pv.called(merged, chrmap, peaks)
    }
    
    colnames(result) <- rep("",ncol(result))
@@ -893,6 +897,11 @@ pv.pairs <- function(pv,mask,bPlot=FALSE,attributes=pv$attributes,bAllVecs=TRUE,
    tmp$chrmap     <- pv$chrmap
    tmp$totalMerged <- pv$totalMerged
    tmp$called      <- pv$called[,mask]
+   if(!is.null(tmp$allcalled)) {
+      tmp$allcalled      <- pv$allcalled[,mask]
+   } else {
+      tmp$allcalled <- NULL
+   }
    
    numSets <- sum(mask)
    resm <- NULL
@@ -1313,6 +1322,9 @@ pv.overlaps <- function(pv,minOverlap) {
    if(is.null(pv$called)) {
       return(NULL)
    }
+   if(!is.null(pv$allcalled)) {
+      pv$called <- pv$allcalled
+   }
    overlaps <- apply(pv$called,1,sum)>=minOverlap
    return(overlaps)
 }
@@ -1326,3 +1338,50 @@ pv.allSame <- function(pv) {
    }
    return(FALSE)
 }
+
+pv.makeGRanges <- function(data, chrmap) {
+   data <- data.frame(data)
+   colnames(data)[1:3] <- c("chr","start","end")
+   data[,1] <- chrmap[data[,1]]
+   data <- GRanges(data)
+   return(data)
+}
+
+pv.checkCalled <- function(pv){
+   
+   if(!is.null(pv$called)) {
+      if(nrow(pv$called) != nrow(pv$binding)) {
+         if(is.null(pv$allcalled)) {
+            if(nrow(pv$called) != nrow(pv$merged)) {
+               pv$called <- NULL
+               return(pv)
+            }
+         }
+      }
+   }
+   
+   if(nrow(pv$merged) != nrow(pv$binding)) {
+      if (!is.null(pv$called) && is.null(pv$allcalled)) {
+         if(nrow(pv$called) == nrow(pv$merged)) {
+            pv$allcalled <- pv$called
+            pv$called <- pv$allcalled[pv.makeGRanges(pv$merged,pv$chrmap) %over% 
+                                         pv.makeGRanges(pv$binding, pv$chrmap),]
+         }
+      }
+   }
+   
+   if(!is.null(pv$allcalled)) {
+      if(nrow(pv$allcalled) != nrow(pv$merged)) {
+         pv$allcalled <- NULL
+      }
+   }
+   
+   if(!is.null(pv$called)) {
+      if(nrow(pv$called) != nrow(pv$binding)) {
+         pv$called <- NULL
+      }
+   }
+   
+   return(pv)
+}
+

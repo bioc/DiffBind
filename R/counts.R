@@ -109,6 +109,9 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
         pv$config$bCorPlot <- saveCorPlot 
         pv$chrmap <- tmp$chrmap
         bed <- tmp$binding[,1:3]
+        if(!is.null(tmp$allcalled)) {
+          tmp$called <- tmp$allcalled
+        }
         called <- tmp$called[pv.overlaps(tmp,minOverlap),]
       }
     } else { # peaks provided
@@ -117,8 +120,10 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
       if(is.character(peaks[1,1])){
         peaks[,1] <- factor(peaks[,1],pv$chrmap)
       }
-      if(nrow(peaks)==nrow(pv$called)) {
-        called <- pv$called
+      if(!is.null(pv$called)) {
+        if(nrow(peaks)==nrow(pv$called)) {
+          called <- pv$called
+        }
       }
       peaks <- pv.peaksort(peaks)
     }
@@ -133,7 +138,11 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
     } else {
       bed <- pv$merged[overlaps,]
     }
-    called <- pv$called[overlaps,]
+    if(!is.null(pv$allcalled)) {
+      pv$called <- pv$allcalled[overlaps,]
+    } else {
+      called <- pv$called[overlaps,]
+    }
   }
   
   bed <- pv.check1(bed)
@@ -399,7 +408,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   if(bOnlyCounts) {
     numpeaks <- length(pv$peaks)
     if(bRecenter) {
-      res <- pv.Recenter(pv,summits,(numpeaks-numAdded+1):numpeaks,called)
+      res <- pv.Recenter(pv,summits,(numpeaks-numAdded+1):numpeaks,pv$called)
       if(redoScore>0) {
         defaultScore <- redoScore
         redoScore <- 0
@@ -417,22 +426,33 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
       pv.gc()
       return(res)
     } else {
+      # if(!is.null(pv$allcalled)) {
+      #   savecalled <- pv$allcalled
+      # } else {
+      #   savecalled <- pv$called
+      # }
       savecalled <- pv$called
-      if(ncol(savecalled) == numAdded) {
-        pv$called <- NULL
+      if(!is.null(savecalled)) {
+        if(ncol(savecalled) == numAdded) {
+          pv$called <- pv$allcalled <- NULL
+        }
       }
       res <- pv.vectors(pv,(numpeaks-numAdded+1):numpeaks,minOverlap=1,bAllSame=TRUE)
       if(is.null(res$called)) {
         if(nrow(savecalled)==nrow(res$peaks[[length(res$peaks)]])) {
           res$called <- savecalled
         } else if(!is.null(called)) {
-          if (nrow(called)==nrow(res$peaks[[length(res$peaks)]])) {
+          if (nrow(called) == nrow(res$peaks[[length(res$peaks)]])) {
             res$called <- called
           }
         }
       }
       if(bRecentered) {
-        called <- pv$called
+        if(nrow(res$called) == nrow(res$peaks[[length(res$peaks)]])) {
+          called <- res$called
+        } else {
+          called <- pv$called
+        }
       } 
     }   
     if(!missing(minMaxval)) {

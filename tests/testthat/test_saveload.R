@@ -17,6 +17,12 @@ test_that("saving and loading returns same object",{
   expect_equal(sum(x != tamoxifen.greylist$master),0)
   x <- dba.blacklist(testDBA,Retrieve=DBA_BLACKLISTED_PEAKS)
   
+  expect_identical(dim(tamoxifen$merged),  dim(testDBA$merged)) 
+  expect_identical(dim(tamoxifen$binding), dim(testDBA$binding)) 
+  expect_identical(dim(tamoxifen$called),  dim(testDBA$called)) 
+  expect_identical(dim(testDBA$called),    dim(testDBA$binding[,-c(1:3)]))   
+  expect_identical(nrow(testDBA$allcalled), nrow(testDBA$merged)) 
+  
   rm(tamoxifen)
   data(tamoxifen_counts)
   dba.save(tamoxifen,"testDBA")
@@ -33,6 +39,11 @@ test_that("saving and loading returns same object",{
   x <- dba.blacklist(testDBA,Retrieve=DBA_GREYLIST)
   expect_equal(sum(x != tamoxifen.greylist$master),0)
   x <- dba.blacklist(testDBA,Retrieve=DBA_BLACKLISTED_PEAKS)
+  
+  expect_identical(dim(tamoxifen$merged),  dim(testDBA$merged)) 
+  expect_identical(dim(tamoxifen$binding), dim(testDBA$binding)) 
+  expect_identical(dim(tamoxifen$called),  dim(testDBA$called)) 
+  expect_identical(dim(testDBA$called),    dim(testDBA$binding[,-c(1:3)]))  
   
   rm(tamoxifen)
   data(tamoxifen_counts)
@@ -54,5 +65,11 @@ test_that("saving and loading returns same object",{
   expect_equal(sum(showsamps1!=showsamps2),0) 
   expect_equal(sum(showcons1!=showcons2),0) 
   expect_equal(sum(showdes1!=showdes2),0) 
+  
+  expect_identical(dim(tamoxifen$merged),  dim(testDBA$merged)) 
+  expect_identical(dim(tamoxifen$binding), dim(testDBA$binding)) 
+  expect_identical(dim(tamoxifen$called),  dim(testDBA$called)) 
+  expect_identical(dim(testDBA$called),    dim(testDBA$binding[,-c(1:3)]))  
+  
   unlink("dba_testDBA.RData")
 })
