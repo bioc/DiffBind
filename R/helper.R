@@ -1348,15 +1348,40 @@ pv.makeGRanges <- function(data, chrmap) {
 }
 
 pv.checkCalled <- function(pv){
+   
+   if(!is.null(pv$called)) {
+      if(nrow(pv$called) != nrow(pv$binding)) {
+         if(is.null(pv$allcalled)) {
+            if(nrow(pv$called) != nrow(pv$merged)) {
+               pv$called <- NULL
+               return(pv)
+            }
+         }
+      }
+   }
+   
    if(nrow(pv$merged) != nrow(pv$binding)) {
       if (!is.null(pv$called) && is.null(pv$allcalled)) {
          if(nrow(pv$called) == nrow(pv$merged)) {
             pv$allcalled <- pv$called
             pv$called <- pv$allcalled[pv.makeGRanges(pv$merged,pv$chrmap) %over% 
-                                      pv.makeGRanges(pv$binding, pv$chrmap),]
+                                         pv.makeGRanges(pv$binding, pv$chrmap),]
          }
       }
    }
+   
+   if(!is.null(pv$allcalled)) {
+      if(nrow(pv$allcalled) != nrow(pv$merged)) {
+         pv$allcalled <- NULL
+      }
+   }
+   
+   if(!is.null(pv$called)) {
+      if(nrow(pv$called) != nrow(pv$binding)) {
+         pv$called <- NULL
+      }
+   }
+   
    return(pv)
 }
 

@@ -2790,7 +2790,7 @@ sum(neitherGroup.DB)
 There are a number of notable differences in the results.
 
 First, overall there are  fewer sites identified as differentially bound
-(\Sexpr{length(tamoxifen.DB)} 
+(\Sexpr{length(tamoxifen.DB)}) 
 than are sites identified as being unique to one condition
 (\Sexpr{sum(onlyResistant)}+\Sexpr{sum(onlyResponsive)} ==
 \Sexpr{sum(onlyResistant)+sum(onlyResponsive)}).

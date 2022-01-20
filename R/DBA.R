@@ -1761,8 +1761,12 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
     res <- pv.vectors(res,minOverlap=minOverlap,bAllSame=pv.allSame(res),
                       merge=is.null(res$merged))
     res$contrasts  <- contrasts
-    res$called     <- called
-    res$allcalled  <- allcalled
+    if(is.null(res$called)) {
+      res$called <- called
+    }
+    if(is.null(res$allcalled)) {
+      res$allcalled <- allcalled
+    }
     res$attributes <- attributes
   }
   

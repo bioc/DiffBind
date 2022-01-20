@@ -331,18 +331,24 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
   
   if(groups) {
     
-    if(bCalled & !is.null(pv$called)) {
-      Called1 <- apply(pv$called[siteids,group1],1,sum)
-      Called2 <- apply(pv$called[siteids,group2],1,sum)
-      data <- cbind(data,Called1,Called2)
-    }
-    
-    if(bCalledDetail & !is.null(pv$called)) {
-      newd <- pv$called[siteids,c(which(group1),which(group2))]
-      newd[newd==1] <- '+'
-      newd[newd==0] <- '-'
-      colnames(newd) <- c(pv$class[PV_ID,group1],pv$class[PV_ID,group2])
-      data <- cbind(data,newd)
+    if(is.null(pv$called) & (bCalled || bCalledDetail)) {
+      warning("No Called information available, re-run analysis from peaksets.",
+              call.=FALSE)
+    } else {
+      
+      if(bCalled && !is.null(pv$called)) {
+        Called1 <- apply(pv$called[siteids,group1],1,sum)
+        Called2 <- apply(pv$called[siteids,group2],1,sum)
+        data <- cbind(data,Called1,Called2)
+      }
+      
+      if(bCalledDetail && !is.null(pv$called)) {
+        newd <- pv$called[siteids,c(which(group1),which(group2))]
+        newd[newd==1] <- '+'
+        newd[newd==0] <- '-'
+        colnames(newd) <- c(pv$class[PV_ID,group1],pv$class[PV_ID,group2])
+        data <- cbind(data,newd)
+      }
     }
   }
   

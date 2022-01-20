@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.4.7}{
+\itemize{
+ \item{Clean-up of Called changes}
+}
+}
+
 \section{Version 3.4.6}{
 \itemize{
  \item{More checks (dba.load() etc) for Called}
