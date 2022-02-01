@@ -123,6 +123,8 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
       if(!is.null(pv$called)) {
         if(nrow(peaks)==nrow(pv$called)) {
           called <- pv$called
+        } else {
+          pv$allcalled <- pv$called <- called <- NULL
         }
       }
       peaks <- pv.peaksort(peaks)
@@ -293,7 +295,9 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   #  } else redoScore <- 0
   if(defaultScore == redoScore) redoScore <- 0
   
-  errors <- vapply(results,function(x) if(is.list(x)) return(FALSE) else return(TRUE),TRUE)
+  errors <- vapply(results,function(x) 
+    if(is.list(x)) return(FALSE) else return(TRUE), TRUE)
+  
   if(sum(errors)) {
     errors <- which(errors)
     for(err in errors) {
@@ -439,8 +443,10 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
       }
       res <- pv.vectors(pv,(numpeaks-numAdded+1):numpeaks,minOverlap=1,bAllSame=TRUE)
       if(is.null(res$called)) {
-        if(nrow(savecalled)==nrow(res$peaks[[length(res$peaks)]])) {
-          res$called <- savecalled
+        if(!is.null(savecalled)) {
+          if(nrow(savecalled)==nrow(res$peaks[[length(res$peaks)]])) {
+            res$called <- savecalled
+          } 
         } else if(!is.null(called)) {
           if (nrow(called) == nrow(res$peaks[[length(res$peaks)]])) {
             res$called <- called
@@ -448,12 +454,14 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
         }
       }
       if(bRecentered) {
-        if(nrow(res$called) == nrow(res$peaks[[length(res$peaks)]])) {
-          called <- res$called
-        } else {
-          called <- pv$called
-        }
-      } 
+        if(!is.null(res$called)) {
+          if(nrow(res$called) == nrow(res$peaks[[length(res$peaks)]])) {
+            called <- res$called
+          } else {
+            called <- pv$called
+          }
+        } 
+      }
     }   
     if(!missing(minMaxval)) {
       data <- pv.check1(res$binding[,4:ncol(res$binding)])
