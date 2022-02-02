@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.5.6}{
+\itemize{
+ \item{roll-up bugfixes}
+ \item{Add some new test conditions to GenerateDataFiles.R}
+}
+}
+
 \section{Version 3.5.4}{
 \itemize{
  \item{Backward compatibility for Called fix}

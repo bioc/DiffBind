@@ -824,10 +824,11 @@ pv.merge <- function(allpeaks,peaks=NULL,classes,maxgap=-1,
 }
 
 pv.called <- function(merged, chrmap, peaks) {
-   colnames(merged) <- c("chr","start","end")
-   merged[,1] <- chrmap[merged[,1]]
-   merged <- GRanges(merged)
-   
+   if(!is(merged,"GRanges")) {
+      colnames(merged) <- c("chr","start","end")
+      merged[,1] <- chrmap[merged[,1]]
+      merged <- GRanges(merged)
+   }
    called <- NULL
    for(i in 1:length(peaks)) {
       called <- cbind(called, merged %over% GRanges(peaks[[i]]))

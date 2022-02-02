@@ -33,7 +33,7 @@ if(GENERATE_KARYOTYPES) {
   
   dba.ktypes <- NULL
   for(genome in genomes) {
-    bsgenes <- getBSgenome(genome)
+    bsgenes <- BSgenome::getBSgenome(genome)
     if(is.null(dba.ktypes)) {
       dba.ktypes <- list(seqinfo(bsgenes))
     } else {
@@ -41,13 +41,13 @@ if(GENERATE_KARYOTYPES) {
     }
   }
   
-  installed <- installed.genomes()
-  othergenomes <- available.genomes(splitNameParts = TRUE)
+  installed <- BSgenome::installed.genomes()
+  othergenomes <- BSgenome::available.genomes(splitNameParts = TRUE)
   othergenomes <- othergenomes[!othergenomes[,5],1]
   othergenomes <- othergenomes[-match(genomes,othergenomes)]
   othergenomes <- othergenomes[othergenomes %in% installed]
   for(genome in othergenomes) {
-    bsgenes <- getBSgenome(genome)
+    bsgenes <- BSgenome::getBSgenome(genome)
     dba.ktypes <- DiffBind:::pv.listadd(dba.ktypes,seqinfo(bsgenes))
   }
   names(dba.ktypes) <- c(genomes, othergenomes)
@@ -82,6 +82,27 @@ if(GENERATE_ANALYSIS) {
   tamoxifen <- tam.bl
   tamoxifen$config <- config
   save(tamoxifen,file="tamoxifen_peaks.rda")
+  
+  ## TEST: Counting using separate consensus peaks and different summits
+  tamoxifen$config$RunParallel <- TRUE
+  tamoxifen$config$cores <- NUMCORES
+  tamoxifen_consensus <- dba.peakset(tamoxifen,
+                                     consensus = c(DBA_TISSUE, DBA_CONDITION),
+                                     minOverlap = 0.66)
+  
+  tamoxifen_consensus <- dba(tamoxifen_consensus,
+                             mask = tamoxifen_consensus$masks$Consensus,
+                             minOverlap = 1)
+  
+  consensus_peaks <- dba.peakset(tamoxifen_consensus, bRetrieve = TRUE)
+  
+  tam1 <- dba.count(tamoxifen, summits=TRUE, peaks=consensus_peaks)
+  tam2 <- dba.count(tam1, summits=100)
+  tam3 <- dba.count(tam1, summits=1000)
+  if(nrow(tam3$binding) >= nrow(tam2$binding)) {
+    stop("Problem counts/centering peaks")
+  }
+  gc()
   
   ## Generate count data with background normalization
   tamoxifen$config$RunParallel <- TRUE

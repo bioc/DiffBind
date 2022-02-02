@@ -332,7 +332,7 @@ pv.DBAreport <- function(pv,contrast=1,method='edgeR',th=0.05,bUsePval=FALSE,
   if(groups) {
     
     if(is.null(pv$called) & (bCalled || bCalledDetail)) {
-      warning("No Called information available, re-run analysis from peaksets.",
+      warning("No Called information available.",
               call.=FALSE)
     } else {
       
