@@ -126,6 +126,13 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
       pv$class <- rbind(pv$class, Spikein=NA)
    }
    
+   if(pv.checkValue(pv$resultObject,FALSE)) {
+      if( (sum(duplicated(colnames(pv$class))) > 0) ||
+          (sum(duplicated(pv$class[DBA_ID,]))  > 0) ){
+         stop("All samples much have unique SampleIDs.", call.=FALSE)
+      }
+   }
+   
    return(pv)
 }
 

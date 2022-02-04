@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.4.9}{
+\itemize{
+ \item{Throw an error is duplicate sample IDs}
+}
+}
+
 \section{Version 3.4.7}{
 \itemize{
  \item{Clean-up of Called changes}
