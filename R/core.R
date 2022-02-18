@@ -231,14 +231,24 @@ pv.consensus <- function(pv,sampvec,minOverlap = 2,
     minOverlap <- ceiling(length(tmp$peaks) * minOverlap)
   }
   
+  if(nrow(tmp$binding) == 1) {
+    pscores <- matrix(tmp$binding[,4:ncol(tmp$binding)],1)
+  } else {
+    pscores <- tmp$binding[,4:ncol(tmp$binding)]
+  }
+  
   goodvecs <-
-    apply(tmp$binding[,4:ncol(tmp$binding)],1,pv.minOverlap,minOverlap)
+    apply(pscores,1,pv.minOverlap,minOverlap)
   
-  tmp$binding  <- tmp$binding[goodvecs,]
+  tmp$binding  <- matrix(tmp$binding[goodvecs,],sum(goodvecs))
+  pscores      <- matrix(pscores[goodvecs,],sum(goodvecs))
   
-  mean.density <-
-    apply(tmp$binding[,4:ncol(tmp$binding)],1,pv.domean)
-  tmp$binding <- cbind(tmp$binding[,1:3],mean.density)
+  mean.density <- apply(pscores,1,pv.domean)
+  if(nrow(tmp$binding) == 1) {
+    tmp$binding <- matrix(c(tmp$binding[1,1:3],mean.density),1)
+  } else {
+    tmp$binding  <- cbind(tmp$binding[,1:3],mean.density)
+  }
   
   #kludge to get peakset in correct format
   tmpf <- tempfile(as.character(Sys.getpid())) #tmpdir='.')
@@ -714,6 +724,6 @@ pv.isConsensus <- function(DBA) {
   if(length(unique(sapply(DBA$peaks,nrow))) > 1) {
     return(FALSE)
   }
-
+  
   return(TRUE)
 }
