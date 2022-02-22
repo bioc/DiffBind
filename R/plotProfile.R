@@ -713,7 +713,7 @@ pv.makeMergeLabel <- function(pv, merge, samples, labels=NULL) {
     
     atts <- c(DBA_TISSUE,DBA_FACTOR,DBA_CONDITION,DBA_TREATMENT,DBA_REPLICATE)
     
-    samples <- samples[unlist(merge)]
+    #samples <- samples[unlist(merge)]
     
     if(is.null(labels)) {
       labels <- atts

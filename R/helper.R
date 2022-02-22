@@ -1123,6 +1123,24 @@ pv.Signal2Noise <- function(pv) {
 }
 
 
+pv.checkSN <- function(pv) {
+   if(!is(pv,"DBA")) {
+      return(NULL)
+   }
+   
+   if(pv.checkCounts(pv)) {
+      if(is.null(pv$SN)) {
+         SN <- pv.Signal2Noise(pv)
+      } else {
+         SN <- pv$SN
+      }
+   } else {
+      SN <- NULL
+   }
+   
+   return(SN)
+}
+
 pv.peaksetCounts <- function(pv=NULL,peaks=NULL,counts,
                              sampID="",tissue="",factor="",condition="",treatment="",replicate) {
    

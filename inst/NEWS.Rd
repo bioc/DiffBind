@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.4.11}{
+\itemize{
+ \item{Improve dba.plotProfile sample labels}
+ \item{Check for FRiP}
+}
+}
+
 \section{Version 3.4.9}{
 \itemize{
  \item{Throw an error is duplicate sample IDs}
