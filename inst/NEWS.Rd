@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.5.7}{
+\itemize{
+ \item{Improve dba.plotProfile sample labels}
+ \item{Check for FRiP}
+}
+}
+
 \section{Version 3.5.6}{
 \itemize{
  \item{roll-up bugfixes}

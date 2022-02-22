@@ -169,6 +169,10 @@ dba <- function(DBA,mask, minOverlap=2,
     class(res) <- "DBA"
   }
   
+  if(is(res,"DBA")) {
+    res$SN <- pv.checkSN(res)
+  }
+  
   if(res$config$bCorPlot) {
     try(dba.plotHeatmap(res),silent=TRUE)      
   }
@@ -501,6 +505,11 @@ dba.blacklist <- function(DBA, blacklist=DBA$config$doBlacklist,
   res <- pv.BlackGreyList(DBA=DBA, blacklist=blacklist, greylist=greylist,
                           Retrieve=Retrieve, cores=cores)
   
+  
+  if(is(res,"DBA")) {
+    res$SN <- pv.checkSN(res)
+  }
+  
   return(res)
   
 }
@@ -686,16 +695,23 @@ dba.count <- function(DBA, peaks, minOverlap=2, score=DBA_SCORE_NORMALIZED,
     }
   }
   
-  if(DBA$config$bCorPlot){
-    try(dba.plotHeatmap(res,correlations=TRUE),silent=TRUE)
-  }
-  
-  if(!is(res,"DBA")) {
-    class(res) <- "DBA"
-  }
-  
-  if(!is.null(DBA$ChIPQCobj)) {
-    res <- checkQCobj(DBA$ChIPQCobj,res)
+  if(!is(res,"integer")) {
+    
+    if(DBA$config$bCorPlot){
+      try(dba.plotHeatmap(res,correlations=TRUE),silent=TRUE)
+    }
+    
+    if(is(res,"DBA")) {
+      res$SN <- pv.checkSN(res)
+    }
+    
+    if(!is(res,"DBA")) {
+      class(res) <- "DBA"
+    }
+    
+    if(!is.null(DBA$ChIPQCobj)) {
+      res <- checkQCobj(DBA$ChIPQCobj,res)
+    }
   }
   
   pv.gc(force=FALSE)
@@ -798,6 +814,9 @@ dba.normalize <- function(DBA, method = DBA$config$AnalysisMethod,
   if(bRetrieve == FALSE) {
     if(res$score == DBA_SCORE_NORMALIZED) {
       res <- pv.doResetScore(res)
+    }
+    if(is(res,"DBA")) {
+      res$SN <- pv.checkSN(res)
     }
   }
   
@@ -1913,6 +1932,7 @@ plot.DBA <- function(x,...){
 }
 
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage(" >>> DiffBind 3.4")
+  packageStartupMessage(paste(" >>> DiffBind",
+                              as.character(packageVersion("DiffBind"))))
 }
 

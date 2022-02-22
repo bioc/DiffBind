@@ -126,6 +126,13 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
       pv$class <- rbind(pv$class, Spikein=NA)
    }
    
+   if(pv.checkValue(pv$resultObject,FALSE)) {
+      if( (sum(duplicated(colnames(pv$class))) > 0) ||
+          (sum(duplicated(pv$class[DBA_ID,]))  > 0) ){
+         stop("All samples much have unique SampleIDs.", call.=FALSE)
+      }
+   }
+   
    return(pv)
 }
 
@@ -1115,6 +1122,24 @@ pv.Signal2Noise <- function(pv) {
    }
 }
 
+
+pv.checkSN <- function(pv) {
+   if(!is(pv,"DBA")) {
+      return(NULL)
+   }
+   
+   if(pv.checkCounts(pv)) {
+      if(is.null(pv$SN)) {
+         SN <- pv.Signal2Noise(pv)
+      } else {
+         SN <- pv$SN
+      }
+   } else {
+      SN <- NULL
+   }
+   
+   return(SN)
+}
 
 pv.peaksetCounts <- function(pv=NULL,peaks=NULL,counts,
                              sampID="",tissue="",factor="",condition="",treatment="",replicate) {
