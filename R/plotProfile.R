@@ -118,9 +118,17 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000, labels,
     } else if(is(labels[1],"character")) {
       sampnames  <- pv$class[DBA_ID,mask]
     } else if(length(labels) == 1) {
-      sampnames <- pv$class[labels,mask]
+      if(labels > 0) {
+        sampnames <- pv$class[labels,mask]
+      } else {
+        sampnames  <- pv$class[DBA_ID,mask]
+      }
     } else {
-      sampnames <-  apply(pv$class[labels,mask], 2, paste,collapse="_")
+      if(labels[1] > 0) {
+        sampnames <-  apply(pv$class[labels,mask], 2, paste,collapse="_")
+      } else {
+        sampnames  <- pv$class[DBA_ID,mask]
+      }
     }
     names(samples) <- sampnames
     
@@ -323,7 +331,7 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000, labels,
   }
   
   #return
-
+  
   if(returnVal == "profileplyr") {
     return(profiles)
   }
@@ -719,16 +727,17 @@ pv.makeMergeLabel <- function(pv, merge, samples, labels=NULL) {
       labels <- atts
     }
     
-    if(labels[1] < 0) {
+    if(labels[1] < 0) { # labels are negative, remove
+      
       labels <-  atts[which(!atts %in% abs(labels))]
-    }
-    
-    # Strip common attributes
-    if(length(labels) > 1) {
-      uatts <- apply(pv$class[labels,samples],1,unique)
-      for(i in length(labels):1) {
-        if(length(uatts[[i]])==1) {
-          labels <- labels[-i]
+      
+      # Strip common attributes as well
+      if(length(labels) > 1) {
+        uatts <- apply(pv$class[labels,samples],1,unique)
+        for(i in length(labels):1) {
+          if(length(uatts[[i]])==1) {
+            labels <- labels[-i]
+          }
         }
       }
     }
@@ -820,7 +829,7 @@ pv.sepProfilingArgs <- function(arglist, remove=FALSE) {
     proargs <- NULL
     plotargs <- arglist
   }
-
+  
   if(remove) {
     return(plotargs)
   } else {
