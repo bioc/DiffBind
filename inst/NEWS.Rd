@@ -2,40 +2,22 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
-\section{Version 3.5.7}{
-\itemize{
- \item{Improve dba.plotProfile sample labels}
- \item{Check for FRiP}
-}
-}
+\section{Version 3.6}{
 
-\section{Version 3.5.6}{
-\itemize{
- \item{roll-up bugfixes}
- \item{Add some new test conditions to GenerateDataFiles.R}
-}
-}
+Mostly bug fixes, defaults for spike-in normalization.
 
-\section{Version 3.5.4}{
 \itemize{
- \item{Backward compatibility for Called fix}
-}
-}
-
-\section{Version 3.5.3}{
-\itemize{
- \item{Change spike-in normalization to use reference library sizes}
  \item{Change default spike-in normalization to NATIVE (TLE/TMM)}
+ \item{Change spike-in normalization to use reference library sizes}
  \item{Fix bug involving Called columns in reports}
+ \item{Maintain FRiP calculations}
+ \item{Improve dba.plotProfile sample labels}
  \item{Fix issue with package:parallel}
-}
-}
-
-\section{Version 3.5.2}{
-\itemize{
+ \item{Fix error/warning in dba.blacklist relating to non-matching 
+ chromosome names}
  \item{Update man page for dba.report to clarify how fold changes are 
  reported when bNormalized=FALSE.}
- \item{Fix error/warning in dba.blacklist realting to non-matching chromosome names}
+ \item{Add some new test conditions to GenerateDataFiles.R}
 }
 }
 
