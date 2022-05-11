@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{version 3.6.1}{
+   \itemize{
+     \item{Re-normalize after applying black/greylists}
+  }
+}
+
+
+
 \section{Version 3.6}{
 
 Mostly bug fixes, defaults for spike-in normalization.
