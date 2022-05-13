@@ -2,6 +2,7 @@
 #define __BEDREADER_H
 
 #include <string.h>
+#include <zlib.h>
 
 #include "interval.h"
 #include "reader.h"

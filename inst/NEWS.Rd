@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{version 3.7.1}{
+   \itemize{
+     \item{Re-normalize after applying black/greylists}
+     \item{Apply Rhtslib patch}
+     \item{Update vignette}
+  }
+}
+
 \section{Version 3.6}{
 
 Mostly bug fixes, defaults for spike-in normalization.

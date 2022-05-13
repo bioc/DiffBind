@@ -2084,7 +2084,8 @@ to see how the methods cluster:
 
 <<normClusterDESeq2,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, width=14,height=15>>=
 deseq <- dba(dbs.all,mask=dbs.all$masks$DESeq2, minOverlap = 1)
-dba.plotHeatmap(deseq, maxSites=nrow(deseq$binding),  bLog=FALSE,
+binding <- dba.peakset(deseq, bRetrieve=TRUE)
+dba.plotHeatmap(deseq, maxSites=nrow(binding),  bLog=FALSE,
                 correlations=FALSE,minval=-5, maxval=5, cexCol=1.3, 
                 colScheme = hmap, main = "DESeq2 Differentially Bound Sites", 
                 ColAttributes = c(DBA_CONDITION, DBA_FACTOR),
@@ -2117,7 +2118,8 @@ specific normalization method, we can now look at
 the relative importance of the choice of analysis methods
 (\DESeq and \edgeR):
 <<normCluster1,fig=TRUE,eval=TRUE,echo=TRUE,results=verbatim,include=FALSE, width=14,height=15>>=
-dba.plotHeatmap(dbs.all, maxSites=nrow(dbs.all$binding), bLog=FALSE,
+binding <- dba.peakset(dbs.all, bRetrieve=TRUE)
+dba.plotHeatmap(dbs.all, maxSites=nrow(binding), bLog=FALSE,
                 correlations=FALSE, minval=-5, maxval=5, cexCol=1.3, 
                 colScheme = hmap, key.title="LFC",
                 ColAttributes = c(DBA_CONDITION, DBA_TREATMENT, DBA_FACTOR),
