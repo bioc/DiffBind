@@ -72,7 +72,7 @@ if(GENERATE_ANALYSIS) {
   tamoxifen$config$greylist.pval = .999
   tamoxifen <- dba.blacklist(tamoxifen,
                              blacklist=DBA_BLACKLIST_HG19,greylist=ktype, 
-                             cores=3)
+                             cores=NUMCORES)
   tamoxifen.greylist <- dba.blacklist(tamoxifen, Retrieve=DBA_GREYLIST)
   
   save(tamoxifen.greylist,file="tamoxifen_greylist.rda")

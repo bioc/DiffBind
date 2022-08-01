@@ -165,14 +165,16 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   todo   <- unique(c(chips,inputs))
   
   if(!pv.checkExists(todo)) {
-    stop('Some read files could not be accessed. See warnings for details.',call.=FALSE)
+    stop('Some read files could not be accessed. See warnings for details.',
+         call.=FALSE)
   }
   
   if(length(insertLength)==1) {
     insertLength <- rep(insertLength,length(todo))
   }
   if(length(insertLength)<length(todo)) {
-    warning('Fewer fragment sizes than libraries -- using mean fragment size for missing values',call.=FALSE)
+    warning('Fewer fragment sizes than libraries -- using mean fragment size for missing values',
+            call.=FALSE)
     insertLength <- c(insertLength,rep(mean(insertLength),length(todo)-length(insertLength)))
   }
   if(length(insertLength)>length(todo)) {
@@ -312,6 +314,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   
   allchips <- unique(pv$class[c(PV_BAMREADS,PV_BAMCONTROL),])
   numAdded <- 0
+  mergedsamps <- NULL
   for(chipnum in 1:numChips) {
     if (pv.nodup(pv,chipnum)) {
       jnum <- which(todo %in% pv$class[PV_BAMREADS,chipnum])
@@ -394,7 +397,9 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
                        scoreCol    = 0,
                        bRemoveM = FALSE, bRemoveRandom=FALSE,bMakeMasks=FALSE)
       numAdded <- numAdded + 1
-    }                  
+    } else {
+      mergedsamps <- c(mergedsamps,chipnum)
+    }               
   }
   
   pv.gc()
@@ -410,7 +415,20 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   pv$bSubControl <- bSubControl
   
   if(bOnlyCounts) {
+    
+    if(!is.null(mergedsamps)) {
+      warning("Samples have been merged or lost during counting. ",
+              "Check for duplicate bam files.",
+              call.=FALSE)
+      pv$called <- pv$called[,-mergedsamps]
+      pv$class  <- pv$class[,-mergedsamps]
+      pv$allcalled <- pv$allcalled[,-mergedsamps]
+      pv$peaks <- pv$peaks[-mergedsamps]
+      pv$binding < pv$binding[,-(mergedsamps+3)]
+    }
+    
     numpeaks <- length(pv$peaks)
+    
     if(bRecenter) {
       res <- pv.Recenter(pv,summits,(numpeaks-numAdded+1):numpeaks,pv$called)
       if(redoScore>0) {
@@ -701,8 +719,13 @@ pv.Recenter <- function(pv,summits,peakrange,called=NULL) {
   heights   <- sapply(peaklist,function(x) pmax.int(1,x$Heights))
   
   if(!is.null(called)) {
-    called <- split(called,rep(1:ncol(called),each=nrow(called)))
-    heights <- heights * sapply(called,function(x)x)
+    if(ncol(heights) != ncol(called)) {
+      warning("Samples have been merged or lost during counting. Check for duplicate bam files.",
+              call.=FALSE)
+    } else {
+      called <- split(called,rep(1:ncol(called),each=nrow(called)))
+      heights <- heights * sapply(called,function(x)x)
+    }
   }
   
   centers <- sapply(1:nrow(positions),
@@ -1001,7 +1024,8 @@ pv.doSetScore <- function(pv,score,bLog=FALSE,rescore=TRUE,
           pv$binding[,colnum] <- pv$peaks[[i]]$Reads-pv$peaks[[i]]$cReads	
         } else if(score == PV_SCORE_SUMMIT || score == PV_SCORE_SUMMIT_ADJ) {
           if(is.null(pv$peaks[[i]]$Heights)) {
-            warning('DBA_SCORE_SUMMIT not available; re-run dba.count with summits=TRUE',call.=FALSE)   
+            warning('DBA_SCORE_SUMMIT not available; re-run dba.count with summits=TRUE',
+                    call.=FALSE)   
           } else {
             pv$binding[,colnum] <- pv$peaks[[i]]$Heights
             if (score == PV_SCORE_SUMMIT_ADJ) {
@@ -1010,7 +1034,8 @@ pv.doSetScore <- function(pv,score,bLog=FALSE,rescore=TRUE,
           }
         } else if(score == PV_SCORE_SUMMIT_POS) {
           if(is.null(pv$peaks[[i]]$Summits)) {
-            warning('DBA_SCORE_SUMMIT_POS not available; re-run dba.count with summits=TRUE',call.=FALSE)   
+            warning('DBA_SCORE_SUMMIT_POS not available; re-run dba.count with summits=TRUE',
+                    call.=FALSE)   
           } else {
             pv$binding[,colnum] <- pv$peaks[[i]]$Summits
           }

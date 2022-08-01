@@ -2,13 +2,18 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{version 3.6.2}{
+   \itemize{
+     \item{Improve how BiocParallel used between DiffBind and GreyListChIP}
+     \item{Warnings when samples are merged (duplicate bam files)}
+  }
+}
+
 \section{version 3.6.1}{
    \itemize{
      \item{Re-normalize after applying black/greylists}
   }
 }
-
-
 
 \section{Version 3.6}{
 
