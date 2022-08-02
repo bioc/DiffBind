@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+
+\section{version 3.7.1}{
+   \itemize{
+     \item{Rollover bugfixes from Release branch}
+   }
+}
+
 \section{version 3.7.1}{
    \itemize{
      \item{Re-normalize after applying black/greylists}
