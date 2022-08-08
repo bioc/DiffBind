@@ -332,7 +332,7 @@ pv.greylist <- function(pv, greylist, isConsensus=FALSE,
            envir = environment())
       
       ktype <- match(greylist,names(dba.ktypes))
-      if(is.na(ktype)) {
+      if(is.na(ktype)[1]) {
         message("No known BSgenome: ",greylist)
         pv$greylist <- NULL
         return(pv)

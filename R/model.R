@@ -676,7 +676,7 @@ pv.model <- function(model,mask,minOverlap=2,
     }
     counts <- samples$Counts[i]
     if(!is.null(counts)) {
-      if(is.na(counts)) {
+      if(is.na(counts)[1]) {
         counts <- NULL
       } else if (counts == "") {
         counts <- NULL

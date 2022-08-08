@@ -1190,7 +1190,7 @@ pv.orderMetaFacs <- function(pv, reorderMeta) {
          for(i in 1:length(reorderMeta)) {
             facname <- names(reorderMeta)[i]
             mfactor <- match(facname,names(pv$meta))
-            if(is.na(mfactor)) {
+            if(is.na(mfactor)[1]) {
                stop("Unknown metadata factor: ",facname,call.=FALSE)
             }
             vals <- unique(as.character(meta[,mfactor]))
