@@ -422,7 +422,9 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
               call.=FALSE)
       pv$called <- pv$called[,-mergedsamps]
       pv$class  <- pv$class[,-mergedsamps]
-      pv$allcalled <- pv$allcalled[,-mergedsamps]
+      if(!is.null(pv$called)) {
+        pv$allcalled <- pv$allcalled[,-mergedsamps]
+      }
       pv$peaks <- pv$peaks[-mergedsamps]
       pv$binding < pv$binding[,-(mergedsamps+3)]
     }
@@ -430,7 +432,10 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
     numpeaks <- length(pv$peaks)
     
     if(bRecenter) {
-      res <- pv.Recenter(pv,summits,(numpeaks-numAdded+1):numpeaks,pv$called)
+      if(is.null(called)) {
+        called <- pv$called
+      }
+      res <- pv.Recenter(pv,summits,(numpeaks-numAdded+1):numpeaks,called)
       if(redoScore>0) {
         defaultScore <- redoScore
         redoScore <- 0

@@ -677,9 +677,9 @@ pv.model <- function(model,mask,minOverlap=2,
     counts <- samples$Counts[i]
     if(!is.null(counts)) {
       if(is.na(counts)) {
-        counts =NULL
+        counts <- NULL
       } else if (counts == "") {
-        counts =NULL
+        counts <- NULL
       }
     }
     if(!is.null(counts)) {
