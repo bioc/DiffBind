@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{version 3.6.3}{
+   \itemize{
+     \item{Fix bug when counting minOverlap=0 object}
+     \item{Improve how BiocParallel used between DiffBind and GreyListChIP}
+  }
+}
+
 \section{version 3.6.2}{
    \itemize{
      \item{Improve how BiocParallel used between DiffBind and GreyListChIP}

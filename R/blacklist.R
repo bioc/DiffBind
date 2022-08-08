@@ -411,14 +411,25 @@ pv.makeGreylists <- function(pv,ktype,bamfiles,parallel,pval=.999){
       usecores <- parallel
     }
   }
+  
+  if (!requireNamespace("BiocParallel",quietly=TRUE)) {
+    usecores <- 1
+  }
+  
   if(usecores > 1) {
     param <- BiocParallel::MulticoreParam(workers = usecores)
   } else {
     param <-  BiocParallel::SerialParam()
   }
   
-  defparam <- BiocParallel::bpparam()
-  BiocParallel::register(param,default=TRUE)
+  suppressMessages(defparam <- BiocParallel::registered())
+  if(length(defparam)==0) {
+    defparam <- param
+  } else {
+    defparam <- defparam[[1]]
+  }
+  
+  suppressMessages(BiocParallel::register(param,default=TRUE))
   
   message("Counting control reads for greylist...")
   res <- tryCatch(
