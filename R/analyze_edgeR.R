@@ -456,7 +456,7 @@ pv.getCoef <- function(contrast, pv) {
   
   coef  <- pv.matchCoefs(contrast,coefs)
   
-  if(is.na(coef)) {
+  if(is.na(coef)[1]) {
     contrast <- paste(vals[1],vals[4],vals[3],vals[2],sep="_")
     coef <- pv.matchCoefs(contrast,coefs)
     if(!is.na(coef)) {
