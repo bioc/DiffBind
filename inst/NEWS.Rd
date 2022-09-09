@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{version 3.6.4}{
+   \itemize{
+     \item{More robust handling of AnalysisMethod}
+  }
+}
+
+
 \section{version 3.6.3}{
    \itemize{
      \item{Fix bug when counting minOverlap=0 object}

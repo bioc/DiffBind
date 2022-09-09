@@ -1691,7 +1691,7 @@ dba.save <- function(DBA, file='DBA', dir='.', pre='dba_', ext='RData',
   
   if(nrow(DBA$class)<DBA_TREATMENT) {
     DBA$class <- rbind(DBA$class,'')
-    rownames(DBA$class)[DBA_TREATMENT]='Treatment'	
+    rownames(DBA$class)[DBA_TREATMENT] <- 'Treatment'	
   }
   
   
@@ -1812,11 +1812,11 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
     res$config$reportInit <- "reports/DBA"
   }
   if(is.null(res$config$AnalysisMethod)){
-    res$config$AnalysisMethod=DBA_DESEQ2
+    res$config$AnalysisMethod <- DBA_DESEQ2
   }
   
   if(is.null(res$config$bCorPlot)){
-    res$config$bCorPlot=FALSE
+    res$config$bCorPlot <- FALSE
   }
   
   if(is(res$attributes,"function")) {
@@ -1827,7 +1827,7 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
     res$config$th=0.05
   }
   if(is.null(res$config$bUsePval)){
-    res$config$bUsePval=FALSE
+    res$config$bUsePval <- FALSE
   }   
   
   
@@ -1845,11 +1845,11 @@ dba.load <- function(file='DBA', dir='.', pre='dba_', ext='RData')
   res$config <- as.list(res$config)
   
   if (is.null(res$config$mapQCth)) {
-    res$config$mapQCth=15   
+    res$config$mapQCth <- 15   
   }
   
   if (is.null(res$config$fragmentSize)) {
-    res$config$fragmentSize=125
+    res$config$fragmentSize <- 125
   }   
   version <- strsplit(as.character(packageVersion("DiffBind")),".",fixed=TRUE)[[1]]
   res <- pv.version(res,version[1],version[2], version[3])
