@@ -92,10 +92,11 @@ or \code{.xlsx} extension).
 Leading and trailing white space will be removed from all values, with a warning.
 }
   \item{config}{
-data frame containing configuration options, 
-or file name of config file to load when constructing a new DBA object from a sample sheet. 
-\code{NULL} indicates no config file. 
-Relevant fields include:
+\code{list} containing configuration options, 
+or file name of config file to load when constructing a new DBA object from a sample sheet.
+\code{NULL} indicates no config file.
+
+See \link{DBA-config} for full set of options. Relevant fields include:
 \itemize{
 \item {\code{AnalysisMethod:}}	{either \code{DBA_DESEQ2} or \code{DBA_EDGER}.}
 \item {\code{th:}}   {default threshold for reporting and 

@@ -48,7 +48,7 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000, labels,
     # Check for default contrast 
     if(is.null(sites)) { 
       if(!is.null(pv$contrasts[[1]])) {
-        if(pv$config$AnalysisMethod == DBA_EDGER) {
+        if(pv$config$AnalysisMethod[1] == DBA_EDGER) {
           if(!is.null(pv$contrasts[[1]]$edgeR)) {
             sites <- 1
           }

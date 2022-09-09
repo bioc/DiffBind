@@ -612,10 +612,10 @@ pv.model <- function(model,mask,minOverlap=2,
   
   if(is.null(config$AnalysisMethod)){
     config$AnalysisMethod <- DBA_DESEQ2
-  } else if(is.character(config$AnalysisMethod)){
-    x <- strsplit(config$AnalysisMethod,',')
+  } else if(is.character(config$AnalysisMethod[1])){
+    x <- strsplit(config$AnalysisMethod[1],',')
     if(length(x[[1]])==1) {
-      config$AnalysisMethod=pv.getMethod(config$AnalysisMethod)
+      config$AnalysisMethod <- pv.getMethod(config$AnalysisMethod)
     }	 else if (length(x[[1]])==2) {
       #config$AnalysisMethod <- c(pv.getMethod(x[[1]][1]),pv.getMethod(x[[1]][2]))	
       config$AnalysisMethod <- pv.getMethod(x[[1]][1])
