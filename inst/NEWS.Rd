@@ -5,6 +5,7 @@
 \section{version 3.6.4}{
    \itemize{
      \item{More robust handling of AnalysisMethod}
+      \item{change config param to list in help page for dba()}
   }
 }
 
