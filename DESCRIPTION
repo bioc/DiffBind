@@ -1,10 +1,10 @@
 Package: DiffBind
 Type: Package
-Version: 3.7.4
+Version: 3.7.5
 Title: Differential Binding Analysis of ChIP-Seq Peak Data
 Authors@R: c(person("Rory","Stark", email="rory.stark@cruk.cam.ac.uk",
                   role = c("aut", "cre")),
-             person("Gord","Brown",email="gdbzork@gmail.com",
+             person("Gord","Brown",email="DECEASED",
                   role="aut"))
 Description: Compute differentially bound sites from multiple ChIP-seq
         experiments using affinity (quantitative) data. Also enables

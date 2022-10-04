@@ -29,12 +29,12 @@ BiocStyle::latex()
 
 \author{
 Rory Stark\thanks{\email{rory.stark@cruk.cam.ac.uk}} and
-Gord Brown\thanks{\email{gdbzork@gmail.com}}\\
+Gord Brown\\
 Cancer Research UK - Cambridge Institute\\
 University of Cambridge
 }
 
-\date{Edited: 18 May 2021; Compiled: \today}
+\date{Edited: 4 October 2022; Compiled: \today}
 
 \maketitle
 
