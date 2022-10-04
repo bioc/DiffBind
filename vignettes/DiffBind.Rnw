@@ -29,7 +29,7 @@ BiocStyle::latex()
 
 \author{
 Rory Stark\thanks{\email{rory.stark@cruk.cam.ac.uk}} and
-Gord Brown\thanks{\email{gdbzork@gmail.com}}\\
+Gord Brown\\
 Cancer Research UK - Cambridge Institute\\
 University of Cambridge
 }
