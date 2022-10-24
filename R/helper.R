@@ -1112,10 +1112,12 @@ pv.Signal2Noise <- function(pv) {
   for(i in 1:length(sns)) {
     rip <- sum(pv$peaks[[i]]$Reads)
     treads <- as.integer(pv$class[PV_READS,i])
-    if(treads) {
-      sn  <- (rip-sum(pv$peaks[[i]]$Reads==1))/treads
-      sns[i] <- sprintf("%1.2f",sn)
-    }	
+    if(!is.na(treads)) {
+      if(treads > 0) {
+        sn  <- (rip-sum(pv$peaks[[i]]$Reads==1))/treads
+        sns[i] <- sprintf("%1.2f",sn)
+      }	
+    }
   }
   if(sum(as.numeric(sns) > 0,na.rm=TRUE)) {
     return(sns)  	

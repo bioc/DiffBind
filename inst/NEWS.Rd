@@ -2,18 +2,15 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.8}{
 
-\section{version 3.7.1}{
+Mostly bug fixes
    \itemize{
      \item{Rollover bugfixes from Release branch}
-   }
-}
-
-\section{version 3.7.1}{
-   \itemize{
      \item{Re-normalize after applying black/greylists}
      \item{Apply Rhtslib patch}
      \item{Update vignette}
+     \item{Remove contact info for Gord}
   }
 }
 
