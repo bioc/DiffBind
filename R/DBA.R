@@ -147,7 +147,7 @@ dba <- function(DBA,mask, minOverlap=2,
   }
   
   if(is.null(res$config$cores)){
-    res$config$cores <- parallel::detectCores(logical=FALSE)
+    res$config$cores <- dba.multicore.setCores()
   }
   
   if(is.null(res$config$doBlacklist)){
@@ -337,7 +337,7 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor,
     } 
     
     if(is.null(res$config$cores)){
-      res$config$cores <- parallel::detectCores(logical=FALSE)
+      res$config$cores <- dba.multicore.setCores()
     }
     
     if(is.null(res$config$doBlacklist)){

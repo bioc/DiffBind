@@ -2,6 +2,14 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+
+\section{Version 3.8.1}{
+   \itemize{
+     \item{Fix bug relating to parallel operation}
+   }
+}
+
+
 \section{Version 3.8}{
 
 Mostly bug fixes
