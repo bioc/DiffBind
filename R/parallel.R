@@ -120,7 +120,7 @@ dba.multicore.init <- function(config) {
    config$wait4jobsFun <- dba.multicore.wait4jobs
    
    if(is.null(config$cores)) {
-      config$cores <- parallel::detectCores(logical=FALSE)
+      config$cores <- dba.multicore.setCores()
    }
    
    return(config)
@@ -133,8 +133,8 @@ dba.multicore.params <- function(config,funlist) {
 
 ### PARALLEL LAPPLY ###
 dba.multicore.lapply <- function(config,params,arglist,fn,...){
-   savecores <- options("cores")
-   savemccores <- options("mc.cores")
+   savecores <- options("cores")$cores
+   savemccores <- options("mc.cores")$mc.cores
    options(cores=config$cores)
    options(mc.cores=config$cores)
    res <- mclapply(arglist,fn,...,mc.preschedule=TRUE,mc.allow.recursive=TRUE)
@@ -153,6 +153,24 @@ dba.multicore.addjob <- function(config,params,fn,...) {
 dba.multicore.wait4jobs <- function(config,joblist) {
    res <- parallel::mccollect(joblist)
    return(res)
+}
+
+### set cores if none specified ###
+dba.multicore.setCores <- function(config=NULL) {
+  if(!is.null(config$cores)) {
+    return(config$cores)
+  }
+  
+  if(!is.null(options("mc.cores")$mc.cores)) {
+    return(options("mc.cores")$mc.cores)
+  }
+  
+  if(!is.null(options("cores")$cores)) {
+    return(options("cores")$cores)
+  }
+  
+  return(parallel::detectCores(logical=FALSE))
+  
 }
 
 ################# BiocParallel INTERFACE #################
