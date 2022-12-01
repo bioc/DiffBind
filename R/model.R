@@ -391,8 +391,8 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     allnames <- NULL
     if (nrow(allpeaks) > 0) {
       res  <- pv.merge(allpeaks,peaks,pv$class, maxgap=maxGap)
-      pv$totalMerged <- nrow(res$merged)
-      rownames(res$merged) <- 1:nrow(res$merged)
+      pv$totalMerged <- do.nrow(res$merged)
+      rownames(res$merged) <- 1:do.nrow(res$merged)
       allnames <- res$chrmap
       pv$called  <- res$included
       pv$allcalled <- NULL
@@ -428,7 +428,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
       c("CHR","START","END",pv$class[PV_ID,1:numvecs])
     pv$binding <- result
     pv$merged <- pv$binding[,1:3]
-    pv$totalMerged <- nrow(pv$binding)
+    pv$totalMerged <- do.nrow(pv$binding)
     pv$called <- called
     pv$allcalled <- allcalled
     allnames <- pv$chrmap
@@ -442,7 +442,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
   }
   
   pv$binding <- pv.check1(pv$binding)
-  if (nrow(pv$binding) > 0) {
+  if (do.nrow(pv$binding) > 0) {
     vnames <- allnames[pv$binding[,1]]
   }
   if (!is.null(allnames)) {
@@ -450,12 +450,12 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
   } else {
     newmap <- NULL
   }
-  if (nrow(pv$binding) > 0) {
+  if (do.nrow(pv$binding) > 0) {
     pv$binding[,1] <- match(vnames,newmap)
     if (is.unsorted(unique(pv$binding[,1]))) {
       pv$binding <- pv.peaksort(pv$binding)
     }
-    rownames(pv$binding) <- 1:nrow(pv$binding)
+    rownames(pv$binding) <- 1:do.nrow(pv$binding)
   }
   
   pv$merged <- pv.check1(pv$merged)

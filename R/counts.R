@@ -121,7 +121,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
         peaks[,1] <- factor(peaks[,1],pv$chrmap)
       }
       if(!is.null(pv$called)) {
-        if(nrow(peaks)==nrow(pv$called)) {
+        if(nrow(peaks) == do.nrow(pv$called)) {
           called <- pv$called
         } else {
           pv$allcalled <- pv$called <- called <- NULL
@@ -814,7 +814,7 @@ pv.resetCounts <- function(pv,counts,minCount=0) {
   if(sum(pv$class[PV_CALLER,]=="counts") != ncol(pv$class)) {
     stop("All peaks must have counts to replace.")
   }
-  if(nrow(pv$binding) != nrow(counts)) {
+  if(do.nrow(pv$binding) != nrow(counts)) {
     stop("All samples must have same number of peaks as binding matrix.",call.=FALSE)
   }
   if(ncol(pv$binding) != ncol(counts)) {

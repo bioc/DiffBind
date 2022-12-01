@@ -39,12 +39,12 @@ pv.check <- function(pv,bCheckEmpty=FALSE,bCheckSort=TRUE,bDoVectors=TRUE) {
   if(!is.null(pv$vectors)) {
     if(!is.null(pv$allvectors)) {
       pv$binding     <- pv$vectors
-      pv$totalMerged <- nrow(pv$allvectors)
+      pv$totalMerged <- do.nrow(pv$allvectors)
       pv$merged      <- pv$allvectors[,1:3]
     } else {
       pv$binding     <- pv$vectors
       pv$merged      <- pv$vectors[,1:3]
-      pv$totalMerged <- nrow(pv$merged)
+      pv$totalMerged <- do.nrow(pv$merged)
     }
     pv$vectors    <- NULL
     pv$allvectors <- NULL
@@ -613,7 +613,7 @@ pv.checkCounts <- function(pv,pv2=NULL) {
     if(!pv.checkCounts(pv2)) {
       return(FALSE)
     }
-    if(nrow(pv$binding)!=nrow(pv2$binding)) {
+    if(do.nrow(pv$binding) != do.nrow(pv2$binding)) {
       return(FALSE)
     }
   }
@@ -896,7 +896,7 @@ pv.pairs <- function(pv,mask,bPlot=FALSE,attributes=pv$attributes,bAllVecs=TRUE,
   
   tmp <- NULL
   if(bAllVecs==TRUE) {
-    if(pv$totalMerged != nrow(pv$binding)) {
+    if(pv$totalMerged != do.nrow(pv$binding)) {
       pv <- pv.vectors(pv,minOverlap=1)  
     }
   }
@@ -1061,9 +1061,9 @@ pv.dval <- function(dgram) {
 
 pv.pcmask <- function(pv,numSites, mask, sites,removeComps,cor=FALSE,bLog=TRUE){
   
-  if(missing(numSites)) numSites <- nrow(pv$binding)
-  if(is.null(numSites)) numSites <- nrow(pv$binding)  
-  numSites <- min(numSites,nrow(pv$binding))
+  if(missing(numSites)) numSites <- do.nrow(pv$binding)
+  if(is.null(numSites)) numSites <- do.nrow(pv$binding)  
+  numSites <- min(numSites,do.nrow(pv$binding))
   
   if(missing(sites)) sites <- 1:numSites
   if(is.null(sites)) sites <- 1:numSites
@@ -1205,7 +1205,11 @@ pv.peaksetCounts <- function(pv=NULL,peaks=NULL,counts,
   if(is.null(peaks)) {
     peaks <- data.frame(cbind(IDs,froms,tos))
   } else {
-    peaks <- data.frame(peaks[,1:3])
+    if(is.na(peaks)[1]){
+      peaks <- data.frame(cbind(IDs,froms,tos))     
+    } else {
+      peaks <- data.frame(peaks[,1:3])
+    }
   }
   
   peaks <- cbind(peaks,counts,counts,rep(0,numcounts),counts,rep(0,numcounts),rep(0,numcounts))
@@ -1380,9 +1384,9 @@ pv.makeGRanges <- function(data, chrmap) {
 pv.checkCalled <- function(pv){
   
   if(!is.null(pv$called)) {
-    if(nrow(pv$called) != nrow(pv$binding)) {
+    if(do.nrow(pv$called) != do.nrow(pv$binding)) {
       if(is.null(pv$allcalled)) {
-        if(nrow(pv$called) != nrow(pv$merged)) {
+        if(do.nrow(pv$called) != do.nrow(pv$merged)) {
           pv$called <- NULL
           return(pv)
         }
@@ -1390,9 +1394,9 @@ pv.checkCalled <- function(pv){
     }
   }
   
-  if(nrow(pv$merged) != nrow(pv$binding)) {
+  if(do.nrow(pv$merged) != do.nrow(pv$binding)) {
     if (!is.null(pv$called) && is.null(pv$allcalled)) {
-      if(nrow(pv$called) == nrow(pv$merged)) {
+      if(do.nrow(pv$called) == do.nrow(pv$merged)) {
         pv$allcalled <- pv$called
         pv$called <- pv$allcalled[pv.makeGRanges(pv$merged,pv$chrmap) %over% 
                                     pv.makeGRanges(pv$binding, pv$chrmap),]
@@ -1401,13 +1405,13 @@ pv.checkCalled <- function(pv){
   }
   
   if(!is.null(pv$allcalled)) {
-    if(nrow(pv$allcalled) != nrow(pv$merged)) {
+    if(do.nrow(pv$allcalled) != do.nrow(pv$merged)) {
       pv$allcalled <- NULL
     }
   }
   
   if(!is.null(pv$called)) {
-    if(nrow(pv$called) != nrow(pv$binding)) {
+    if(do.nrow(pv$called) != do.nrow(pv$binding)) {
       pv$called <- NULL
     }
   }
@@ -1415,3 +1419,18 @@ pv.checkCalled <- function(pv){
   return(pv)
 }
 
+do.nrow <- function(m) {
+  if(is.null(m)) {
+    return(0)
+  } else {
+    return(nrow(m))
+  }
+}
+
+do.ncol <- function(m) {
+  if(is.null(m)) {
+    return(0)
+  } else {
+    return(ncol(m))
+  }
+}

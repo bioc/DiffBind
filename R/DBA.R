@@ -491,7 +491,11 @@ dba.blacklist <- function(DBA, blacklist=DBA$config$doBlacklist,
   DBA <- pv.check(DBA)
   
   if(is.null(blacklist)) {
-    blacklist <- TRUE
+    if(pv.noControls(DBA$class["bamRead",])) {
+      blacklist <- FALSE
+    } else {
+      blacklist <- TRUE
+    }
   }
   
   if(is.null(greylist)) {
@@ -912,7 +916,9 @@ dba.analyze <- function(DBA, method=DBA$config$AnalysisMethod, design,
   doblacklist <- dogreylist <-  FALSE
   if(is.null(DBA$blacklist)) {
     if(bBlacklist == TRUE) {
-      doblacklist <- TRUE
+      if(!pv.noControls(DBA$class["bamRead",])) {
+        doblacklist <- TRUE
+      }
     }
   }
   
@@ -1920,7 +1926,7 @@ summary.DBA <- function(object,...) {
   }
   res <- sprintf("%d Samples, %d sites in matrix",
                  length(object$peaks),nrow(object$binding))
-  if(nrow(object$binding) != object$totalMerged) {
+  if(do.nrow(object$binding) != object$totalMerged) {
     res <- sprintf("%s (%d total)",res,object$totalMerged)
   }
   return(res)

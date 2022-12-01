@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.8.2}{
+   \itemize{
+     \item{Address issues with nrow on NULLs}
+   }
+}
+
 
 \section{Version 3.8.1}{
    \itemize{

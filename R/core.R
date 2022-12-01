@@ -200,7 +200,7 @@ pv.consensus <- function(pv,sampvec,minOverlap = 2,
   tmp <- NULL
   if (bFast & (max(sampvec) <= ncol(pv$class)))  {
     if ((length(sampvec) < length(pv$peaks)) ||
-        (pv$totalMerged != nrow(pv$binding))) {
+        (pv$totalMerged != do.nrow(pv$binding))) {
       pv <- pv.vectors(pv,sampvec,minOverlap = 1)
       sampvec <- 1:length(pv$peaks)
     } else {
@@ -222,7 +222,7 @@ pv.consensus <- function(pv,sampvec,minOverlap = 2,
     tmp <- pv.vectors(tmp,minOverlap = minOverlap)
   }
   
-  if (nrow(tmp$binding) == 0) {
+  if (do.nrow(tmp$binding) == 0) {
     message(">> zero peaks in consensus, skipping.")
     return(pv)
   }
@@ -231,7 +231,7 @@ pv.consensus <- function(pv,sampvec,minOverlap = 2,
     minOverlap <- ceiling(length(tmp$peaks) * minOverlap)
   }
   
-  if(nrow(tmp$binding) == 1) {
+  if(do.nrow(tmp$binding) == 1) {
     pscores <- matrix(tmp$binding[,4:ncol(tmp$binding)],1)
   } else {
     pscores <- tmp$binding[,4:ncol(tmp$binding)]
@@ -244,7 +244,7 @@ pv.consensus <- function(pv,sampvec,minOverlap = 2,
   pscores      <- matrix(pscores[goodvecs,],sum(goodvecs))
   
   mean.density <- apply(pscores,1,pv.domean)
-  if(nrow(tmp$binding) == 1) {
+  if(do.nrow(tmp$binding) == 1) {
     tmp$binding <- matrix(c(tmp$binding[1,1:3],mean.density),1)
   } else {
     tmp$binding  <- cbind(tmp$binding[,1:3],mean.density)
@@ -565,7 +565,7 @@ pv.overlap <- function(pv,mask,bFast = FALSE,minVal = 0) {
     stop('Must specify mask for peaksets to overlap.',call. = FALSE)
   }
   
-  if (pv$totalMerged != nrow(pv$binding)) {
+  if (pv$totalMerged != do.nrow(pv$binding)) {
     pv <- pv.vectors(pv,mask = peaksets,minOverlap=1)
     peaksets <- 1:length(peaksets)
     A <- 1; B <- 2; C <- 3; D <- 4
