@@ -419,8 +419,8 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     if (is.character(pv$peaks[[1]][1,1])) {
       result[,1] <- match(pv$peaks[[1]][,1],pv$chrmap)
     }
-    result[,2] <- pv$peaks[[1]][,2]
-    result[,3] <- pv$peaks[[1]][,3]
+    result[,2] <- Numeric(pv$peaks[[1]][,2])
+    result[,3] <- Numeric(pv$peaks[[1]][,3])
     for (i in 1:numvecs) {
       result[,i + 3] <- pv$peaks[[i]][,4]
     }

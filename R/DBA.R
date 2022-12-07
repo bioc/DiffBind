@@ -362,7 +362,9 @@ dba.peakset <- function(DBA=NULL, peaks, sampID, tissue, factor,
     numpeaks <- length(res$peaks)
     if(numpeaks > 1) {
       if(is.null(res$called)) {
-        res <- dba(res)
+        if(is.null(res$counts)) {
+          res <- dba(res)
+        }
       } else 
         if(numpeaks != ncol(res$called)) {
           res <- dba(res)
@@ -1192,7 +1194,8 @@ dba.plotHeatmap <- function(DBA, attributes=DBA$attributes, maxSites=1000,
   }
   
   if(bLog) {
-    vectors <- DBA$binding[,4:ncol(DBA$binding)]
+    vectors <- as.matrix(DBA$binding[,4:ncol(DBA$binding)])
+    vectors <- matrix(as.numeric(vectors),ncol=ncol(vectors))
     vectors[is.na(vectors)] <- 0
     if(max(vectors) > 1) { # must have positive counts to do log
       vectors[vectors<1]=1
@@ -1882,6 +1885,13 @@ print.DBA <- function(x,...){
   toshow <- dba.show(x)
   
   if(nrow(toshow) > 1) {
+    
+    if(!is.null(toshow$FRiP)) {
+      if(all(toshow$FRiP >= .99)) {
+        toshow$FRiP <- NULL
+      }
+    }
+    
     if(length(unique(toshow$Reads))==1) {
       delcol <- which(colnames(toshow) %in% 'Reads')
       toshow <- toshow[,-delcol]

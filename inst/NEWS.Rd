@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.8.3}{
+   \itemize{
+     \item{Misc issues with pre-computed counts}
+   }
+}
+
+
 \section{Version 3.8.2}{
    \itemize{
      \item{Address issues with nrow on NULLs}
