@@ -41,7 +41,7 @@ pv.DBAplotMA <- function(pv,contrast,method='edgeR',bMA=TRUE,bXY=FALSE,th=0.05,
     plotfun <- smoothScatter
   }
   
-  numSites <- nrow(pv$binding)
+  numSites <- do.nrow(pv$binding)
   
   for(con in 1:length(contrast)) {
     if(noreport) {
@@ -394,7 +394,7 @@ pv.plotHeatmap <-
       
     } else {
       if (missing(sites)) {
-        sites <- 1:nrow(pv$binding)
+        sites <- 1:do.nrow(pv$binding)
         numSites <- min(length(sites),numSites)
       } else {
         if (sum(sites) <= length(sites)) {
@@ -566,7 +566,7 @@ pv.plotPCA <-
       sites <- NULL
     
     if (missing(numSites)) {
-      numSites <- nrow(pv$binding)
+      numSites <- do.nrow(pv$binding)
     }
     
     config <- pv$config

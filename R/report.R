@@ -543,7 +543,7 @@ pv.getPlotData <-
     pv$peaks <- peaks
     pv$called <- pv$called[sites,allsamps]
     pv$merged <- pv$binding[,1:3]
-    pv$totalMerged <- nrow(pv$merged)
+    pv$totalMerged <- do.nrow(pv$merged)
     pv$contrasts <- list(pv$contrasts[[contrast]])
     pv$contrasts[[1]]$group1 <- rep(FALSE,ncol(pv$class))
     pv$contrasts[[1]]$group2 <- rep(FALSE,ncol(pv$class))
@@ -661,7 +661,7 @@ pv.getPlotDataComplexContrast <-
     pv$peaks <- peaks
     pv$called <- pv$called[sites,allsamps]
     pv$merged <- pv$binding[,1:3]
-    pv$totalMerged <- nrow(pv$merged)
+    pv$totalMerged <- do.nrow(pv$merged)
     pv$contrasts <- list(pv$contrasts[[contrast]])
     
     return(pv)     

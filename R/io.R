@@ -138,7 +138,7 @@ pv.loadPre3 <- function(pv) {
 pv.writePeakset <- function(pv,fname,peaks,numCols=4){
    
    if(missing(peaks)) {
-      peaks <- rep(T,nrow(pv$binding))
+      peaks <- rep(T,do.nrow(pv$binding))
    } else {
       if(sum(class(peaks)=='logical')) {
          peaks <- which(peaks)[1]	
