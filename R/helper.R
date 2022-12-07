@@ -1214,6 +1214,7 @@ pv.peaksetCounts <- function(pv=NULL,peaks=NULL,counts,
   
   peaks <- cbind(peaks,counts,counts,rep(0,numcounts),counts,rep(0,numcounts),rep(0,numcounts))
   colnames(peaks) <- c("Chr","Start","End", "Score", "Score","RPKM", "Reads","cRPKM","cReads")
+  pv$counts <- TRUE
   
   res <- dba.peakset(pv,
                      peaks       = peaks,
@@ -1432,5 +1433,15 @@ do.ncol <- function(m) {
     return(0)
   } else {
     return(ncol(m))
+  }
+}
+
+Numeric <- function(x) {
+  # Return numeric is all are numeric otherwise native
+  num <- suppressWarnings(as.numeric(x))
+  if(all(!is.na(num))) {
+    return(num)
+  } else {
+    return(x)
   }
 }
