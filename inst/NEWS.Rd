@@ -2,6 +2,13 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.9.4}{
+  \itemize{
+    \item{Rollover bugfixes}
+    \item{add option to return ggplot in dba.plotVolcano}
+  }
+}
+
 \section{Version 3.8}{
 
 Mostly bug fixes

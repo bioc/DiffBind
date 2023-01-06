@@ -243,7 +243,7 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
                               bUsePval=FALSE,fold=0,facname="",
                               bLabels=FALSE,maxLabels=50,
                               dotSize=1,bSignificant=TRUE, bFlip=FALSE,
-                              xrange,yrange) {
+                              xrange,yrange, bReturnPlot=FALSE) {
   
   if(missing(contrast)){
     contrast <- 1:length(pv$contrasts)
@@ -342,10 +342,14 @@ pv.DBAplotVolcano <- function(pv,contrast,method='edgeR', th=0.05,
       }
     }
   }
-  if(sidx > 0) {
-    return(sigSites[,-10])
+  if(bReturnPlot) {
+    return(p)
   } else {
-    return(NULL)
+    if(sidx > 0) {
+      return(sigSites[,-10])
+    } else {
+      return(NULL)
+    }
   }
 }
 

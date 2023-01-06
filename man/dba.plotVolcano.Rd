@@ -11,7 +11,8 @@ Generates volcano plots of differential binding analysis results.
 dba.plotVolcano(DBA, contrast=1, method=DBA$config$AnalysisMethod, 
                             th=DBA$config$th, bUsePval=DBA$config$bUsePval, 
                             fold=0, factor="", bFlip=FALSE, 
-                            bLabels=FALSE, maxLabels=50, dotSize=1)
+                            bLabels=FALSE, maxLabels=50, dotSize=1,
+                            bReturnSites=TRUE)
 }
 
 %- maybe also 'usage' for other objects documented here.
@@ -84,13 +85,17 @@ Ignored if \code{bLabels=FALSE}.
   \item{dotSize}{
 size of points on plot.
 }
+  \item{bReturnSites}{
+If \code{TRUE}, silently returns the differential sites. 
+If \code{FALSE}, the \code{ggplot} object is silently returned.
+}
 }
 
 \details{
 Makes a volcano plot.
 }
 \value{
-silently returns a \code{GRanges} object of the sites highlighted in red.
+Silently returns wither a \code{GRanges} object of the sites highlighted in red or a \code{ggplot} object.
 }
 %\references{
 %% ~put references to the literature/web site here ~

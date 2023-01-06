@@ -198,7 +198,14 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000, labels,
     
     # Generate mergelist from attributes if required
     if(!is.null(merge)) {
-      merge     <- pv.mergelist(pv, mask, merge, labels)
+      merge <- pv.mergelist(pv, mask, merge, labels)
+      if(!is.null(samplegroups)) {
+        if(length(samplegroups) == length(merge)) {
+          if(!is.null(names(samplegroups))) {
+            names(merge) <- names(samplegroups)
+          }
+        }
+      }
       sampnames <- names(merge)
     } 
     
