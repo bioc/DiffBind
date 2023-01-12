@@ -2,6 +2,12 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.8.4}{
+   \itemize{
+     \item{Better handle case where both Counts and Peaks are specified in samplesheet}
+   }
+}
+
 \section{Version 3.8.3}{
    \itemize{
      \item{Misc issues with pre-computed counts}

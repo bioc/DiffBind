@@ -1186,6 +1186,7 @@ pv.peaksetCounts <- function(pv=NULL,peaks=NULL,counts,
         froms  <- counts[,2]
         tos    <- counts[,3]
         counts <- counts[,4]	
+        peaks  <- data.frame(cbind(IDs,froms,tos))
       } else {
         stop("Counts must have 1, 2, or 4 columns.",call.=FALSE)	
       }
@@ -1202,13 +1203,18 @@ pv.peaksetCounts <- function(pv=NULL,peaks=NULL,counts,
   if(is.null(froms)) {
     froms <- tos <- 1:numcounts	
   }
+  
   if(is.null(peaks)) {
     peaks <- data.frame(cbind(IDs,froms,tos))
   } else {
     if(is.na(peaks)[1]){
       peaks <- data.frame(cbind(IDs,froms,tos))     
     } else {
-      peaks <- data.frame(peaks[,1:3])
+      if(is.null(nrow(peaks))) {
+        peaks <- data.frame(cbind(IDs,froms,tos))
+      } else {
+        peaks <- data.frame(peaks[,1:3])
+      }
     }
   }
   
