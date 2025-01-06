@@ -17,7 +17,7 @@ BitBucket::~BitBucket(void) {
 void BitBucket::set(const int i) {
   if (i < 0 || i >= size) {
     int *x = 0; *x=1;
-    error("Range error in BitBucket: %d (limit=%d)",i,size);
+    Rf_error("Range error in BitBucket: %d (limit=%d)",i,size);
   }
   bits[i] = 1;
 }
@@ -25,7 +25,7 @@ void BitBucket::set(const int i) {
 void BitBucket::reset(const int i) {
   if (i < 0 || i >= size) {
     int *x = 0; *x=1;
-    error("Range error in BitBucket: %d (limit=%d)",i,size);
+    Rf_error("Range error in BitBucket: %d (limit=%d)",i,size);
   }
   bits[i] = 0;
 }
@@ -33,7 +33,7 @@ void BitBucket::reset(const int i) {
 bool BitBucket::isSet(const int i) {
   if (i < 0 || i >= size) {
     int *x = 0; *x=1;
-    error("Range error in BitBucket: %d (limit=%d)",i,size);
+    Rf_error("Range error in BitBucket: %d (limit=%d)",i,size);
   }
   return bits[i] == 1;
 }
@@ -47,7 +47,7 @@ void BitBucket::clear(void) {
 bool BitBucket::operator[](const int i) {
   if (i < 0 || i >= size) {
     int *x = 0; *x=1;
-    error("Range error in BitBucket: %d (limit=%d)",i,size);
+    Rf_error("Range error in BitBucket: %d (limit=%d)",i,size);
   }
   return bits[i] == 1;
 }

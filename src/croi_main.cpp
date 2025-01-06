@@ -102,7 +102,7 @@ SEXP croi_count_reads(SEXP filename_r,SEXP insertLength_r,SEXP filetype_r,
       delete densities;
     }
     delete ng;
-    PROTECT(rv = allocVector(INTSXP,1));
+    PROTECT(rv = Rf_allocVector(INTSXP,1));
     INTEGER(rv)[0] = readCount;
     UNPROTECT(1);
     return rv;

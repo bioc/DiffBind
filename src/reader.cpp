@@ -34,7 +34,7 @@ bode::Reader *bode::Reader::open(std::string const &filename,int const &filetype
     } else if (filename.compare(flen-7,7,".bed.gz") == 0) {
       r = new BedReader(filename);
     } else {
-      error("Unknown suffix in file '%s'.  Supported are: '.bam', '.bed', '.bed.gz'.",filename.c_str());
+      Rf_error("Unknown suffix in file '%s'.  Supported are: '.bam', '.bed', '.bed.gz'.",filename.c_str());
     }
   } else {
     if (filetype == BED_FILETYPE) {
@@ -42,7 +42,7 @@ bode::Reader *bode::Reader::open(std::string const &filename,int const &filetype
     } else if (filetype == BAM_FILETYPE) {
       r = new BamReader(filename);
     } else {
-      error("Unknown filetype %d in file '%s'.  Supported are 0 (use suffix), 1 (bed), 3 (bam).",filetype,filename.c_str());
+      Rf_error("Unknown filetype %d in file '%s'.  Supported are 0 (use suffix), 1 (bed), 3 (bam).",filetype,filename.c_str());
     }
   }
   return r;

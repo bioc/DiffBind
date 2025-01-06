@@ -19,7 +19,7 @@ bool bode::BamReader::isBam(std::string const &filename) {
 
 bode::BamReader::BamReader(std::string const &filename) {
   if (!isBam(filename)) {
-    error("file '%s' does not appear to be a BAM file (bad magic number)",filename.c_str());
+    Rf_error("file '%s' does not appear to be a BAM file (bad magic number)",filename.c_str());
   }
   _fd = samopen(filename.c_str(),"rb",0);
   _seq = bam_init1();

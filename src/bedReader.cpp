@@ -59,7 +59,7 @@ bode::BedReader::BedReader(std::string const &filename) {
   char *res;
 
   if (!isBed(filename)) {
-    error("file '%s' does not appear to be a BED file (coordinates are not integers)",filename.c_str());
+    Rf_error("file '%s' does not appear to be a BED file (coordinates are not integers)",filename.c_str());
   }
   _fd = gzopen(filename.c_str(),"r");
   _buffer = new char[maxLine];

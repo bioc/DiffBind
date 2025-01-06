@@ -10,8 +10,8 @@ enum BedColumns { CHROM=0, LEFT=1, RIGHT=2 };
 
 static int getIndex(SEXP list,char *name) {
   int i,llen;
-  SEXP names = getAttrib(list,R_NamesSymbol);
-  llen = length(list);
+  SEXP names = Rf_getAttrib(list,R_NamesSymbol);
+  llen = Rf_length(list);
   for (i=0;i<llen;i++) {
     if (strcmp(CHAR(STRING_ELT(names,i)),name)==0) {
       return i;
@@ -25,38 +25,38 @@ SEXP mo_makeEmpty(int rows,int cols,SEXP colNames) {
   int i;
 
   // allocate the storage
-  PROTECT(dest = allocVector(VECSXP,cols));
-  PROTECT(chroms = allocVector(INTSXP,rows));
-  PROTECT(lefts = allocVector(INTSXP,rows));
-  PROTECT(rights = allocVector(INTSXP,rows));
+  PROTECT(dest = Rf_allocVector(VECSXP,cols));
+  PROTECT(chroms = Rf_allocVector(INTSXP,rows));
+  PROTECT(lefts = Rf_allocVector(INTSXP,rows));
+  PROTECT(rights = Rf_allocVector(INTSXP,rows));
   SET_VECTOR_ELT(dest,CHROM,chroms);
   SET_VECTOR_ELT(dest,LEFT,lefts);
   SET_VECTOR_ELT(dest,RIGHT,rights);
   for (i=RIGHT+1;i<cols;i++) {
-    PROTECT(col = allocVector(REALSXP,rows));
+    PROTECT(col = Rf_allocVector(REALSXP,rows));
     SET_VECTOR_ELT(dest,i,col);
   }
   UNPROTECT(cols);
 
   // make it a data frame
   SEXP class_attr;
-  PROTECT(class_attr = allocVector(STRSXP,1));
-  SET_STRING_ELT(class_attr,0,mkChar((char *)"data.frame"));
-  setAttrib(dest,R_ClassSymbol,class_attr);
+  PROTECT(class_attr = Rf_allocVector(STRSXP,1));
+  SET_STRING_ELT(class_attr,0,Rf_mkChar((char *)"data.frame"));
+  Rf_setAttrib(dest,R_ClassSymbol,class_attr);
   UNPROTECT(1);
 
   // set up row names
   SEXP rnattr;
-  PROTECT(rnattr = allocVector(INTSXP,rows));
+  PROTECT(rnattr = Rf_allocVector(INTSXP,rows));
   int *rnattrp = INTEGER(rnattr);
   for (i=0;i<rows;i++) {
     rnattrp[i] = i+1;
   }
-  setAttrib(dest,R_RowNamesSymbol,rnattr);
+  Rf_setAttrib(dest,R_RowNamesSymbol,rnattr);
   UNPROTECT(1);
 
   // install col names
-  setAttrib(dest,R_NamesSymbol,colNames);
+  Rf_setAttrib(dest,R_NamesSymbol,colNames);
 
   return dest;
 }
@@ -66,8 +66,8 @@ int mo_merge(SEXP dest,SEXP src,int keepAll,int minOverlap) {
   int *dChrom,*sChrom;
   int *dLeft,*dRight,*sLeft,*sRight;
   double **srcScores,**destScores;
-  cols = length(src);
-  rows = length(VECTOR_ELT(src,0));
+  cols = Rf_length(src);
+  rows = Rf_length(VECTOR_ELT(src,0));
   di = 0;
 
   dChrom = INTEGER(VECTOR_ELT(dest,CHROM));
@@ -135,8 +135,8 @@ SEXP mo_truncate(SEXP src,int len) {
   int i,j,cols;
   double **srcScores,**destScores;
 
-  cols = length(src);
-  dest = mo_makeEmpty(len,cols,getAttrib(src,R_NamesSymbol));
+  cols = Rf_length(src);
+  dest = mo_makeEmpty(len,cols,Rf_getAttrib(src,R_NamesSymbol));
 
   int *sChrom = INTEGER(VECTOR_ELT(src,CHROM));
   int *sLeft = INTEGER(VECTOR_ELT(src,LEFT));
@@ -172,22 +172,22 @@ int mo_validate(SEXP src) {
   int chromInd,leftInd,rightInd;
 
   okay = 1;
-  if (!isVectorList(src)) {
-    error("Expecting a VectorList");
+  if (!Rf_isVectorList(src)) {
+    Rf_error("Expecting a VectorList");
   }
   chromInd = getIndex(src,(char *)"CHR");
   leftInd = getIndex(src,(char *)"START");
   rightInd = getIndex(src,(char *)"END");
   if (chromInd != 0 || leftInd != 1 || rightInd != 2) {
-    error("Expecting colnames 'chrom','left','right' in pos 1,2,3");
+    Rf_error("Expecting colnames 'chrom','left','right' in pos 1,2,3");
   }
-  if (!isNumeric(VECTOR_ELT(src,0))) {
-    error("Chrom column (1) should be numeric");
+  if (!Rf_isNumeric(VECTOR_ELT(src,0))) {
+    Rf_error("Chrom column (1) should be numeric");
   }
-  src_len = length(src);
+  src_len = Rf_length(src);
   for (i=1;i<src_len;i++) {
-    if (!isNumeric(VECTOR_ELT(src,i))) {
-      error("Columns 2..n should be numeric");
+    if (!Rf_isNumeric(VECTOR_ELT(src,i))) {
+      Rf_error("Columns 2..n should be numeric");
     }
   }
   return okay;
@@ -201,10 +201,10 @@ SEXP mo_mergeOne(SEXP src,SEXP keepAll,SEXP minOverlap) {
   cKeepAll = INTEGER(keepAll)[0];
   cMinOverlap = INTEGER(minOverlap)[0];
   mo_validate(src); // throws an error if src fails to validate.
-  cols = length(src);
-  rows = length(VECTOR_ELT(src,0));
+  cols = Rf_length(src);
+  rows = Rf_length(VECTOR_ELT(src,0));
   R_CheckUserInterrupt();
-  dest = mo_makeEmpty(rows,cols,getAttrib(src,R_NamesSymbol));
+  dest = mo_makeEmpty(rows,cols,Rf_getAttrib(src,R_NamesSymbol));
   R_CheckUserInterrupt();
   nnew = mo_merge(dest,src,cKeepAll,cMinOverlap);
   R_CheckUserInterrupt();
@@ -318,11 +318,11 @@ ipsetp sexp2ipsetp(SEXP src) {
   int i;
 
   dest = (ipsetp) Calloc(1,struct ipset);
-  dest->rows = length(VECTOR_ELT(src,0));
+  dest->rows = Rf_length(VECTOR_ELT(src,0));
   dest->chr = INTEGER(VECTOR_ELT(src,0));
   dest->left = INTEGER(VECTOR_ELT(src,1));
   dest->right = INTEGER(VECTOR_ELT(src,2));
-  dest->sWidth = length(src) - 3;
+  dest->sWidth = Rf_length(src) - 3;
   dest->scores = (double **) Calloc(dest->sWidth,double *);
   for (i=0;i<dest->sWidth;i++) {
     dest->scores[i] = REAL(VECTOR_ELT(src,i+3));
@@ -366,14 +366,14 @@ SEXP mo_mergeTwo(SEXP aexp,SEXP bexp,SEXP keep_s,SEXP overlap_s,SEXP zero_s) {
   /* create target with appropriate size and column names*/
   rowsT = alpha->rows + bravo->rows;
   colsT = 3 + alpha->sWidth + bravo->sWidth;
-  PROTECT(t_names = allocVector(STRSXP,colsT));
-  src_names = getAttrib(aexp,R_NamesSymbol);
-  for (i=0;i<length(src_names);i++) {
+  PROTECT(t_names = Rf_allocVector(STRSXP,colsT));
+  src_names = Rf_getAttrib(aexp,R_NamesSymbol);
+  for (i=0;i<Rf_length(src_names);i++) {
     SET_STRING_ELT(t_names,i,STRING_ELT(src_names,i));
   }
-  j = length(src_names);
-  src_names = getAttrib(bexp,R_NamesSymbol);
-  for (i=3;i<length(src_names);i++) {
+  j = Rf_length(src_names);
+  src_names = Rf_getAttrib(bexp,R_NamesSymbol);
+  for (i=3;i<Rf_length(src_names);i++) {
     SET_STRING_ELT(t_names,j,STRING_ELT(src_names,i));
     j++;
   }
