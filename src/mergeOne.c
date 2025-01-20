@@ -317,13 +317,13 @@ ipsetp sexp2ipsetp(SEXP src) {
   ipsetp dest;
   int i;
 
-  dest = (ipsetp) Calloc(1,struct ipset);
+  dest = (ipsetp) R_Calloc(1,struct ipset);
   dest->rows = Rf_length(VECTOR_ELT(src,0));
   dest->chr = INTEGER(VECTOR_ELT(src,0));
   dest->left = INTEGER(VECTOR_ELT(src,1));
   dest->right = INTEGER(VECTOR_ELT(src,2));
   dest->sWidth = Rf_length(src) - 3;
-  dest->scores = (double **) Calloc(dest->sWidth,double *);
+  dest->scores = (double **) R_Calloc(dest->sWidth,double *);
   for (i=0;i<dest->sWidth;i++) {
     dest->scores[i] = REAL(VECTOR_ELT(src,i+3));
   }
@@ -332,8 +332,8 @@ ipsetp sexp2ipsetp(SEXP src) {
 }
 
 void free_ipsetp(ipsetp *item) {
-  Free((*item)->scores);
-  Free((*item));
+  R_Free((*item)->scores);
+  R_Free((*item));
   *item = NULL;
 }
 
