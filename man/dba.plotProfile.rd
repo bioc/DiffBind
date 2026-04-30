@@ -208,6 +208,15 @@ at
 \value{
 silently returns a \code{profileplyr-class} object.
 }
+
+\note{
+This function is currently disabled in this release of DiffBind because the
+\code{profileplyr} package is not installable in the current Bioconductor
+release. Calling \code{dba.plotProfile} will print a message and return
+\code{NULL} invisibly. Profile plotting will be restored in a future release
+when \code{profileplyr} is available again or a replacement backend is wired
+in.
+}
 \references{
 Carroll T, Barrows D (2020). profileplyr: Visualization and annotation of 
 read signal over genomic ranges with profileplyr. 

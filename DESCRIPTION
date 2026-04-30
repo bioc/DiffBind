@@ -1,6 +1,6 @@
 Package: DiffBind
 Type: Package
-Version: 3.22.0
+Version: 3.22.1
 Title: Differential Binding Analysis of ChIP-Seq Peak Data
 Authors@R: c(person("Rory","Stark", email="bioconductor@starkhome.com",
                   role = c("aut", "cre")),
@@ -18,7 +18,7 @@ Imports: RColorBrewer, amap, gplots, grDevices, limma,
          S4Vectors, Rsamtools (>= 2.13.1), DESeq2, methods, graphics, ggrepel,
          apeglm, ashr, GreyListChIP
 Suggests: BiocStyle, testthat, xtable,
-          rgl, XLConnect, edgeR, csaw, BSgenome, GenomeInfoDb, profileplyr,
+          rgl, XLConnect, edgeR, csaw, BSgenome, GenomeInfoDb,
           rtracklayer, grid
 LinkingTo: Rhtslib (>= 1.99.1), Rcpp
 SystemRequirements: GNU make
@@ -32,4 +32,4 @@ biocViews: Sequencing, ChIPSeq,ATACSeq, DNaseSeq, MethylSeq, RIPSeq,
            PeakDetection, BiomedicalInformatics, CellBiology,
            MultipleComparison, Normalization, ReportWriting, 
            Epigenetics, FunctionalGenomics
-URL: https://www.cruk.cam.ac.uk/core-facilities/bioinformatics-core/software/DiffBind
+URL: https://bioconductor.org/packages/DiffBind/
