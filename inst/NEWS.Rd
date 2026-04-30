@@ -2,6 +2,24 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.23.1}{
+  \itemize{
+    \item{Temporarily disable \code{dba.plotProfile()} because the
+          \pkg{profileplyr} package is no longer installable in
+          Bioconductor 3.23 onwards (upstream removal of
+          \code{GenomicFeatures::makeTxDbFromGFF}; \pkg{profileplyr}
+          maintainer unresponsive). The function now prints a
+          notification message and returns \code{NULL} invisibly. The
+          underlying implementation is preserved in
+          \code{R/plotProfile.R} behind an early-return block and will
+          be re-enabled when \pkg{profileplyr} is restored or a
+          replacement profile-plotting backend is wired in.}
+    \item{Remove \pkg{profileplyr} from \code{Suggests:} so the package
+          passes \code{R CMD check} on the Bioconductor build farm
+          (which runs with \code{_R_CHECK_FORCE_SUGGESTS_=true}).}
+  }
+}
+
 \section{Version 3.9.4}{
   \itemize{
     \item{Rollover bugfixes}

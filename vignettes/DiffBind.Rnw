@@ -884,10 +884,17 @@ and a red/green heatmap color palette applied.
 
 \subsection{Profiling and Profile Heatmaps}
 
+\textbf{Note:} \Rcode{dba.plotProfile()} is currently \emph{disabled} in this
+release of \DiffBind because the \Rpackage{profileplyr} package is not
+installable in the current Bioconductor release. Calling the function will
+print a message and return invisibly. The descriptive text and code examples
+below are retained for reference; profile plotting will be restored in a
+future release.
+
 The \Rcode{dba.plotProfile()} function enables the computation of
-peakset profiles and the plotting of complex heatmaps. 
-It serves as a front-end to enable experiments analyzed using \DiffBind to 
-more easily use the profiling and plotting functionality provided by 
+peakset profiles and the plotting of complex heatmaps.
+It serves as a front-end to enable experiments analyzed using \DiffBind to
+more easily use the profiling and plotting functionality provided by
 the \Rpackage{profileplyr} package written by Tom Carroll and Doug Barrows
 (see \url{https://bioconductor.org/packages/release/bioc/html/profileplyr.html}).
 
