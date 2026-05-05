@@ -50,38 +50,38 @@ least this proportion of peaksets.
 data frame containing sample sheet, or file name of sample sheet to load 
 (ignored if DBA is specified). 
 Columns names in sample sheet may include:
-\itemize{
-\item {\code{SampleID:}}	{Identifier string for sample. 
+\describe{
+\item{\code{SampleID:}}{Identifier string for sample. 
 Must be unique for each sample.}
-\item {\code{Tissue:}}	{Identifier string for tissue type}
-\item {\code{Factor:}}	{Identifier string for factor}
-\item {\code{Condition:}}	{Identifier string for condition}
-\item {\code{Treatment:}}	{Identifier string for treatment}
-\item {\code{Replicate:}}	{Replicate number of sample}
-\item {\code{bamReads:}}	{file path for bam file containing aligned reads for ChIP sample}
-\item {\code{bamControl:}}	{file path for bam file containing aligned reads for control sample}
-\item {\code{Spikein:}}	{file path for bam file containing aligned spike-in reads}
-\item {\code{ControlID:}}	{Identifier string for control sample}
-\item {\code{Peaks:}}	{path for file containing peaks for sample. 
+\item{\code{Tissue:}}{Identifier string for tissue type}
+\item{\code{Factor:}}{Identifier string for factor}
+\item{\code{Condition:}}{Identifier string for condition}
+\item{\code{Treatment:}}{Identifier string for treatment}
+\item{\code{Replicate:}}{Replicate number of sample}
+\item{\code{bamReads:}}{file path for bam file containing aligned reads for ChIP sample}
+\item{\code{bamControl:}}{file path for bam file containing aligned reads for control sample}
+\item{\code{Spikein:}}{file path for bam file containing aligned spike-in reads}
+\item{\code{ControlID:}}{Identifier string for control sample}
+\item{\code{Peaks:}}{path for file containing peaks for sample. 
 Format determined by PeakCaller field or caller parameter}
-\item {\code{PeakCaller:}}	{Identifier string for peak caller used. 
+\item{\code{PeakCaller:}}{Identifier string for peak caller used. 
 If Peaks is not a bed file, this will determine how the Peaks file is parsed. 
 If missing, will use default peak caller specified in caller parameter. Possible values:}
-\itemize{
-\item {\dQuote{raw}:}	{text file file; peak score is in fourth column}
-\item {\dQuote{bed}:}	{.bed file; peak score is in fifth column}
-\item {\dQuote{narrow}:}  {default peak.format: narrowPeaks file}
-\item {\dQuote{macs}:}	{MACS .xls file}
-\item {\dQuote{swembl}:}	{SWEMBL .peaks file}
-\item {\dQuote{bayes}:}	{bayesPeak file}
-\item {\dQuote{peakset}:}	{peakset written out using pv.writepeakset}
-\item {\dQuote{fp4}:}	{FindPeaks v4}
+\describe{
+\item{\dQuote{raw}:}{text file file; peak score is in fourth column}
+\item{\dQuote{bed}:}{.bed file; peak score is in fifth column}
+\item{\dQuote{narrow}:}{default peak.format: narrowPeaks file}
+\item{\dQuote{macs}:}{MACS .xls file}
+\item{\dQuote{swembl}:}{SWEMBL .peaks file}
+\item{\dQuote{bayes}:}{bayesPeak file}
+\item{\dQuote{peakset}:}{peakset written out using pv.writepeakset}
+\item{\dQuote{fp4}:}{FindPeaks v4}
 }
-\item {\code{PeakFormat:}}	{string indicating format for peak files; 
+\item{\code{PeakFormat:}}{string indicating format for peak files; 
 see PeakCaller and  \code{\link{dba.peakset}}}
-\item {\code{ScoreCol:}}	{column in peak files that contains peak scores}
-\item {\code{LowerBetter:}}	{logical indicating that lower scores signify better peaks}
-\item{\code{Counts:}} {file path for externally computed read counts; 
+\item{\code{ScoreCol:}}{column in peak files that contains peak scores}
+\item{\code{LowerBetter:}}{logical indicating that lower scores signify better peaks}
+\item{\code{Counts:}}{file path for externally computed read counts; 
 see \code{\link{dba.peakset}}
 (\code{counts} parameter)}
 }
@@ -97,29 +97,29 @@ or file name of config file to load when constructing a new DBA object from a sa
 \code{NULL} indicates no config file.
 
 See \link{DBA-config} for full set of options. Relevant fields include:
-\itemize{
-\item {\code{AnalysisMethod:}}	{either \code{DBA_DESEQ2} or \code{DBA_EDGER}.}
-\item {\code{th:}}   {default threshold for reporting and 
+\describe{
+\item{\code{AnalysisMethod:}}{either \code{DBA_DESEQ2} or \code{DBA_EDGER}.}
+\item{\code{th:}}{default threshold for reporting and 
 plotting analysis results.}
-\item {\code{DataType:}}	{default class for peaks and reports
+\item{\code{DataType:}}{default class for peaks and reports
 (\code{DBA_DATA_GRANGES, DBA_DATA_RANGEDDATA, or DBA_DATA_FRAME}).}
-\item {\code{RunParallel:}}	{logical indicating if counting and analysis 
+\item{\code{RunParallel:}}{logical indicating if counting and analysis 
 operations should be run in parallel using multicore by default.}
-\item {\code{minQCth:}}   {numeric, for filtering reads based on mapping 
+\item{\code{minQCth:}}{numeric, for filtering reads based on mapping 
 quality score; only reads with a mapping quality score
 greater than or equal to this will be counted.}
-\item {\code{fragmentSize:}} {numeric with mean fragment size.
+\item{\code{fragmentSize:}}{numeric with mean fragment size.
 Reads will be extended to this length before counting overlaps. 
 May be a vector of lengths, one for each sample.}
-\item {\code{bCorPlot:}} {logical indicating that a correlation heatmap 
+\item{\code{bCorPlot:}}{logical indicating that a correlation heatmap 
 should be plotted automatically}
-\item {\code{ReportInit:}}   {string to append to the beginning of saved 
+\item{\code{ReportInit:}}{string to append to the beginning of saved 
 report file names.}
-\item {\code{bUsePval:}}   {logical, default indicating whether to use FDR 
+\item{\code{bUsePval:}}{logical, default indicating whether to use FDR 
 (\code{FALSE}) or p-values (\code{TRUE}).}
-\item {\code{doBlacklist:}}   {logical, whether to attempt to find and apply
+\item{\code{doBlacklist:}}{logical, whether to attempt to find and apply
 a blacklist if none is present when running \code{\link{dba.analyze}}}.
-\item {\code{doGreylist:}}   {logical, whether to attempt to generate and apply 
+\item{\code{doGreylist:}}{logical, whether to attempt to generate and apply 
 a greylist if none is present when running \code{\link{dba.analyze}}}.
 }
 }

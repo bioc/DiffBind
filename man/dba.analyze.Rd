@@ -52,10 +52,10 @@ Underlying method, or vector of methods, by which to analyze
 differential binding affinity. 
 
 Supported methods:
-\itemize{ 
-  \item{\code{\link{DBA_EDGER}}} {use \code{edgeR} package for analysis}
-  \item{\code{\link{DBA_DESEQ2}}} {use \code{DESeq2} package for analysis}
-  \item{\code{\link{DBA_ALL_METHODS}}} {perform two analyses, 
+\describe{ 
+  \item{\code{\link{DBA_EDGER}}}{use \code{edgeR} package for analysis}
+  \item{\code{\link{DBA_DESEQ2}}}{use \code{DESeq2} package for analysis}
+  \item{\code{\link{DBA_ALL_METHODS}}}{perform two analyses, 
 using both \code{edgeR} and \code{DESeq2}}
 }
 }
@@ -90,10 +90,10 @@ See \code{link{dba.blacklist}}.
 If changed from \code{FALSE}, the underlying DE analysis object is returned
 instead of running a new analysis.
 Possible values for \code{bRetrieveAnalysis}:
-\itemize{
-  \item{\code{DBA_DESEQ2}} {Returns the \code{DESeq2} \code{\link{DESeqDataSet}}}.
-  \item{\code{DBA_EDGER}} {Returns the \code{edgeR} \code{DGEList}}.  
-  \item{\code{TRUE}} {Returns the \code{DESeq2} \code{\link{DESeqDataSet}}, 
+\describe{
+  \item{\code{DBA_DESEQ2}}{Returns the \code{DESeq2} \code{\link{DESeqDataSet}}}.
+  \item{\code{DBA_EDGER}}{Returns the \code{edgeR} \code{DGEList}}.  
+  \item{\code{TRUE}}{Returns the \code{DESeq2} \code{\link{DESeqDataSet}}, 
   if present. If not, returns the \code{edgeR} \code{DGEList}, if present.}.
 }
 An analysis object will only be successfully returned if there is at

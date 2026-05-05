@@ -92,14 +92,14 @@ In order to re-analyze an experiment in the pre-version 3.0 mode,
 a number of defaults need to be changed.
 
 When calling \code{\link{dba.count}}, the following defaults are changed:
-\itemize{
-  \item{\code{summits}:} {This parameter is now set by default. Setting 
+\describe{
+  \item{\code{summits}:}{This parameter is now set by default. Setting 
      \code{summits=FALSE} will preempt re-centering each 
       peak interval around its point of highest pileup.}  
-  \item{\code{filter}:}  {The new default for this parameter is \code{1}
+  \item{\code{filter}:}{The new default for this parameter is \code{1}
   and is based on \code{RPKM} values; previously
        it was set to \code{filter=0} and was based on read counts.}
-  \item{\code{minCount}:} {This is a new parameter representing a minimum read count value.
+  \item{\code{minCount}:}{This is a new parameter representing a minimum read count value.
                    It now default to \code{0}; 
                    to get the previous behavior, set \code{minCount=1}. }
 }
@@ -114,18 +114,18 @@ the new interface function, \code{\link{dba.normalize}} (which
 does not need to be invoked explicitly.)
 The pre-version 3.0 settings for \code{\link{dba.normalize}} parameters
 are as follows:
-\itemize{
-  \item{\code{normalize}:} {\code{DBA_NORM_DEFAULT}}
-  \item{\code{library}:} {\code{DBA_LIBSIZE_FULL}}
-  \item{\code{background}:} {\code{FALSE}}
+\describe{
+  \item{\code{normalize}:}{\code{DBA_NORM_DEFAULT}}
+  \item{\code{library}:}{\code{DBA_LIBSIZE_FULL}}
+  \item{\code{background}:}{\code{FALSE}}
 }
 Note that two parameters that used to be available when calling 
 \code{\link{dba.analyze}} have been moved:
 
-\itemize{
-  \item{\code{bSubControl}:} {now integrated into  \code{\link{dba.count}}. \code{FALSE} by default (unless a greylist has
+\describe{
+  \item{\code{bSubControl}:}{now integrated into  \code{\link{dba.count}}. \code{FALSE} by default (unless a greylist has
   been added using \code{\link{dba.blacklist}}).}
-  \item{\code{bFullLibrarySize}:} {now integrated into  
+  \item{\code{bFullLibrarySize}:}{now integrated into  
   \code{\link{dba.normalize}} as an option for  the \code{library} parameter. 
   \code{library=DBA_LIBSIZE_FULL} is equivalent to \code{bFullLibrarySize=TRUE},
   and \code{library=DBA_LIBSIZE_PEAKREADS} is equivalent to 

@@ -2,6 +2,29 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.23.2}{
+  \itemize{
+    \item{Documentation cleanup: fix Rd ``Lost braces in
+          \code{\\itemize}'' \code{R CMD check} NOTEs across ten
+          \code{man/*.Rd} files plus \code{inst/NEWS.Rd}. Affected
+          blocks were using \code{\\describe}-style two-argument
+          \code{\\item\{label\}\{description\}} items inside an
+          \code{\\itemize} wrapper; for the \code{man/*.Rd} files
+          we converted those wrappers to \code{\\describe} and
+          normalized whitespace between \code{\\item} and the
+          label. For \code{inst/NEWS.Rd} the top-level
+          \code{\\itemize} wrappers are required by R's
+          news-format check, so the few mis-tagged items inside
+          (in the \code{Version 3.0} and \code{Version 1.8.0}
+          sections) were instead converted to single-argument
+          form by merging label and description. Legitimate
+          \code{\\itemize} blocks (true bullet lists with
+          single-argument \code{\\item} entries) are unchanged.
+          The rendered help pages now display proper definition
+          lists rather than malformed bullets. No code change.}
+  }
+}
+
 \section{Version 3.23.1}{
   \itemize{
     \item{Temporarily disable \code{dba.plotProfile()} because the
@@ -121,7 +144,7 @@ Any non-default normalization options must be specified using dba.normalize().
               \item{Add ability to retrieve DESeq2 or edgeR object}
           }
           
-        \item{dba.contrast():} {
+        \item{dba.contrast():
            \itemize{
               \item{Add design parameter to set design formula}
               \item{Add contrast parameter to specify contrast using 
@@ -446,7 +469,7 @@ Changes since last release:
 
 \itemize{
 
-     \item{Add support for DESeq2:}{
+     \item{Add support for DESeq2:
      \itemize{
       \item{New: Add DBA_DESEQ2, DBA_ALL_METHODS and DBA_ALL_BLOCK method constants}
       \item{Change: dba.analyze can analyze using DESeq2}
@@ -455,7 +478,7 @@ Changes since last release:
      }
    }
 
-     \item{Changes to counting using dba.count:}{
+     \item{Changes to counting using dba.count:
        \itemize{
         \item{Change: optimize built-in counting code to use much less memory and run faster}
         \item{Change: deprecate bLowMem, replaced with bUseSummarizeOverlaps}
@@ -465,7 +488,7 @@ Changes since last release:
 
    \item{New: generation of result-based DBA object using dba.report (makes it easier to work with differentially bound peaksets)}{}
 
-    \item{Changes to defaults:}{
+    \item{Changes to defaults:
       \itemize{
         \item{Change: default score is now DBA_SCORE_TMM_MINUS_FULL instead of DBA_SCORE_TMM_MINUS_EFFECTIVE in dba.count}
        \item{Change: default value for bFullLibrarySize is now TRUE in dba.analyze}

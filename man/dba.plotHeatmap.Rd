@@ -144,10 +144,10 @@ based on the specified correlation record, using the statistic specified in \cod
 if correlations is specified as a dataframe returned by  \code{\link{dba.overlap}}, 
 indicates which statistic to plot. 
 One of:
-\itemize{
-\item{\code{\link{DBA_COR}}}  {Correlation}
-\item{\code{\link{DBA_OLAP}}}  {Percentage overlap}
-\item{\code{\link{DBA_INALL}}}  {number of peaks common to both samples}
+\describe{
+\item{\code{\link{DBA_COR}}}{Correlation}
+\item{\code{\link{DBA_OLAP}}}{Percentage overlap}
+\item{\code{\link{DBA_INALL}}}{number of peaks common to both samples}
 }
 }
 \item{ColAttributes}{

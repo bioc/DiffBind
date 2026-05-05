@@ -26,10 +26,10 @@ DBA object that includes count data for a consensus peakset.
 Underlying method, or vector of methods, for which to normalize.
 
 Supported methods:
-\itemize{ 
-  \item{\code{\link{DBA_EDGER}}} {use \code{edgeR} package for analysis}
-  \item{\code{\link{DBA_DESEQ2}}} {use \code{DESeq2} package for analysis}
-  \item{\code{\link{DBA_ALL_METHODS}}} {normalize for both 
+\describe{ 
+  \item{\code{\link{DBA_EDGER}}}{use \code{edgeR} package for analysis}
+  \item{\code{\link{DBA_DESEQ2}}}{use \code{DESeq2} package for analysis}
+  \item{\code{\link{DBA_ALL_METHODS}}}{normalize for both 
  both \code{edgeR} and \code{DESeq2}}
 }
 }
@@ -40,33 +40,26 @@ or a specification of a method to use to calculate normalization factors.
 
 
 Methods can be specified using one of the following:
- \itemize{
-   \item{\code{DBA_NORM_RLE} ("RLE")} 
-   {RLE normalization (native to \code{DBA_DESEQ2},
+ \describe{
+   \item{\code{DBA_NORM_RLE} ("RLE")}{RLE normalization (native to \code{DBA_DESEQ2},
    and available for \code{DBA_EDGER}).}
-   \item{\code{DBA_NORM_TMM} ("TMM")} 
-   {TMM normalization (native to \code{DBA_EDGER},
+   \item{\code{DBA_NORM_TMM} ("TMM")}{TMM normalization (native to \code{DBA_EDGER},
    and available for \code{DBA_DESEQ2}).}
-   \item{\code{DBA_NORM_NATIVE} ("native")} 
-   {Use native method based on \code{method}: 
+   \item{\code{DBA_NORM_NATIVE} ("native")}{Use native method based on \code{method}: 
    \code{DBA_NORM_RLE} for \code{DBA_DESEQ2} or
    \code{DBA_NORM_TMM} for \code{DBA_EDGER}.}
-   \item{\code{DBA_NORM_LIB} ("lib")}     
-   {Normalize by library size only.
+   \item{\code{DBA_NORM_LIB} ("lib")}{Normalize by library size only.
    Library sizes can be specified using the \code{library} parameter.
    Normalization factors will be calculated to give each equal weight
    in a manner appropriate for the analysis \code{method}.
    See also the \code{libFun} parameter, which can be used to
    scale the normalization factors for \code{DESeq2.}}
-   \item{\code{DBA_NORM_DEFAULT} ("default")} 
-   {Default method: The "preferred" normalization approach
+   \item{\code{DBA_NORM_DEFAULT} ("default")}{Default method: The "preferred" normalization approach
    depending on \code{method} and whether an explicit
    design is present. See \code{Details} below.}
-   \item{\code{DBA_NORM_OFFSETS} ("offsets")} 
-   {Indicates that offsets have been specified using the \code{offsets}
+   \item{\code{DBA_NORM_OFFSETS} ("offsets")}{Indicates that offsets have been specified using the \code{offsets}
    parameter, and they should be used without alteration.}
-   \item{\code{DBA_NORM_OFFSETS_ADJUST} ("adjust offsets")} 
-   {Indicates that offsets have been specified using the \code{offsets}
+   \item{\code{DBA_NORM_OFFSETS_ADJUST} ("adjust offsets")}{Indicates that offsets have been specified using the \code{offsets}
    parameter, and they should be adjusted for library size and mean centering
    before being used in a \code{DBA_DESEQ2} analysis.}
  }
@@ -78,18 +71,14 @@ or a specification of a method to use to calculate library sizes.
 
 
 Library sizes can be based on one of the following:
- \itemize{
-  \item{\code{DBA_LIBSIZE_FULL} ("full")} 
-  {Use the full library size (total number of reads in BAM/SAM/BED file)}
-  \item{\code{DBA_LIBSIZE_PEAKREADS} ("RiP")} 
-  {Use the number of reads that overlap consensus peaks.}
-  \item{\code{DBA_LIBSIZE_BACKGROUND} ("background")} 
-  {Use the total number of reads aligned to the chromosomes for which there is
+ \describe{
+  \item{\code{DBA_LIBSIZE_FULL} ("full")}{Use the full library size (total number of reads in BAM/SAM/BED file)}
+  \item{\code{DBA_LIBSIZE_PEAKREADS} ("RiP")}{Use the number of reads that overlap consensus peaks.}
+  \item{\code{DBA_LIBSIZE_BACKGROUND} ("background")}{Use the total number of reads aligned to the chromosomes for which there is
   at least one peak. This required a background bin calculation (see parameter
   \code{background}). These values are usually the same or similar to
   \code{DBA_LIBSIZE_FULL}.}
-  \item{\code{DBA_LIBSIZE_DEFAULT} ("default")} 
-  {Default method: The "preferred" library size
+  \item{\code{DBA_LIBSIZE_DEFAULT} ("default")}{Default method: The "preferred" library size
    depending on \code{method}, \code{background}, 
    and whether an explicit design is present. 
    See \code{Details} below.}
@@ -212,28 +201,22 @@ If \code{method=DBA_DESEQ2} or \code{method=DBA_EDGER},
 a record will be returned including normalization values 
 for the appropriate analysis method. This record is a \code{list}
 consists of the following elements:
- \itemize{
-   \item{$norm.method}
-   {A character string corresponding to the normalization method,
+ \describe{
+   \item{$norm.method}{A character string corresponding to the normalization method,
    generally one of the values that can be supplied as a value to 
    \code{normalize}.}
-   \item{$norm.factors}
-   {A vector containing the computed normalization factors.}
-   \item{$lib.method}
-    {A character string corresponding to the value of the method used to
+   \item{$norm.factors}{A vector containing the computed normalization factors.}
+   \item{$lib.method}{A character string corresponding to the value of the method used to
     calculate the library size,
    generally one of the values that can be supplied as a value to 
    \code{library}.}
-   \item{$lib.sizes}
-   {A vector containing the computed library sizes.}
+   \item{$lib.sizes}{A vector containing the computed library sizes.}
 %   \item{$filter.value}
 %   {A numeric value indicating the minimum values used to 
 %   filter consensus peaks.} 
-   \item{$background}
-   {If the normalization if based on binned background reads,
+   \item{$background}{If the normalization if based on binned background reads,
    this field will be \code{TRUE}.}
-   \item{$control.subtract}
-   {If control reads were subtracted from the read counts,
+   \item{$control.subtract}{If control reads were subtracted from the read counts,
    this field will be \code{TRUE}.}
  }
  
@@ -248,13 +231,10 @@ consists of the following elements:
   This element can be passed in as the value to \code{background} or 
  \code{spikein} to re-use a previously computed set of reads.
  It contains three subfields:
- \itemize{
-   \item{$background$binned}
-   {a \code{SummarizedExperiment} object containing the binned counts.}
-   \item{$background$bin.size}
-   {a numeric value with the bin size used.}
-      \item{$background$back.calc}
-   {character string indicating how the background was calculated 
+ \describe{
+   \item{$background$binned}{a \code{SummarizedExperiment} object containing the binned counts.}
+   \item{$background$bin.size}{a numeric value with the bin size used.}
+      \item{$background$back.calc}{character string indicating how the background was calculated 
    (bins, spike-ins, or parallel factor).}
  }
 
@@ -262,12 +242,10 @@ consists of the following elements:
  If \code{offsets} are available,
  this will include an element called \code{$offsets} with two
  subfields:
- \itemize{
-   \item{$offsets$offsets}
-   {a \code{matrix} or a \code{SummarizedExperiment} object 
+ \describe{
+   \item{$offsets$offsets}{a \code{matrix} or a \code{SummarizedExperiment} object 
    containing the offsets.}
-   \item{offsets$offset.method}
-   {a character string indicating the source of the offsets, either
+   \item{offsets$offset.method}{a character string indicating the source of the offsets, either
    \code{"loess"} or \code{"user"}.}
  }
  

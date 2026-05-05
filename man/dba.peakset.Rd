@@ -81,35 +81,35 @@ if missing, one is assigned for a consensus peakset (a concatenation of control 
 }
 \item{peak.caller}{
 peak caller name string. If peaks is specified as a file, and peak.format is missing, a default fie format for the caller will be used (see peak.format).  Supported values:
-\itemize{
-\item {\dQuote{raw}:}	       {default peak.format: raw text file}
-\item {\dQuote{bed}:}	       {default peak.format: bed file}
-\item {\dQuote{narrow}:}  {default peak.format: narrowPeaks file}
-\item {\dQuote{macs}:}     {default peak.format: MACS .xls file}
-\item {\dQuote{bayes}:}    {default peak.format: bayesPeak file}
-\item {\dQuote{tpic}:}	        {default peak.format: TPIC file}
-\item {\dQuote{sicer}:}      {default peak.format: SICER file}
-\item {\dQuote{fp4}:}	        {default peak.format: FindPeaks v4 file}
-\item {\dQuote{swembl}:} {default peak.format: SWEMBL file}
-\item {\dQuote{csv}:} {default peak.format: comma separated value file}
-\item {\dQuote{report}:} {default peak.format: csv file saved via \code{\link{dba.report}}}
+\describe{
+\item{\dQuote{raw}:}{default peak.format: raw text file}
+\item{\dQuote{bed}:}{default peak.format: bed file}
+\item{\dQuote{narrow}:}{default peak.format: narrowPeaks file}
+\item{\dQuote{macs}:}{default peak.format: MACS .xls file}
+\item{\dQuote{bayes}:}{default peak.format: bayesPeak file}
+\item{\dQuote{tpic}:}{default peak.format: TPIC file}
+\item{\dQuote{sicer}:}{default peak.format: SICER file}
+\item{\dQuote{fp4}:}{default peak.format: FindPeaks v4 file}
+\item{\dQuote{swembl}:}{default peak.format: SWEMBL file}
+\item{\dQuote{csv}:}{default peak.format: comma separated value file}
+\item{\dQuote{report}:}{default peak.format: csv file saved via \code{\link{dba.report}}}
 }
 When adding a consensus peakset, a default value (a concatenation of peak caller names) is assigned if this is missing. 
 }
 \item{peak.format}{
 peak format string. If specified, overrides the default file format for the specified peak caller. Supported formats (with default score column):
-\itemize{
-\item {\dQuote{raw}:}	  {raw text file file; scoreCol=4}
-\item {\dQuote{bed}:}	  {bed file; scoreCol=5}
-\item {\dQuote{narrow}:}  {narrowPeaks file; scoreCol=8}
-\item {\dQuote{macs}:}  {MACS .xls file; scoreCol=7}
-\item {\dQuote{bayes}:}  {bayesPeak file; scoreCol=4, filter=0.5}
-\item {\dQuote{tpic}:}	  {TPIC file; scoreCol=0 (all scores=1)}
-\item {\dQuote{sicer}:}  {SICER file; scoreCol=7}
-\item {\dQuote{fp4}:}	  {FindPeaks v4 file; scoreCol=5}
-\item {\dQuote{swembl}:}	{SWEMBL file; scoreCol=4}
-\item {\dQuote{csv}:}	{csv file; scoreCol=4}
-\item {\dQuote{report}:}	{report file; scoreCol=9, bLowerScoreBetter=T}
+\describe{
+\item{\dQuote{raw}:}{raw text file file; scoreCol=4}
+\item{\dQuote{bed}:}{bed file; scoreCol=5}
+\item{\dQuote{narrow}:}{narrowPeaks file; scoreCol=8}
+\item{\dQuote{macs}:}{MACS .xls file; scoreCol=7}
+\item{\dQuote{bayes}:}{bayesPeak file; scoreCol=4, filter=0.5}
+\item{\dQuote{tpic}:}{TPIC file; scoreCol=0 (all scores=1)}
+\item{\dQuote{sicer}:}{SICER file; scoreCol=7}
+\item{\dQuote{fp4}:}{FindPeaks v4 file; scoreCol=5}
+\item{\dQuote{swembl}:}{SWEMBL file; scoreCol=4}
+\item{\dQuote{csv}:}{csv file; scoreCol=4}
+\item{\dQuote{report}:}{report file; scoreCol=9, bLowerScoreBetter=T}
 }
 }
 \item{reads}{
