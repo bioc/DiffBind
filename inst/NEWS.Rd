@@ -2,6 +2,20 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.22.2}{
+  \itemize{
+    \item{Fix bug where \code{bSubControl} set in \code{dba.count()}
+          was not preserved on the returned object, so a subsequent
+          \code{dba.normalize()} (and hence \code{dba.analyze()})
+          could silently fall back to control subtraction based on
+          \code{is.null(greylist)} rather than honoring the value
+          used for counting. \code{pv.counts()} now re-stamps
+          \code{bSubControl} onto the reconstructed object and
+          forwards it through the summit re-centering step. Reported
+          by Tomasz Wlodarczyk and Xiaosai Yao.}
+  }
+}
+
 \section{Version 3.22.1}{
   \itemize{
     \item{Temporarily disable \code{dba.plotProfile()} because the

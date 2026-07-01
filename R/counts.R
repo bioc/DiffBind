@@ -449,6 +449,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
                        bSignal2Noise=bSignal2Noise,bLowMem=saveLowMem,
                        readFormat=readFormat,summits=0,
                        bRecentered=TRUE,minMappingQuality=minMappingQuality,
+                       bSubControl=bSubControl,
                        maxGap=maxGap)
       pv.gc()
       return(res)
@@ -529,9 +530,15 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
   }
   
   res$minCount <- minCount
-  
+  ## Preserve the control-subtraction setting on the reconstructed object.
+  ## pv.vectors() rebuilds 'res' from 'pv' and does not carry $bSubControl,
+  ## so it must be re-stamped here (matching res$minCount above); otherwise
+  ## downstream pv.normalize() falls back to is.null(pv$greylist) and can
+  ## silently override the user's bSubControl choice from dba.count().
+  res$bSubControl <- bSubControl
+
   pv.gc()
-  return(res)	
+  return(res)
 }
 
 pv.nodup <- function(pv,chipnum) {
