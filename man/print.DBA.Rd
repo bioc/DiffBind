@@ -143,7 +143,7 @@ complete the count operation.}
 \item{\code{DBA$config$fragments:}}{\code{logical} indicating how unmatched reads are counted; 
   default is \code{FALSE}.}
 
-\item{\code{DBA$config$scanbamparam:}}{\code{ScanBamParam} object to pass to \code{\link{summarizeOverlaps}}. 
+\item{\code{DBA$config$scanbamparam:}}{\code{ScanBamParam} object to pass to \code{\link[GenomicAlignments]{summarizeOverlaps}}. 
   If present, \code{bRemoveDuplicates} is ignored.}
   
 \item{\code{DBA$config$pp.style:}}{Sets \code{style} parameter for \code{profileplyr::BamBigwig_to_chipProfile}

@@ -126,7 +126,7 @@ the library size will be set to \code{library=DBA_LIBSIZE_BACKGROUND}
 
 \item{spikein}{
 Either a logical value, a character vector of chromosome names,
-a \code{\link{GRanges}} object containing peaks for a parallel factor,
+a \code{\link[GenomicRanges]{GRanges}} object containing peaks for a parallel factor,
 or a \code{$background} object containing previously computed 
 spike-in read counts.
 
@@ -148,7 +148,7 @@ spike-in track will be counted.
 If no spike-in tracks are available, reads on chromosomes with these names
 in the main \code{bamReads} bam files will be counted.
 
-If \code{spikein} is a \code{\link{GRanges}} object containing peaks
+If \code{spikein} is a \code{\link[GenomicRanges]{GRanges}} object containing peaks
 for a parallel factor, then background normalization is performed counting reads
 in the spike-in tracks overlapping peaks in this object.
 
@@ -164,14 +164,14 @@ the library size will be set to \code{library=DBA_LIBSIZE_BACKGROUND}
 \item{offsets}{
 This parameter controls the use of offsets (matrix of normalization factors)
 instead of a single normalization factor for each sample. It can either 
-be a logical value, a \code{matrix}, or a \code{\link{SummarizedExperiment}}.
+be a logical value, a \code{matrix}, or a \code{\link[SummarizedExperiment]{SummarizedExperiment}}.
 
 If it is a logical value and set to \code{FALSE}, 
 no offsets will be computed or used. A value of \code{TRUE}
 indicates that an offset matrix should be computed using a \code{loess} fit.
 
 Alternatively, user-calculated normalization offsets can be supplied
-as a \code{matrix} or as a  \code{\link{SummarizedExperiment}} 
+as a \code{matrix} or as a  \code{\link[SummarizedExperiment]{SummarizedExperiment}} 
 (containing an \code{assay} named "offsets").
 In this case, the user may also set the 
 \code{normalize} parameter to indicate whether the 

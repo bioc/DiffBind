@@ -191,11 +191,11 @@ margin size of plot
 Color scheme; see \code{\link{colorRampPalette}} 
 }
   \item{distMethod}{
-distance method for clustering; see \code{\link{Dist}}
+distance method for clustering; see \code{\link[amap]{Dist}}
 }
 
 \item{\dots}{
-passed on to \code{\link{heatmap.2}}, e.g. \code{scale} etc.
+passed on to \code{\link[gplots]{heatmap.2}}, e.g. \code{scale} etc.
 }
 }
 \details{
@@ -231,7 +231,7 @@ MODE: Binding heatmap plot using the global binding matrix:
 if  correlations is not \code{FALSE}, the overlap/correlation matrix is returned.
 
 if correlations is \code{FALSE}, the sites used in the heatmap are returned in a
-\code{\link{GRanges}} object,
+\code{\link[GenomicRanges]{GRanges}} object,
 in the row order they appear (top to bottom).
 The metadata contains a column for 
 each sample (also in the order they are appear in the clustering plot), 

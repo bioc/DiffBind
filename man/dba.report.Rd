@@ -153,7 +153,7 @@ The class of object for returned report:
 \item \code{\link{DBA_DATA_FRAME}}
 }
 If set to \code{\link{DBA_DATA_SUMMARIZED_EXPERIMENT}}, the result will be 
-a \code{\link{SummarizedExperiment}} object, with all the count data and 
+a \code{\link[SummarizedExperiment]{SummarizedExperiment}} object, with all the count data and 
 sample metadata for the experiment. 
 The contrast statistics will be included as metadata columns in the 
 \code{rowData} of the object.
@@ -165,7 +165,7 @@ Can be set as default behavior by setting \code{DBA$config$DataType}.
 %}
 \value{
 if neither \code{bDB} or \code{bNotDB} is set to \code{TRUE}, 
-a report dataframe or \code{\link{GRanges}} object is returned, 
+a report dataframe or \code{\link[GenomicRanges]{GRanges}} object is returned, 
 with a row for each binding site within the thresholding parameters, 
 and the following columns:
 \item{\code{Chr}}{Chromosome of binding site}

@@ -166,7 +166,7 @@ constructing a new DBA object from a sample sheet.
 }
 
 \item{bSummarizedExperiment}{
-logical indicating whether to return resulting object as a \code{\link{SummarizedExperiment}}.
+logical indicating whether to return resulting object as a \code{\link[SummarizedExperiment]{SummarizedExperiment}}.
 }
 \item{bCorPlot}{
 logical indicating that a correlation heatmap should be plotted before returning. 

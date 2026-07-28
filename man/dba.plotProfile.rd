@@ -47,7 +47,7 @@ in the \code{merge} parameter.
 It can be specified in a number of ways:
 \describe{
 
-\item{\code{\link{GRanges}}}{object containing a set of genomic intervals 
+\item{\code{\link[GenomicRanges]{GRanges}}}{object containing a set of genomic intervals 
 (eg. as returned by \code{\link{dba.report}})}
 
 \item{\code{logical} or \code{numeric}}{vector of length > 1 
@@ -55,10 +55,10 @@ indicating which sites to include in the heatmaps.
 If \code{logical}, vector should be same length as number of 
 consensus sites binding matrix.}
 
-\item{\code{\link{GRangesList}}}{containing a list of \code{\link{GRanges}},
+\item{\code{\link[GenomicRanges]{GRangesList}}}{containing a list of \code{\link[GenomicRanges]{GRanges}},
 each containing a set of genomic intervals. 
 Each element of the list will be plotted in a separate heatmap as a group of sites.
-If the constituent \code{\link{GRanges}} elements are named, the names will
+If the constituent \code{\link[GenomicRanges]{GRanges}} elements are named, the names will
 be used as labels for the site groups.}
 
 \item{A \code{numeric} value}{indicating a contrast on which an analysis has
@@ -82,11 +82,11 @@ included.
 \code{character} string corresponding to the name of a metadata column containing 
 numerical scores used to sort the sites (within each group).
 
-These can be any of the \code{\link{mcols}} name values when passing in \code{sites} 
+These can be any of the \code{\link[S4Vectors]{mcols}} name values when passing in \code{sites} 
 as a \code{GRanges} or \code{GRangesList} object,
 or the metadata fields in a report-based DBA object.
 If the \code{Object} is of type \code{profileplyr-class}, it can
-be any of its \code{\link{mcols}} names for columns corresponding 
+be any of its \code{\link[S4Vectors]{mcols}} names for columns corresponding 
 to numeric values. 
 
 If \code{scores=NULL}, the sites will be sorted by their

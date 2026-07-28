@@ -2,6 +2,19 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.23.4}{
+  \itemize{
+    \item{Add package anchors to \code{\\link\{...\}} cross-references
+          that target topics in other packages (\pkg{GenomicRanges},
+          \pkg{SummarizedExperiment}, \pkg{S4Vectors}, \pkg{DESeq2},
+          \pkg{GenomicAlignments}, \pkg{GreyListChIP}, \pkg{amap},
+          \pkg{gplots}, \pkg{lattice}, \pkg{systemPipeR}), eliminating
+          the ``Found Rd file(s) with Rd \code{\\link\{\}} targets
+          missing package anchors'' \code{R CMD check} NOTE. 14
+          \code{man/*.Rd} files updated. No code change.}
+  }
+}
+
 \section{Version 3.23.3}{
   \itemize{
     \item{Fix bug where \code{bSubControl} set in \code{dba.count()}

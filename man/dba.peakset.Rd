@@ -28,7 +28,7 @@ DBA object. Required unless creating a new DBA object by adding an initial peaks
 }
 
 \item{peaks}{
-When adding a specified peakset: set of peaks, either a \code{\link{GRanges}} object,
+When adding a specified peakset: set of peaks, either a \code{\link[GenomicRanges]{GRanges}} object,
 or a peak dataframe or matrix (chr,start,end,score), or a filename where the peaks are stored.
 
 When adding a consensus peakset: a sample mask or vector of peakset numbers to include in the consensus. 
@@ -43,7 +43,7 @@ Sample sets will  be derived only from subsets of these peaksets.
 When adding all the peaks from one DBA object to another: a DBA object. 
 In this case, the only other parameter to have an effect is \code{minOverlap}.
 
-When retrieving and/or writing a peakset: either a \code{\link{GRanges}}, or a peak dataframe or 
+When retrieving and/or writing a peakset: either a \code{\link[GenomicRanges]{GRanges}}, or a peak dataframe or 
 matrix (chr,start,end,score), or a peakset number; 
 if \code{NULL}, retrieves/writes the full binding matrix.
 }
@@ -237,7 +237,7 @@ MODE: Write a peakset out to a file:
 }
 \value{
 DBA object when adding a peakset.
-Peakset matrix or \code{\link{GRanges}} object when retrieving and/or writing a peakset.
+Peakset matrix or \code{\link[GenomicRanges]{GRanges}} object when retrieving and/or writing a peakset.
 }
 %\references{
 %% ~put references to the literature/web site here ~

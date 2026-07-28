@@ -100,7 +100,7 @@ differentially bound sites (based on \code{contrast},
 should be overlaid in red.
 }
 \item{highlight}{
-  \code{\link{GRanges}} object with sites to highlight in green.
+  \code{\link[GenomicRanges]{GRanges}} object with sites to highlight in green.
 }
 
   \item{bSmooth}{

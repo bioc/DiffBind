@@ -91,9 +91,9 @@ If changed from \code{FALSE}, the underlying DE analysis object is returned
 instead of running a new analysis.
 Possible values for \code{bRetrieveAnalysis}:
 \describe{
-  \item{\code{DBA_DESEQ2}}{Returns the \code{DESeq2} \code{\link{DESeqDataSet}}}.
+  \item{\code{DBA_DESEQ2}}{Returns the \code{DESeq2} \code{\link[DESeq2]{DESeqDataSet}}}.
   \item{\code{DBA_EDGER}}{Returns the \code{edgeR} \code{DGEList}}.  
-  \item{\code{TRUE}}{Returns the \code{DESeq2} \code{\link{DESeqDataSet}}, 
+  \item{\code{TRUE}}{Returns the \code{DESeq2} \code{\link[DESeq2]{DESeqDataSet}}, 
   if present. If not, returns the \code{edgeR} \code{DGEList}, if present.}.
 }
 An analysis object will only be successfully returned if there is at
@@ -130,7 +130,7 @@ the \code{edgeR} and \code{DESeq2} analyses are carried out.
 \value{
 DBA object with results of analysis added to \code{DBA$contrasts}.
 
-Alternatively, an analysis object (either a \code{\link{DESeqDataSet}}
+Alternatively, an analysis object (either a \code{\link[DESeq2]{DESeqDataSet}}
 or a \code{DGEList}) if \code{bRetrieveAnalysis} if not \code{FALSE}.
 }
 

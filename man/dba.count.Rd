@@ -151,7 +151,7 @@ it will be set to \code{TRUE} unless a greylist has been applied
 for filtering by mapping quality (mapqc). 
 Only alignments with mapping scores of at least this value will be included. 
 Only applicable for bam files when \code{bUseSummarizeOverlaps=FALSE} 
-(setting \code{DBA$config$scanbamparam} appropriately to filter on quality scores when using \code{\link{summarizeOverlaps}}.)
+(setting \code{DBA$config$scanbamparam} appropriately to filter on quality scores when using \code{\link[GenomicAlignments]{summarizeOverlaps}}.)
 }
 
 \item{filterFun}{
@@ -179,7 +179,7 @@ DBA_SCORE_RPKM_FOLD and DBA_SCORE_READS_FOLD).
 }
 
 \item{bUseSummarizeOverlaps}{
-logical indicating that \code{\link{summarizeOverlaps}} should be used for
+logical indicating that \code{\link[GenomicAlignments]{summarizeOverlaps}} should be used for
 counting instead of the built-in counting code. 
 This option is slower but uses the more standard counting function.
 If \code{TRUE}, all read files must be BAM (.bam extension), with associated index files 
@@ -190,7 +190,7 @@ See notes for when the \code{bRemoveDuplicates} parameter is set to \code{TRUE},
 where the built-in counting code may not correctly handle certain cases and 
 \code{bUseSummarizeOverlaps} should be set to \code{TRUE}.
 
-Five additional parameters for \code{\link{summarizeOverlaps}} may be specified in \code{DBA$config}:
+Five additional parameters for \code{\link[GenomicAlignments]{summarizeOverlaps}} may be specified in \code{DBA$config}:
 \tabular{ll}{
 \code{DBA$config$yieldSize} \tab yieldSize indicating how many reads to process at one time; default is 5000000. 
 The lower this value, the less memory will be used, but the more time it will take to 
@@ -201,7 +201,7 @@ if NULL, status will be automatically detected.\cr
 \code{DBA$config$fragments} \tab logical indicating how unmatched reads are counted; default is \code{FALSE}\cr 
 \code{DBA$config$inter.feature} \tab logical indicating the setting
 for the \code{inter.feature} parameter; default is \code{TRUE}\cr 
-\code{DBA$config$scanbamparam} \tab \code{ScanBamParam} object to pass to \code{\link{summarizeOverlaps}}. 
+\code{DBA$config$scanbamparam} \tab \code{ScanBamParam} object to pass to \code{\link[GenomicAlignments]{summarizeOverlaps}}. 
 If present, \code{bRemoveDuplicates} is ignored.\cr 
 }
 }

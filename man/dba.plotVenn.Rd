@@ -157,7 +157,7 @@ Rory Stark
 When working with results overlaps (a least one \code{contrast} is specified), and results-oriented DBA object is generated internally (as described in \code{\link{dba.report}}). In some cases, it may be better to generate the DBA object explicitly (using \code{\link{dba.report}} or setting \code{bReturnPeaksets=TRUE} and \code{DataType=DBA_DATA_DBAOBJECT}). This include the case where several plots are being made of the same results set, and it takes a long time to generate the results-based DBA object, as well as the case where there are more than four results peaksets and a mask needs to be specified. I
 
 
-This function relies on  \code{\link{vennPlot}} in the  \code{systemPipeR} package, written by Thomas Girke.
+This function relies on  \code{\link[systemPipeR]{vennPlot}} in the  \code{systemPipeR} package, written by Thomas Girke.
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
@@ -165,7 +165,7 @@ This function relies on  \code{\link{vennPlot}} in the  \code{systemPipeR} packa
 \seealso{
  \code{\link{dba.analyze}},  \code{\link{dba.overlap}},  
  \code{\link{dba.report}}, \code{\link{dba.plotPCA}},
- \code{\link{vennPlot}}
+ \code{\link[systemPipeR]{vennPlot}}
 }
 
 \examples{

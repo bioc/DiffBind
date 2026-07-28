@@ -29,7 +29,7 @@ If successful, and a blacklist is available for that genome, it
 will be applied.
 
 A user specified blacklist can be specified by setting this parameter to
-a \code{\link{GRanges}} object containing the blacklisted regions.
+a \code{\link[GenomicRanges]{GRanges}} object containing the blacklisted regions.
 
 Otherwise, this parameter may be set to one of the following constants, 
 indicating which of the ENCODE blacklists should be applied:
@@ -78,9 +78,9 @@ objects:
 }     
 
 A user specified greylist can also be specified by setting this parameter to
-a \code{\link{GRanges}} object containing the greylisted regions.
+a \code{\link[GenomicRanges]{GRanges}} object containing the greylisted regions.
 It can also be a \code{list} with an element named \code{greylist$master},
-which is a \code{\link{GRanges}} object containing the greylist to be applied.
+which is a \code{\link[GenomicRanges]{GRanges}} object containing the greylist to be applied.
 }
 
 \item{Retrieve}{
@@ -89,18 +89,18 @@ If present, some aspects of a previous run of the function is retrieved instead
 of returning a \code{DBA} object.
 
 If \code{Retrieve=DBA_BLACKLIST}, the blacklist, if present, is returned as a
-\code{\link{GRanges}} object.
+\code{\link[GenomicRanges]{GRanges}} object.
 
 If \code{Retrieve=DBA_GREYLIST}, the greylist, if present, is returned.
 If it was generated from more than one control, it will be returned as
 a \code{list} object with the first element (named \code{$master}) a 
-\code{\link{GRanges}} object containing the merged greylist, and the second
-element (named \code{$controls}) being a \code{\link{GRangesList}}
+\code{\link[GenomicRanges]{GRanges}} object containing the merged greylist, and the second
+element (named \code{$controls}) being a \code{\link[GenomicRanges]{GRangesList}}
 with each element containing the greylist for one control
 
 If \code{Retrieve=DBA_BLACKLISTED_PEAKS}, 
 the excluded peaks for each sample will be returned in
-a \code{\link{GRangesList}} object (with each element containing the
+a \code{\link[GenomicRanges]{GRangesList}} object (with each element containing the
 filtered peak intervals for each sample).
 If counts are available for the peaks, this will include the following metadata columns:
 \describe{
@@ -153,7 +153,7 @@ Rory Stark with thanks to Gord Brown
 
 The \code{p} threshold can be altered by setting \code{DBA$config$greylist.pval}. 
 The default is \code{0.999}. 
-See \code{GreyListChIP::}\code{\link{calcThreshold}} for details.
+See \code{GreyListChIP::}\code{\link[GreyListChIP]{calcThreshold}} for details.
 
 Ideally, Blacklists and Greylists will be applied to the aligned reads prior
 to calling peaks, as removing reads in anomalous regions
@@ -163,7 +163,7 @@ re-called and read into \code{DiffBind}.
 }
 
 \seealso{
-\code{GreyListChIP (\link{GreyList})}, \code{BSgenome}, 
+\code{GreyListChIP (\link[GreyListChIP]{GreyList})}, \code{BSgenome}, 
 \code{\link{DBA.config}}.
 }
 \examples{

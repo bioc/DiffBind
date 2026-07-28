@@ -180,7 +180,7 @@ MODE: PCA plot using global binding matrix:
                        b3D=F, vColors, dotSize, ...)}
 }
 \value{
-\code{trellis} plot from \code{\link{lattice}} package; see \code{\link{xyplot}}
+\code{trellis} plot from \code{\link[lattice]{lattice}} package; see \code{\link[lattice]{xyplot}}
 }
 %\references{
 %% ~put references to the literature/web site here ~
