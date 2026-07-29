@@ -449,7 +449,7 @@ pv.counts <- function(pv,peaks,minOverlap=2,defaultScore=PV_SCORE_NORMALIZED,
                        bSignal2Noise=bSignal2Noise,bLowMem=saveLowMem,
                        readFormat=readFormat,summits=0,
                        bRecentered=TRUE,minMappingQuality=minMappingQuality,
-                       bSubControl=bSubControl,
+                       bSubControl=bSubControl, minCount=minCount,
                        maxGap=maxGap)
       pv.gc()
       return(res)

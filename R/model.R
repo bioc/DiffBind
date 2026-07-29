@@ -341,7 +341,7 @@ pv.vectors <- function(pv,mask,minOverlap = 2,attributes,bAllSame = FALSE,
     pv$score      <- score
     pv$SN         <- SN
     pv$summits    <- summits
-    pv$minCount   <- pv$minCount
+    pv$minCount   <- minCount
     pv$blacklist  <- blacklist
     pv$greylist   <- greylist
     pv$peaks.blacklisted <- peaks.blacklisted

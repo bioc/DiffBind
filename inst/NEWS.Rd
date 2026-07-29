@@ -2,6 +2,23 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.23.5}{
+  \itemize{
+    \item{Fix bug where a user-supplied \code{minCount} in
+          \code{dba.count()} was silently reset to 0 when summit
+          re-centering was used (the default): the recursive
+          re-centering count did not forward \code{minCount}. Now
+          forwarded.}
+    \item{Fix a latent typo in \code{pv.vectors()}
+          (\code{pv$minCount <- pv$minCount} read from the
+          just-rebuilt object instead of the saved value), which
+          dropped \code{minCount} whenever an object was
+          reconstructed. As \code{pv.vectors()} underlies many
+          operations, \code{minCount} is now preserved consistently.
+          Default behavior (\code{minCount = 0}) is unchanged.}
+  }
+}
+
 \section{Version 3.23.4}{
   \itemize{
     \item{Add package anchors to \code{\\link\{...\}} cross-references
