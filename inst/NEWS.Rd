@@ -2,6 +2,36 @@
 \title{DiffBind News}
 \encoding{UTF-8}
 
+\section{Version 3.23.6}{
+  \itemize{
+    \item{Restore \code{dba.plotProfile()}, which was disabled when the
+          \pkg{profileplyr} package (and its \pkg{soGGi} dependency)
+          became uninstallable. Profiles are now computed directly from
+          the BAM files with \code{EnrichedHeatmap::normalizeToMatrix()}
+          and rendered with \pkg{EnrichedHeatmap} / \pkg{ComplexHeatmap},
+          removing the dependency on \pkg{profileplyr} and \pkg{soGGi}.
+          All existing parameters and the ways of specifying samples and
+          sites are supported, and the returned object is now a
+          \code{\link[SummarizedExperiment]{RangedSummarizedExperiment}}
+          rather than a \code{profileplyr} object.}
+    \item{Feature annotation of profiled sites is not provided by the new
+          backend; the \code{annotate} argument is accepted but ignored.}
+    \item{The dashed vertical line that \pkg{EnrichedHeatmap} draws at the
+          profiled position is suppressed, matching the previous plots. It
+          can be turned on by passing \code{pos_line=TRUE}.}
+    \item{Scale the sample-name column titles down when the figure is too
+          narrow to show them side by side, instead of letting them overlap.
+          Wider figures are unaffected, and an explicit
+          \code{column_title_gp} still takes precedence.}
+    \item{Choose a bitmap device type that works on the current system when
+          rasterizing the heatmap bodies. \pkg{ComplexHeatmap} requests
+          \code{type="cairo"}, which fails on installations without a usable
+          cairo (notably macOS without X11), previously making
+          \code{dba.plotProfile()} stop with an opaque error. If no type
+          works, the heatmaps are drawn un-rasterized instead.}
+  }
+}
+
 \section{Version 3.23.5}{
   \itemize{
     \item{Fix bug where a user-supplied \code{minCount} in

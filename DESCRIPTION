@@ -1,6 +1,6 @@
 Package: DiffBind
 Type: Package
-Version: 3.23.5
+Version: 3.23.6
 Title: Differential Binding Analysis of ChIP-Seq Peak Data
 Authors@R: c(person("Rory","Stark", email="bioconductor@starkhome.com",
                   role = c("aut", "cre")),
@@ -19,7 +19,7 @@ Imports: RColorBrewer, amap, gplots, grDevices, limma,
          apeglm, ashr, GreyListChIP
 Suggests: BiocStyle, testthat, xtable,
           rgl, XLConnect, edgeR, csaw, BSgenome, GenomeInfoDb,
-          rtracklayer, grid
+          rtracklayer, grid, EnrichedHeatmap, ComplexHeatmap, circlize
 LinkingTo: Rhtslib (>= 1.99.1), Rcpp
 SystemRequirements: GNU make
 Collate: core.R parallel.R model.R counts.R contrast.R normalize.R

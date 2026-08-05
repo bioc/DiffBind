@@ -146,28 +146,25 @@ complete the count operation.}
 \item{\code{DBA$config$scanbamparam:}}{\code{ScanBamParam} object to pass to \code{\link[GenomicAlignments]{summarizeOverlaps}}. 
   If present, \code{bRemoveDuplicates} is ignored.}
   
-\item{\code{DBA$config$pp.style:}}{Sets \code{style} parameter for \code{profileplyr::BamBigwig_to_chipProfile}
-  when calling \code{\link{dba.plotProfile}.}}
+\item{\code{DBA$config$pp.style:}}{Sets the default \code{style} parameter
+  used when computing profiles in \code{\link{dba.plotProfile}}.}
 
-\item{\code{DBA$config$pp.nOfWindows:}}{Sets \code{nOfWindow} parameter for 
-  \code{profileplyr::BamBigwig_to_chipProfile}
-  when calling \code{\link{dba.plotProfile}.}}
-  
-\item{\code{DBA$config$bin_size:}}{Sets \code{bin_size} parameter for 
-  \code{profileplyr::BamBigwig_to_chipProfile}
-  when calling \code{\link{dba.plotProfile}.}}
+\item{\code{DBA$config$pp.nOfWindows:}}{Sets the default \code{nOfWindows}
+  parameter used when computing profiles in \code{\link{dba.plotProfile}}.}
 
-\item{\code{DBA$config$distanceAround:}}{Sets \code{distanceAround} parameter for 
-  \code{profileplyr::BamBigwig_to_chipProfile}
-  when calling \code{\link{dba.plotProfile}.}}
-  
-\item{\code{DBA$config$distanceUp:}}{Sets \code{distanceUp} parameter for 
-  \code{profileplyr::BamBigwig_to_chipProfile}
-  when calling \code{\link{dba.plotProfile}.}}
-  
-\item{\code{DBA$config$distanceDown:}}{Sets \code{distanceDown} parameter for 
-  \code{profileplyr::BamBigwig_to_chipProfile}
-  when calling \code{\link{dba.plotProfile}.}}
+\item{\code{DBA$config$pp.bin_size:}}{Sets the default \code{bin_size}
+  parameter used when computing profiles in \code{\link{dba.plotProfile}}.}
+
+\item{\code{DBA$config$pp.distanceAround:}}{Sets the default
+  \code{distanceAround} parameter used when computing profiles in
+  \code{\link{dba.plotProfile}}.}
+
+\item{\code{DBA$config$pp.distanceUp:}}{Sets the default \code{distanceUp}
+  parameter used when computing profiles in \code{\link{dba.plotProfile}}.}
+
+\item{\code{DBA$config$pp.distanceDown:}}{Sets the default
+  \code{distanceDown} parameter used when computing profiles in
+  \code{\link{dba.plotProfile}}.}
   
 \item{\code{DBA$config$id:}}{\code{character} string to use to replace \code{"ID"}
   when displaying a \code{DBA} object (\code{\link{dba.show}})}

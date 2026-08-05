@@ -1447,7 +1447,7 @@ dba.plotProfile <- function(Object, samples, sites,
                             scores="Score", labels, # annotate=TRUE, 
                             normalize=TRUE, merge=DBA_REPLICATE,
                             maxSites=1000, absScores=TRUE, 
-                            doPlot=is(Object,"profileplyr"),
+                            doPlot=is(Object,"SummarizedExperiment"),
                             ...)
 {
   Object <- pv.check(Object,bCheckEmpty=TRUE)
@@ -1455,7 +1455,7 @@ dba.plotProfile <- function(Object, samples, sites,
   res <- pv.plotProfile(pv=Object, mask=samples, sites=sites, maxSites=maxSites, 
                         scores=scores, annotate=FALSE, labels=labels,
                         normalize=normalize,merge=merge, absScores=absScores,
-                        doPlot=doPlot, returnVal="profileplyr",
+                        doPlot=doPlot, returnVal="profiles",
                         ...) 
   
   pv.gc(force=TRUE)

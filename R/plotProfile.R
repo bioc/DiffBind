@@ -9,42 +9,23 @@ pv.distanceDown   <- 1000
 pv.plotProfile <- function(pv, mask, sites, maxSites=1000, labels,
                            scores="Score", absScores=TRUE, annotate=TRUE,
                            normalize=TRUE,merge=DBA_REPLICATE,
-                           doPlot=TRUE, returnVal="profileplyr",
+                           doPlot=TRUE, returnVal="profiles",
                            ...) {
 
-  ## ----- TEMPORARILY DISABLED in this release -----
-  ## The upstream profileplyr package does not install in the current
-  ## Bioconductor release (GenomicFeatures::makeTxDbFromGFF was removed
-  ## upstream; profileplyr's maintainer is unresponsive). dba.plotProfile
-  ## is therefore disabled until profileplyr is restored or a replacement
-  ## backend is wired in. To re-enable:
-  ##   1. remove this block,
-  ##   2. re-add 'profileplyr' to Suggests: in DESCRIPTION,
-  ##   3. (optional) revert the getExportedValue() calls below to
-  ##      direct profileplyr::xxx references for readability.
-  ## The remaining body of this function is preserved and uses
-  ## getExportedValue() for profileplyr symbols so it parses cleanly
-  ## under R CMD check without a declared profileplyr dependency.
-  message("dba.plotProfile() is currently disabled: the profileplyr ",
-          "package is unavailable in this Bioconductor release. ",
-          "Profile plotting will be restored in a future release.")
-  return(invisible(NULL))
-  ## ----- END TEMPORARY DISABLE -----
-
-  ## requireNamespace call hidden via do.call to keep the package name
-  ## opaque to R CMD check's static analyser (which would otherwise warn
-  ## "namespace not declared in DESCRIPTION" because we removed
-  ## profileplyr from Suggests). do.call resolves the same way at runtime.
-  if (!suppressWarnings(do.call("requireNamespace",
-                                list("profileplyr", quietly = TRUE)))) {
-    stop("Package profileplyr not installed", call. = FALSE)
+  ## Profiles are computed natively (BAM coverage binned with
+  ## EnrichedHeatmap::normalizeToMatrix) and rendered with
+  ## EnrichedHeatmap/ComplexHeatmap, replacing the withdrawn
+  ## profileplyr/soGGi backend. See pv.profiles() and pv.profileHeatmap().
+  if (!requireNamespace("EnrichedHeatmap", quietly = TRUE)) {
+    stop("Package 'EnrichedHeatmap' is required for dba.plotProfile().",
+         call. = FALSE)
   }
-  
+
   if(missing(sites)) {
     sites <- NULL
   }
   
-  if(!is(pv,"profileplyr")) { # Need to compute profiles
+  if(!is(pv,"SummarizedExperiment")) { # Need to compute profiles
     
     if(missing(mask)) {
       mask <- NULL
@@ -237,19 +218,7 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000, labels,
     profiles <- pv.profiles(pv, samples, bedfiles,
                             mergelist = merge, normfacs = normfacs,
                             ...) 
-    ## Complex assignment with a dynamic function reference (the
-    ## getExportedValue() pattern used elsewhere in this file) cannot be
-    ## walked by R CMD check's static analyser, AND cannot be evaluated at
-    ## runtime either — R's complex-assignment rewriter requires the LHS
-    ## function to be a name (or a pkg::name expression), not an arbitrary
-    ## expression. eval(parse(...)) preserves the original chained
-    ## assignment in a form the static analyser doesn't see, and at runtime
-    ## (when re-enabled) parses fresh and executes the pkg::name form,
-    ## which R's complex-assignment system handles correctly.
-    eval(parse(text = paste0(
-      "rownames(profileplyr::sampleData(profiles)) <- ",
-      "names(assays(profiles)) <- sampnames"
-    )))
+    names(assays(profiles)) <- sampnames
     
     # Add group labels
     if(!groups) {
@@ -267,10 +236,10 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000, labels,
         grp <- fn[length(fn)]
         grlabels[grlabels==grp] <- groupnames[i]
       }
-      rowData(profiles)$"Binding Sites" <- factor(grlabels, 
+      rowData(profiles)$"Binding Sites" <- factor(grlabels,
                                                   levels=unique(grlabels),
                                                   labels=groupnames)
-      profiles@params$rowGroupsInUse <- "Binding Sites"
+      metadata(profiles)$params$rowGroupsInUse <- "Binding Sites"
     }
     
     # Add samplegroup labels
@@ -374,18 +343,16 @@ pv.plotProfile <- function(pv, mask, sites, maxSites=1000, labels,
   
   #return
   
-  if(returnVal == "profileplyr") {
+  if(returnVal == "profiles") {
     return(profiles)
   }
-  
-  if(returnVal == "EnrichedHeatmap") {
+
+  # "EnrichedHeatmap" returns the drawn heatmap; "HeatmapList" returns the
+  # undrawn HeatmapList (see the return_ht_list flag set above).
+  if(returnVal %in% c("EnrichedHeatmap", "HeatmapList")) {
     return(profilehm)
   }
-  
-  if(returnVal == "HeatmapLKist") {
-    return(profilehm)
-  }
-  
+
 }
 
 pv.profiles <- function(pv, samples, sites, mergelist=NULL, normfacs=NULL,
@@ -432,16 +399,23 @@ pv.profiles <- function(pv, samples, sites, mergelist=NULL, normfacs=NULL,
   }
   
   # Check bam files: exist, PE/SE, BAI
-  
+
   if(is.null(pv$config$singleEnd)) {
     bfile <- pv.BamFile(samples[1], bIndex=TRUE)
     pv$config$singleEnd	<- !suppressMessages(
       Rsamtools::testPairedEndBam(bfile))
   }
   paired <- !pv$config$singleEnd
-  
+
+  # Fragment length for single-end read extension
+  fragment <- pv$config$fragmentSize
+  if(is.null(fragment) || !is.numeric(fragment) || any(fragment <= 0)) {
+    fragment <- 125
+  }
+  fragment <- as.integer(fragment[1])
+
   # Get MulticoreParam
-  
+
   if(pv$config$RunParallel) {
     if(is.null(pv$config$cores)) {
       cores <- BiocParallel::multicoreWorkers()
@@ -452,139 +426,175 @@ pv.profiles <- function(pv, samples, sites, mergelist=NULL, normfacs=NULL,
   } else {
     param <-  BiocParallel::SerialParam()
   }
-  
-  # Call profileplyr
-  message("Generating profiles...")
-  profiles <- NULL
-  if(is.null(profiles)) { # NULL check for debugging
-    res <- tryCatch(
-      suppressMessages(
-        profiles <- bplapply(samples,
-                             getExportedValue("profileplyr", "BamBigwig_to_chipProfile"),
-                             sites,
-                             format="bam", paired=paired,
-                             style=style,nOfWindows=nOfWindows,
-                             bin_size=bin_size, 
-                             distanceAround=distanceAround,
-                             distanceUp=distanceUp, distanceDown=distanceDown,
-                             BPPARAM=param)),
-      error=function(x){stop("profileplyr error: ",x)}
-    )
+
+  # Assemble the target sites from the per-group bed files, tracking which
+  # group (bed file) each site came from so downstream group labelling works.
+  sitegr <- NULL
+  for(i in seq_along(sites)) {
+    gr <- rtracklayer::import.bed(sites[i])
+    gr$sgGroup <- basename(sites[i])
+    sitegr <- if(is.null(sitegr)) gr else c(sitegr, gr)
   }
-  
-  # Normalize
+  if(is.null(sitegr$name)) {
+    sitegr$name <- as.character(seq_along(sitegr))
+  }
+
+  # Profiling target: a point (peak centre) or the region body
+  if(style == "point") {
+    target <- GenomicRanges::resize(sitegr, width=1, fix="center")
+  } else {
+    target <- sitegr
+  }
+
+  # Compute one binned signal matrix per sample using native BAM coverage +
+  # EnrichedHeatmap::normalizeToMatrix (replaces profileplyr/soGGi).
+  message("Generating profiles...")
+  oneMatrix <- function(bamfile) {
+    reads <- pv.profileReads(bamfile, paired, fragment)
+    if(style == "point") {
+      # 'point' style: fixed-size bins extending distanceAround bp up- and
+      # down-stream of each peak centre (default 1500 -> 3000bp / 150 bins).
+      EnrichedHeatmap::normalizeToMatrix(reads, target,
+                                         extend = distanceAround,
+                                         w = bin_size, mean_mode = "coverage",
+                                         background = 0, smooth = TRUE)
+    } else {
+      # 'percentOfRegion' style: the region body is divided into nOfWindows
+      # bins, and the flanks extend distanceAround percent of the region width
+      # on each side, binned at that same resolution.  For the documented
+      # example (400bp peaks, nOfWindows=20, distanceAround=300): 20bp bins,
+      # flanks of 1200bp, giving 60 + 20 + 60 = 140 bins across 2800bp.
+      # target_ratio must describe the real geometry, otherwise the body is
+      # sampled at a different resolution than the flanks.
+      medw <- stats::median(GenomicRanges::width(target))
+      ext  <- round(medw * distanceAround / 100)
+      EnrichedHeatmap::normalizeToMatrix(reads, target,
+                                         extend = ext,
+                                         w = max(1, round(medw / nOfWindows)),
+                                         k = nOfWindows,
+                                         target_ratio = medw / (medw + 2*ext),
+                                         mean_mode = "coverage",
+                                         background = 0, smooth = TRUE)
+    }
+  }
+  res <- tryCatch(
+    suppressMessages(
+      matrices <- BiocParallel::bplapply(samples, oneMatrix, BPPARAM = param)),
+    error = function(x){stop("Error generating profiles: ",
+                             conditionMessage(x), call.=FALSE)}
+  )
+
+  # Wrap each sample as a one-assay SummarizedExperiment so the existing
+  # merge/normalize machinery (which operates via assay()) works unchanged.
+  profiles <- lapply(matrices, function(m)
+    SummarizedExperiment::SummarizedExperiment(assays = list(m),
+                                               rowRanges = sitegr))
+
+  # Normalize (divide each sample's signal by its normalization factor)
   if(!is.null(normfacs)) {
     if(length(normfacs) != length(profiles)) {
       warning("Wrong number of normalization factors, skipping.",call.=FALSE)
     } else {
-      for(i in 1:length(normfacs)) {
-        assay(profiles[[i]],1) <-
-          assay(profiles[[i]],1) / normfacs[i]
+      for(i in seq_along(normfacs)) {
+        assay(profiles[[i]],1) <- assay(profiles[[i]],1) / normfacs[i]
       }
     }
   }
-  
+
+  # Merge replicate samples (means of the signal matrices)
   if(!is.null(mergelist)) {
     profiles <- pv.mergeProfiles(profiles, mergelist)
   }
-  
-  if(length(profiles) > 1) {
-    profileobjs <- getExportedValue("profileplyr", "as_profileplyr")(profiles[[1]])
-    for(i in 2:length(profiles) ) {
-      profileobjs <- c(profileobjs, getExportedValue("profileplyr", "as_profileplyr")(profiles[[i]]))
-    }
-    proplyrObject <- profileobjs
+
+  # Combine per-sample matrices into a single multi-assay object
+  matlist <- lapply(profiles, function(x) assay(x,1))
+  combined <- SummarizedExperiment::SummarizedExperiment(assays = matlist,
+                                                         rowRanges = sitegr)
+  rowData(combined)$name    <- sitegr$name
+  rowData(combined)$sgGroup <- sitegr$sgGroup
+  S4Vectors::metadata(combined)$params <-
+    list(style = style, nOfWindows = nOfWindows, bin_size = bin_size,
+         distanceAround = distanceAround,
+         distanceUp = distanceUp, distanceDown = distanceDown)
+
+  return(combined)
+}
+
+# Read a BAM into fragment-level GRanges: paired-end read pairs give the
+# fragment span; single-end reads are extended to the fragment length.
+pv.profileReads <- function(bamfile, paired, fragment) {
+  if(paired) {
+    ga <- GenomicAlignments::readGAlignmentPairs(bamfile)
+    reads <- GenomicRanges::granges(ga)
   } else {
-    proplyrObject <- profiles
+    ga <- GenomicAlignments::readGAlignments(bamfile)
+    reads <- GenomicRanges::resize(GenomicRanges::granges(ga), width = fragment)
   }
-  
-  if(!is(proplyrObject,"profileplyr")) {
-    proplyrObject <- getExportedValue("profileplyr", "as_profileplyr")(proplyrObject)
-  }
-  
-  return(proplyrObject)
+  suppressWarnings(GenomicRanges::trim(reads))
 }
 
 pv.siteScore <- function(profiles, sites, scores, absScores) {
-  
-  if(!is.null(sites)) { # Add metadata
-    psites <- mcols(profiles)$name
+
+  if(!is.null(sites)) { # Add per-site metadata (e.g. fold-change scores)
+    psites <- rowData(profiles)$name
     if(is(sites,"GRangesList")) {
       names(sites) <- NULL
     }
     sites  <- unlist(sites)
     ssites <- names(sites)
-    
+
     matches <- match(psites, ssites)
     if(sum(is.na(matches)) > 0) {
-      mcols(profiles) <- cbind(mcols(profiles), mcols(sites))      
+      rowData(profiles) <- cbind(rowData(profiles), mcols(sites))
     } else {
-      mcols(profiles) <- cbind(mcols(profiles),
-                               mcols(sites[match(psites, ssites),]))
+      rowData(profiles) <- cbind(rowData(profiles),
+                                 mcols(sites[matches,]))
     }
   }
-  
-  profiles@params$mcolToOrderBy <- NULL
+
+  metadata(profiles)$params$mcolToOrderBy <- NULL
   if(!is.null(scores)) {
-    if(!scores %in% names(mcols(profiles))) {
-      if(!is.null(profiles@params$mcolToOrderBy)) {
-        message(scores," not a valid score column, using mean signal.")
-      }
+    if(!scores %in% names(rowData(profiles))) {
+      message(scores," not a valid score column, using mean signal.")
     } else {
-      profiles@params$mcolToOrderBy <- "score"
-      whichscore <- match(scores, names(mcols(profiles)))
-      mcols(profiles)$score <- mcols(profiles)[whichscore][,1]   
+      metadata(profiles)$params$mcolToOrderBy <- "score"
+      whichscore <- match(scores, names(rowData(profiles)))
+      rowData(profiles)$score <- rowData(profiles)[[whichscore]]
       if(absScores) {
-        mcols(profiles)$score <- abs(mcols(profiles)$score)
-      } 
+        rowData(profiles)$score <- abs(rowData(profiles)$score)
+      }
     }
-  } 
-  
-  profiles <- getExportedValue("profileplyr", "orderBy")(profiles,profiles@params$mcolToOrderBy)
-  
+  }
+
+  # Order sites (rows) by the chosen score, else by mean signal. Reordering
+  # the SummarizedExperiment reorders rowRanges, rowData and every assay
+  # matrix consistently (replaces profileplyr::orderBy()).
+  if(!is.null(metadata(profiles)$params$mcolToOrderBy)) {
+    ord <- order(rowData(profiles)$score, decreasing=TRUE)
+  } else {
+    ord <- order(rowMeans(assay(profiles,1)), decreasing=TRUE)
+  }
+  profiles <- profiles[ord, ]
+
   return(profiles)
 }
 
 pv.annotate <- function(pv, profiles, annotate) {
-  
+
+  ## Genomic-feature annotation of the profiled sites was previously provided
+  ## by profileplyr::annotateRanges() (via ChIPseeker). That optional
+  ## annotation strip is not yet re-implemented in the native backend, so the
+  ## profiles are returned without a Features column; pv.profileHeatmap()
+  ## detects this and omits the feature annotation. The core profile plot
+  ## (per-sample heatmaps, site groups, sample-group colouring) is unaffected.
   if(!is.null(rowData(profiles)$Features)) {
     return(profiles)
   }
-  
-  if(is(annotate,"logical")){
-    if(!annotate) {
-      return(profiles)
-    } else {
-      annotate <- pv.genomes(pv$class["bamRead",1],pv$chrmap)
-      if(annotate=="BSgenome.Hsapiens.UCSC.hg19") {
-        annotate <- "hg19"
-      } else if(annotate=="BSgenome.Hsapiens.UCSC.hg38") {
-        annotate <- "hg38"
-      } else if(annotate=="BSgenome.Mmusculus.UCSC.mm9") {
-        annotate <- "mm9"
-      } else if(annotate=="BSgenome.Mmusculus.UCSC.mm10") {
-        annotate <- "mm10"
-      } else {
-        message("Must specify transcriptome")
-        return(profiles)
-      }
-      message("Annotate using: ",annotate)
-    }
+  if(!isFALSE(annotate)) {
+    message("Site feature annotation is not available in this version; ",
+            "plotting profiles without the feature annotation column.")
   }
-  
-  meta <- metadata(profiles)
-  
-  message("Annotating...")
-  suppressMessages(
-    profiles <- getExportedValue("profileplyr", "annotateRanges")(profiles, TxDb=annotate,
-                                            verbose=FALSE)
-  )
-  profiles <- pv.setAnno(profiles)
-  
-  metadata(profiles) <- c(meta,list(annotate=annotate))
-  
   return(profiles)
-  
 }
 
 pv.setAnno <- function(dataset) {
@@ -618,68 +628,277 @@ pv.profileHeatmap <- function(profiles, samples_names, group_names,
                               annotate=FALSE,
                               ret_ht_list=FALSE, ...){
   message("Plotting...")
-  
-  if(is.null(group_names)) {
-    include_group_annotation <- FALSE
-    group_anno_color <- NULL
-  } else {
-    include_group_annotation <- TRUE
-    group_anno_color <- pv.groupColors[1:length(group_names)]
+
+  mats  <- assays(profiles)
+  nsamp <- length(mats)
+  if(is.null(samples_names)) {
+    samples_names <- names(mats)
   }
-  
-  if(is.null(rowData(profiles)$Features)) {
-    annotate <- FALSE
+  if(is.null(samples_names)) {
+    samples_names <- paste0("Sample", seq_len(nsamp))
   }
-  if(annotate) {
-    extra_annotation_columns <- c("Features","TSS Distance" )
-    extra_anno_color = list(c(crukBlue,crukCyan,crukMagenta),
-                            colorRampPalette(c("red", grDevices::rgb(.99,.99,.99), 
-                                               "green"))(n =9))
-  } else {
-    extra_annotation_columns <- NULL
-    extra_anno_color <- NULL
-  }
-  
-  arguments <- list(profiles)
-  
-  args <- list(...)
-  args <- pv.sepProfilingArgs(args, remove=TRUE)
-  addarg <- NULL
-  
-  if(!"matrices_color" %in% names(args)) {
-    conditions <- metadata(profiles)$"Sample Group"
-    if(!is.null(conditions)) {
-      addarg <- pv.addArg(addarg, "matrices_color",
-                          pv.conditionColors[conditions])
+
+  # Row split by binding-site group (e.g. Gain / Loss).  When no analysis has
+  # been done there is a single group (named "Sites"), which is still shown as
+  # a one-colour bar with its own legend.  The legend is titled after whichever
+  # rowData column supplies the grouping, as in the original plots.
+  split_name <- "Binding Sites"
+  row_split  <- rowData(profiles)$"Binding Sites"
+  if(is.null(row_split)) {
+    sg <- rowData(profiles)$sgGroup
+    if(!is.null(sg)) {
+      row_split  <- factor(sg, levels=unique(sg))
+      split_name <- "sgGroup"
     }
   }
-  
-  addarg <- pv.addArg(addarg, "matrices_pos_line",FALSE, args)
-  addarg <- pv.addArg(addarg, "decreasing",TRUE, args)
-  addarg <- pv.addArg(addarg, "sample_names",samples_names, args)
-  addarg <- pv.addArg(addarg, "include_group_annotation",
-                      include_group_annotation, args)
-  addarg <- pv.addArg(addarg, "group_anno_color",
-                      group_anno_color, args)
-  addarg <- pv.addArg(addarg, "group_anno_column_names_gp",
-                      grid::gpar(col="white"), args)
-  addarg <- pv.addArg(addarg, "extra_annotation_columns",
-                      extra_annotation_columns, args)
-  addarg <- pv.addArg(addarg, "extra_anno_color", extra_anno_color, args)
-  addarg <- pv.addArg(addarg, "return_ht_list",ret_ht_list, args)
-  addarg <- pv.addArg(addarg, "raster_device","png", args)
-  addarg <- pv.addArg(addarg, "raster_quality","10", args)
-  
-  
-  if(!is.null(addarg)){
-    arguments <- c(arguments, addarg)
-  }  
-  
-  hm <- do.call(getExportedValue("profileplyr", "generateEnrichedHeatmap"), c(arguments,args))
-  
-  return(hm)
+  # Gain sites are conventionally shown above Loss sites
+  if(!is.null(row_split) && all(c("Gain","Loss") %in% levels(row_split))) {
+    ord <- c("Gain","Loss", setdiff(levels(row_split), c("Gain","Loss")))
+    row_split <- factor(row_split, levels=ord)
+  }
+
+  # Site-group colours (e.g. Gain=blue, Loss=cyan) for the left annotation bar
+  # and the composite profile lines -- shared across all sample panels.
+  group_cols <- NULL
+  if(!is.null(row_split)) {
+    glev <- levels(row_split)
+    group_cols <- pv.groupColors[seq_along(glev)]
+    names(group_cols) <- glev
+  }
+
+  # Per-sample colouring by contrast condition (heatmap body fill)
+  conditions <- S4Vectors::metadata(profiles)$"Sample Group"
+  if(!is.null(conditions)) {
+    cond_int <- as.integer(factor(conditions, levels=unique(conditions)))
+  } else {
+    cond_int <- rep(1L, nsamp)
+  }
+  endcol <- vapply(pv.conditionColors, function(x) x[[2]], character(1))
+
+  # Shared colour scale across panels so samples are comparable
+  qmax <- suppressWarnings(
+    stats::quantile(unlist(lapply(mats, as.vector)), 0.99, na.rm=TRUE))
+  if(!is.finite(qmax) || qmax <= 0) {
+    qmax <- max(vapply(mats, function(m) max(m, na.rm=TRUE), numeric(1)))
+  }
+
+  # Shared y-axis for the composite profile curves, so between-sample
+  # differences in overall signal strength remain visible (rather than each
+  # top plot being auto-scaled to its own maximum).
+  if(!is.null(row_split)) {
+    grp_idx <- split(seq_len(nrow(mats[[1]])), row_split)
+  } else {
+    grp_idx <- list(seq_len(nrow(mats[[1]])))
+  }
+  prof_max <- max(vapply(mats, function(m)
+    max(vapply(grp_idx, function(idx)
+      max(colMeans(m[idx, , drop = FALSE]), na.rm = TRUE), numeric(1))),
+    numeric(1)))
+  prof_ylim <- c(0, prof_max * 1.05)
+
+  # use_raster is controllable (rasterization needs a working bitmap device)
+  dots <- list(...)
+  dots <- pv.sepProfilingArgs(dots, remove=TRUE)
+  use_raster <- if(!is.null(dots$use_raster)) dots$use_raster else TRUE
+
+  # Rasterizing keeps these heatmaps small, but ComplexHeatmap writes each
+  # heatmap body to a temporary PNG using type="cairo", and cairo is not usable
+  # in every R installation (on macOS it needs X11/libXrender, frequently
+  # absent), which makes the raster step fail with an opaque error.  Choose a
+  # bitmap type that works here, and only fall back to un-rasterized output if
+  # none does.
+  raster_param <- pv.rasterParam()
+  if(use_raster && is.null(raster_param)) {
+    use_raster   <- FALSE
+    raster_param <- list()
+  }
+
+  # all_color_scales_equal (default TRUE): every panel shares the one colour
+  # scale (qmax) so intensities are directly comparable between samples.  When
+  # FALSE, each panel is scaled to its own 99th-percentile signal -- matching
+  # the original profileplyr behaviour of independent per-sample colour scales.
+  all_equal <- if(!is.null(dots$all_color_scales_equal))
+                 isTRUE(dots$all_color_scales_equal) else TRUE
+
+  # EnrichedHeatmap draws a dashed vertical line at the target position by
+  # default; the original plots suppressed it (profileplyr's equivalent
+  # matrices_pos_line was set FALSE).  Keep it off, but let it be turned on.
+  pos_line <- if(!is.null(dots$pos_line)) isTRUE(dots$pos_line) else FALSE
+
+  # Shrink the sample-name column titles if the figure is too narrow to hold
+  # them side by side (overridable by passing column_title_gp).
+  title_gp <- if(!is.null(dots$column_title_gp)) {
+                dots$column_title_gp
+              } else {
+                grid::gpar(fontsize=pv.titleFontsize(samples_names, nsamp))
+              }
+  if(all_equal) {
+    panel_qmax <- rep(qmax, nsamp)
+  } else {
+    panel_qmax <- vapply(mats, function(m) {
+      q <- suppressWarnings(stats::quantile(as.vector(m), 0.99, na.rm=TRUE))
+      if(!is.finite(q) || q <= 0) q <- max(m, na.rm=TRUE)
+      q
+    }, numeric(1))
+  }
+
+  pr <- metadata(profiles)$params
+  if(!is.null(pr$style) && pr$style == "point") {
+    ext <- if(!is.null(pr$distanceAround)) pr$distanceAround else pr$distanceUp
+    axis_name <- c(paste0("-", ext), "0", as.character(ext))
+  } else {
+    # percentOfRegion: label the flanks by their width in bins, which is
+    # distanceAround percent of the nOfWindows bins spanning the region body.
+    nflank <- NULL
+    if(!is.null(pr$nOfWindows) && !is.null(pr$distanceAround)) {
+      nflank <- round(pr$nOfWindows * pr$distanceAround / 100)
+    }
+    axis_name <- if(!is.null(nflank) && nflank > 0) {
+      c(paste0("-", nflank), "start", "end", as.character(nflank))
+    } else {
+      c("upstream", "start", "end", "downstream")
+    }
+  }
+
+  # Composite profile lines (top of each panel) coloured by SITE GROUP
+  # (Gain/Loss), the same in every panel -- not by sample condition.
+  topGp <- if(!is.null(group_cols)) grid::gpar(col = unname(group_cols), lwd = 2)
+           else grid::gpar(col = "black", lwd = 2)
+  topAnno <- ComplexHeatmap::HeatmapAnnotation(
+    enrich = EnrichedHeatmap::anno_enriched(gp = topGp, ylim = prof_ylim,
+                                            pos_line = pos_line))
+
+  # Left colour bar identifying the site groups, with its own legend
+  # (drawn once, on the first panel).
+  leftAnno <- NULL
+  if(!is.null(row_split)) {
+    # The annotation is keyed by split_name, so build the arguments by name.
+    anno_arg <- list(row_split)
+    names(anno_arg) <- split_name
+    col_arg <- list(group_cols)
+    names(col_arg) <- split_name
+    leg_arg <- list(list(title = split_name))
+    names(leg_arg) <- split_name
+    leftAnno <- do.call(ComplexHeatmap::rowAnnotation,
+                        c(anno_arg,
+                          list(col = col_arg,
+                               show_annotation_name = FALSE,
+                               annotation_legend_param = leg_arg)))
+  }
+
+  htlist <- NULL
+  legend_conds_seen <- integer(0)
+  for(i in seq_len(nsamp)) {
+    col2   <- endcol[[ ((cond_int[i]-1) %% length(endcol)) + 1 ]]
+    colfun <- circlize::colorRamp2(c(0, panel_qmax[i]), c("white", col2))
+    # Shared scale: draw one legend per condition.  Independent scales: every
+    # panel needs its own legend (each has a different maximum).
+    if(all_equal) {
+      show_leg  <- !(cond_int[i] %in% legend_conds_seen)
+      legend_conds_seen <- c(legend_conds_seen, cond_int[i])
+      leg_title <- if(!is.null(conditions)) conditions[i] else "Signal"
+    } else {
+      show_leg  <- TRUE
+      leg_title <- samples_names[i]
+    }
+    ehm <- EnrichedHeatmap::EnrichedHeatmap(
+      mats[[i]], name = samples_names[i], column_title = samples_names[i],
+      column_title_gp = title_gp,
+      col = colfun, axis_name = axis_name, pos_line = pos_line,
+      use_raster = use_raster, raster_quality = 5,
+      raster_device_param = raster_param,
+      top_annotation = topAnno,
+      left_annotation = if(i == 1) leftAnno else NULL,
+      show_heatmap_legend = show_leg,
+      heatmap_legend_param = list(title = as.character(leg_title)))
+    htlist <- if(is.null(htlist)) ehm else htlist + ehm
+  }
+
+  if(ret_ht_list) {
+    return(htlist)
+  }
+
+  ComplexHeatmap::draw(htlist, split = row_split,
+                       ht_gap = grid::unit(4, "mm"),
+                       main_heatmap = 1)
+  return(invisible(htlist))
 }
 
+
+## Find a bitmap device type usable for ComplexHeatmap's raster temporary
+## images.  ComplexHeatmap asks for type="cairo", which is unavailable in R
+## builds without a working cairo (notably macOS installations lacking X11), so
+## probe once per session and remember the answer:
+##   list()            -- cairo works; leave ComplexHeatmap's default alone
+##   list(type=<type>) -- override with a type that does work
+##   NULL              -- no usable type; the caller should not rasterize
+## Sample names are drawn as column titles at a fixed point size, so several
+## samples in a narrow figure (e.g. the 7-inch figures in the plotProfileDemo
+## notebook) make the titles run into each other.  Scale the font down to what
+## the width available per panel can hold, never going above ComplexHeatmap's
+## own default, so wide figures are unaffected.  A character advance of
+## 0.6 * fontsize is a deliberately conservative estimate for a proportional
+## font -- erring small costs a little legibility, erring large overlaps.
+pv.titleFontsize <- function(labels, nsamp, default=13.2, minimum=5) {
+  width <- tryCatch(grDevices::dev.size("in")[1], error=function(e) NA_real_)
+  if(!is.finite(width) || width <= 0) {
+    return(default)
+  }
+  # leave room for the legends on the right and the site-group bar on the left
+  avail <- (width - 1.75) / max(1L, nsamp)
+  chars <- max(c(nchar(as.character(labels)), 1L))
+  max(minimum, min(default, avail * 72 / (chars * 0.6)))
+}
+
+pv.rasterParam <- function() {
+  cached <- getOption("DiffBind.rasterDeviceType", NULL)
+  if(is.null(cached)) {
+    # Some devices (quartz) only write the file once something has been drawn,
+    # so the probe has to draw -- which makes it essential to confirm that the
+    # probe's own device really opened.  An unusable type (cairo without X11)
+    # only warns, leaving the caller's device current: drawing then lands on
+    # that device and closing it destroys the caller's plot.  So compare
+    # dev.cur() before and after, and never close a device we did not open.
+    probe <- function(type) {
+      file   <- tempfile(fileext=".png")
+      before <- grDevices::dev.cur()
+      ok     <- FALSE
+      tryCatch({
+        suppressWarnings(grDevices::png(file, width=64, height=64, type=type))
+        if(!identical(grDevices::dev.cur(), before)) {
+          graphics::par(mar=rep(0,4))  # default margins exceed a 64px canvas
+          graphics::plot.new()
+          grDevices::dev.off()
+          ok <- file.exists(file) && file.info(file)$size > 0
+        }
+      }, error=function(e) NULL)
+      # Restore the device that was current on entry.
+      guard <- 0L
+      while(!identical(grDevices::dev.cur(), before) &&
+            grDevices::dev.cur() != 1L && guard < 8L) {
+        try(grDevices::dev.off(), silent=TRUE)
+        guard <- guard + 1L
+      }
+      unlink(file)
+      isTRUE(ok)
+    }
+    cached <- "none"
+    for(type in c("cairo","quartz","Xlib")) {
+      if(probe(type)) {
+        cached <- type
+        break
+      }
+    }
+    options(DiffBind.rasterDeviceType=cached)
+  }
+  if(cached == "cairo") {
+    return(list())
+  }
+  if(cached == "none") {
+    return(NULL)
+  }
+  list(type=cached)
+}
 
 pv.addArg <- function(addarg, param, val, args=NULL) {
   
