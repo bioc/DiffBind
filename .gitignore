@@ -1,0 +1,24 @@
+# Compiled code from src/ -- rebuilt by R CMD INSTALL / R CMD build
+src/*.o
+src/*.so
+src/*.dll
+src/*.dylib
+
+# R CMD build / check output
+*.Rcheck/
+*.tar.gz
+
+# R session leftovers
+.Rhistory
+.RData
+.Rproj.user/
+Rplots.pdf
+
+# Editor and OS cruft
+*.swp
+.DS_Store
+
+# Claude Code session state and worktrees (also in .Rbuildignore, which
+# governs the built tarball rather than what git tracks)
+.claude/
+CLAUDE.md
